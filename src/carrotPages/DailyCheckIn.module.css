@@ -1,0 +1,151 @@
+.fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.bgWhite {
+  background-color: white;
+}
+
+.roundedLg {
+  border-radius: 0.5rem;
+}
+
+.p4 {
+  padding: 1rem;
+}
+
+.maxWMd {
+  max-width: 28rem;
+}
+
+.mxAuto {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.mb4 {
+  margin-bottom: 1rem;
+}
+
+.textXl {
+  font-size: 1.25rem;
+}
+
+.fontBold {
+  font-weight: bold;
+}
+
+.textGray500 {
+  color: #6b7280;
+}
+
+.textGray600 {
+  color: #4b5563;
+}
+
+.textCenter {
+  text-align: center;
+}
+
+.grid {
+  display: grid;
+}
+
+.gridCols2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.gap4 {
+  gap: 1rem;
+}
+
+.mb6 {
+  margin-bottom: 1.5rem;
+}
+
+.bgGreen500 {
+  background-color: #28a745;
+}
+
+.bgGray200 {
+  background-color: #e2e8f0;
+}
+
+.textWhite {
+  color: white;
+}
+
+.textYellow500 {
+  color: #ecc94b;
+}
+
+.cursorNotAllowed {
+  cursor: not-allowed;
+}
+
+.opacity50 {
+  opacity: 0.5;
+}
+
+.wFull {
+  width: 100%;
+}
+
+.py3 {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+.rounded {
+  border-radius: 0.25rem;
+}
+
+.bgGray400 {
+  background-color: #9ca3af;
+}
+
+.bgCustomColor {
+  background-color: rgb(101, 113, 254);
+}
+
+.textGold {
+  color: #ffd700;
+}
+
+.flex {
+  display: flex;
+}
+
+.justifyBetween {
+  justify-content: space-between;
+}
+
+.itemsCenter {
+  align-items: center;
+}
+
+.flexCol {
+  flex-direction: column;
+}
+
+.justifyCenter {
+  justify-content: center;
+}
+
+.mr1 {
+  margin-right: 0.25rem;
+}
+
+.text2xl {
+  font-size: 1.5rem;
+}
+
+.textCenterFontBold {
+  text-align: center;
+  font-weight: bold;
+}
