@@ -1,14 +1,18 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import AWS from 'aws-sdk';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import AWS from "aws-sdk";
 
 const TapContext = createContext();
 
 export const useTapContext = () => useContext(TapContext);
 
 export const TapProvider = ({ children }) => {
-  const [username, setUsername] = useState('defaultUser');
+  const [username, setUsername] = useState("defaultUser");
   const [count, setCount] = useState(0);
-  const [coinsPerTap, setCoinsPerTap] = useState(1);
+  // const [coinsPerTap, setCoinsPerTap] = useState(1);
+  const [coinsPerTap, setCoinsPerTap] = useState(() => {
+    const storedCoinsPerTap = localStorage.getItem("coinsPerTap");
+    return storedCoinsPerTap ? parseInt(storedCoinsPerTap, 10) : 1;
+  });
   const [energyLimit, setEnergyLimit] = useState(500);
   const [refillRate, setRefillRate] = useState(300);
   const [energy, setEnergy] = useState(500);
@@ -22,10 +26,10 @@ export const TapProvider = ({ children }) => {
     region: process.env.REACT_APP_AWS_REGION,
   });
 
-  AWS.config.logger = console;  // Add this line to enable logging
+  AWS.config.logger = console; // Add this line to enable logging
 
   const dynamoDB = new AWS.DynamoDB.DocumentClient();
-  const tableName = process.env.REACT_APP_DYNAMODB_TABLE || 'TapUsers';
+  const tableName = process.env.REACT_APP_DYNAMODB_TABLE || "TapUsers";
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -46,7 +50,7 @@ export const TapProvider = ({ children }) => {
         setReferredUsers(user.referredUsers || []);
         setSuccessfulReferrals(user.successfulReferrals || 0);
       } catch (error) {
-        console.error('Error fetching user data:', error);
+        console.error("Error fetching user data:", error);
       }
     };
 
@@ -71,19 +75,35 @@ export const TapProvider = ({ children }) => {
         };
         await dynamoDB.put(params).promise();
       } catch (error) {
-        console.error('Error updating user data:', error);
+        console.error("Error updating user data:", error);
       }
     };
 
     if (username) {
       updateUser();
     }
-  }, [username, count, coinsPerTap, energyLimit, refillRate, energy, referredUsers, successfulReferrals]);
+  }, [
+    username,
+    count,
+    coinsPerTap,
+    energyLimit,
+    refillRate,
+    energy,
+    referredUsers,
+    successfulReferrals,
+  ]);
+
+  // New add
+  useEffect(() => {
+    localStorage.setItem("coinsPerTap", coinsPerTap);
+  }, [coinsPerTap]);
 
   useEffect(() => {
     const savedTime = localStorage.getItem("lastUpdateTime");
     if (savedTime) {
-      const elapsedSeconds = Math.floor((Date.now() - parseInt(savedTime, 10)) / 1000);
+      const elapsedSeconds = Math.floor(
+        (Date.now() - parseInt(savedTime, 10)) / 1000
+      );
       const energyGain = Math.floor(elapsedSeconds / refillRate);
       setEnergy((prevEnergy) => Math.min(prevEnergy + energyGain, energyLimit));
     }
@@ -93,12 +113,13 @@ export const TapProvider = ({ children }) => {
   useEffect(() => {
     const interval = setInterval(() => {
       setEnergy((prevEnergy) => {
-        const newEnergy = prevEnergy < energyLimit ? prevEnergy + 1 : energyLimit;
+        const newEnergy =
+          prevEnergy < energyLimit ? prevEnergy + 1 : energyLimit;
         localStorage.setItem("energy", newEnergy);
         localStorage.setItem("lastUpdateTime", Date.now());
         return newEnergy;
       });
-    }, refillRate * 1000 / energyLimit);
+    }, (refillRate * 1000) / energyLimit);
 
     return () => clearInterval(interval);
   }, [energyLimit, refillRate]);
@@ -116,7 +137,7 @@ export const TapProvider = ({ children }) => {
   const incrementPoints = (points) => {
     setCount((prevCount) => {
       const newCount = prevCount + points;
-      localStorage.setItem('count', newCount);
+      localStorage.setItem("count", newCount);
       return newCount;
     });
   };
@@ -128,7 +149,7 @@ export const TapProvider = ({ children }) => {
   };
 
   const checkReferralSuccess = () => {
-    const referrerId = localStorage.getItem('referrerId');
+    const referrerId = localStorage.getItem("referrerId");
     if (referrerId && count >= 100) {
       setReferredUsers((prev) =>
         prev.map((user) => {
@@ -139,7 +160,7 @@ export const TapProvider = ({ children }) => {
           return user;
         })
       );
-      localStorage.removeItem('referrerId');
+      localStorage.removeItem("referrerId");
     }
   };
 
