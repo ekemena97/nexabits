@@ -1,13 +1,12 @@
 // NewsContext.js
-import { createContext, useContext, useState } from 'react';
-import { tasks } from '../data';
-
+import { createContext, useContext, useState } from "react";
+import { tasks } from "../data/index.js";
 
 const NewsContext = createContext();
 
 export function NewsProvider({ children }) {
-  const [news, setNews] = useState({tasks}); // Your News array
-  
+  const [news, setNews] = useState({ tasks }); // Your News array
+
   console.log(news);
 
   return (

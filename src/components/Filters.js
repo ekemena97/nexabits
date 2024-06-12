@@ -1,9 +1,9 @@
 import React, { useContext, useRef } from "react";
-import Search from "./Search";
+import Search from "./Search.js";
 import submitIcon from "../assets/submit-icon.svg";
 import selectIcon from "../assets/select-icon.svg";
 
-import { CryptoContext } from "./../context/CryptoContext";
+import { CryptoContext } from "./../context/CryptoContext.js";
 
 const Filters = () => {
   let { setCurrency, setSortBy, resetFunction } = useContext(CryptoContext);

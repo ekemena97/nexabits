@@ -5,7 +5,7 @@ import { GiNewspaper } from "react-icons/gi";
 import { GiTwoCoins } from "react-icons/gi";
 import { FaPeoplePulling } from "react-icons/fa6";
 import { SiGoogletasks } from "react-icons/si";
-import { useThemeContext } from "../context/ThemeContext";
+import { useThemeContext } from "../context/ThemeContext.js";
 import crypto from "../assets/coin.png";
 import coin from "../assets/coin.png";
 import referral from "../assets/referral.png";
@@ -63,7 +63,7 @@ border-0 cursor-pointer rounded capitalize font-semibold flex sm:flex-row flex-c
         <p className=" sm:text-base text-sm">Earn</p>
       </NavLink>
 
-        {/* Tap */}
+      {/* Tap */}
       <NavLink
         to="/"
         className={({ isActive }) => {

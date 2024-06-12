@@ -1,15 +1,15 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
-import Logo from "../components/Logo";
-import Navigation from "../components/Navigation";
-import { CryptoProvider } from "../context/CryptoContext";
-import { StorageProvider } from "../context/StorageContext";
-import { TrendingProvider } from "../context/TrendingContext";
-import { ThemeProvider, useThemeContext } from "../context/ThemeContext";
+import Logo from "../components/Logo.js";
+import Navigation from "../components/Navigation.js";
+import { CryptoProvider } from "../context/CryptoContext.js";
+import { StorageProvider } from "../context/StorageContext.js";
+import { TrendingProvider } from "../context/TrendingContext.js";
+import { ThemeProvider, useThemeContext } from "../context/ThemeContext.js";
 
-import { TapProvider } from "../context/TapContext";
-import App from "../App";
-import { NewsProvider } from "../context/NewsContext";
+import { TapProvider } from "../context/TapContext.js";
+import App from "../App.js";
+import { NewsProvider } from "../context/NewsContext.js";
 
 const Home = () => {
   // const { theme, setTheme } = useThemeContext();

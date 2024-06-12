@@ -1,8 +1,8 @@
 import React, { useContext } from "react";
 import { Link } from "react-router-dom";
-import { CryptoContext } from "./../context/CryptoContext";
-import Pagination from "./Pagination";
-import { StorageContext } from "./../context/StorageContext";
+import { CryptoContext } from "./../context/CryptoContext.js";
+import Pagination from "./Pagination.js";
+import { StorageContext } from "./../context/StorageContext.js";
 
 const SaveBtn = ({ data }) => {
   const { saveCoin, allCoins, removeCoin } = useContext(StorageContext);
@@ -51,7 +51,7 @@ const SaveBtn = ({ data }) => {
 };
 
 const TableComponent = () => {
-  let { cryptoData, currency,error } = useContext(CryptoContext);
+  let { cryptoData, currency, error } = useContext(CryptoContext);
 
   return (
     <>
@@ -149,7 +149,7 @@ const TableComponent = () => {
               })}
             </tbody>
           </table>
-        ) : (!error.data && !error.search) ? (
+        ) : !error.data && !error.search ? (
           <div className="w-full min-h-[50vh] flex justify-center items-center">
             <div
               className="w-8 h-8 border-4 border-solid border-cyan rounded-full border-b-gray-200 animate-spin"
@@ -164,7 +164,7 @@ const TableComponent = () => {
               : error.search
               ? error.search
               : "Something unexpected happened!"}
-              {/* Here we have use multi chain conditions using ternary operator/ this is not
+            {/* Here we have use multi chain conditions using ternary operator/ this is not
               covered in the video but for the example and some improvements */}
           </h1>
         ) : null}

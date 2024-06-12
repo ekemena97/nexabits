@@ -1,6 +1,6 @@
 import React, { useContext, useRef } from "react";
 import paginationArrow from "../assets/pagination-arrow.svg";
-import { CryptoContext } from "./../context/CryptoContext";
+import { CryptoContext } from "./../context/CryptoContext.js";
 import submitIcon from "../assets/submit-icon.svg";
 
 const PerPage = () => {

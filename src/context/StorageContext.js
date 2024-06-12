@@ -6,7 +6,7 @@ import {
   useLayoutEffect,
   useState,
 } from "react";
-import { CryptoContext } from "./CryptoContext";
+import { CryptoContext } from "./CryptoContext.js";
 
 // create context object
 export const StorageContext = createContext({});

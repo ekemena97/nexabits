@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useThemeContext } from '../context/ThemeContext';
-import { useTapContext } from '../context/TapContext';
-import { MdOutlineKeyboardArrowRight } from 'react-icons/md';
-import { HiHandRaised } from 'react-icons/hi2';
-import { MdBatteryChargingFull, MdElectricBolt } from 'react-icons/md';
-import { FaRobot } from 'react-icons/fa';
-import crypto from '../assets/crypto.png';
+import React, { useState, useEffect } from "react";
+import { useThemeContext } from "../context/ThemeContext.js";
+import { useTapContext } from "../context/TapContext.js";
+import { MdOutlineKeyboardArrowRight } from "react-icons/md";
+import { HiHandRaised } from "react-icons/hi2";
+import { MdBatteryChargingFull, MdElectricBolt } from "react-icons/md";
+import { FaRobot } from "react-icons/fa";
+import crypto from "../assets/crypto.png";
 
 const levelRequirements = [
   { level: 2, cost: 1000, pointsPerTap: 2 },
@@ -15,7 +15,7 @@ const levelRequirements = [
   { level: 6, cost: 300000, pointsPerTap: 12 },
   { level: 7, cost: 700000, pointsPerTap: 17 },
   { level: 8, cost: 1000000, pointsPerTap: 20 },
-  { level: 9, cost: 5000000, pointsPerTap: 25 }
+  { level: 9, cost: 5000000, pointsPerTap: 25 },
 ];
 
 const energyLevelRequirements = [
@@ -26,7 +26,7 @@ const energyLevelRequirements = [
   { level: 5, cost: 20000, energyLimit: 5000 },
   { level: 6, cost: 50000, energyLimit: 6000 },
   { level: 7, cost: 100000, energyLimit: 7000 },
-  { level: 8, cost: 500000, energyLimit: 8000 }
+  { level: 8, cost: 500000, energyLimit: 8000 },
 ];
 
 const rechargeSpeedRequirements = [
@@ -34,27 +34,41 @@ const rechargeSpeedRequirements = [
   { level: 2, cost: 5000, refillRateMultiplier: 2 },
   { level: 3, cost: 20000, refillRateMultiplier: 2 },
   { level: 4, cost: 50000, refillRateMultiplier: 2 },
-  { level: 5, cost: 100000, refillRateMultiplier: 2 }
+  { level: 5, cost: 100000, refillRateMultiplier: 2 },
 ];
 
 const Boost = () => {
   const { theme } = useThemeContext();
-  const { count, decrementCount, coinsPerTap, setCoinsPerTap, energyLimit, setEnergyLimit, refillRate, setRefillRate } = useTapContext();
+  const {
+    count,
+    decrementCount,
+    coinsPerTap,
+    setCoinsPerTap,
+    energyLimit,
+    setEnergyLimit,
+    refillRate,
+    setRefillRate,
+  } = useTapContext();
   const [currentLevel, setCurrentLevel] = useState(() => {
-    const savedLevel = localStorage.getItem('currentLevel');
+    const savedLevel = localStorage.getItem("currentLevel");
     return savedLevel ? parseInt(savedLevel, 10) : 1;
   });
-  const [nextLevelRequirement, setNextLevelRequirement] = useState(levelRequirements[0]);
+  const [nextLevelRequirement, setNextLevelRequirement] = useState(
+    levelRequirements[0]
+  );
   const [energyLevel, setEnergyLevel] = useState(() => {
-    const savedEnergyLevel = localStorage.getItem('energyLevel');
+    const savedEnergyLevel = localStorage.getItem("energyLevel");
     return savedEnergyLevel ? parseInt(savedEnergyLevel, 10) : 1;
   });
-  const [nextEnergyLevelRequirement, setNextEnergyLevelRequirement] = useState(energyLevelRequirements[0]);
+  const [nextEnergyLevelRequirement, setNextEnergyLevelRequirement] = useState(
+    energyLevelRequirements[0]
+  );
   const [rechargeSpeedLevel, setRechargeSpeedLevel] = useState(() => {
-    const savedRechargeSpeedLevel = localStorage.getItem('rechargeSpeedLevel');
+    const savedRechargeSpeedLevel = localStorage.getItem("rechargeSpeedLevel");
     return savedRechargeSpeedLevel ? parseInt(savedRechargeSpeedLevel, 10) : 1;
   });
-  const [nextRechargeSpeedRequirement, setNextRechargeSpeedRequirement] = useState(rechargeSpeedRequirements[0]);
+  const [nextRechargeSpeedRequirement, setNextRechargeSpeedRequirement] =
+    useState(rechargeSpeedRequirements[0]);
   const [showAnimation, setShowAnimation] = useState(false);
 
   useEffect(() => {
@@ -63,7 +77,7 @@ const Boost = () => {
     } else if (currentLevel > levelRequirements.length) {
       setNextLevelRequirement(null);
     }
-    localStorage.setItem('currentLevel', currentLevel);
+    localStorage.setItem("currentLevel", currentLevel);
   }, [currentLevel]);
 
   useEffect(() => {
@@ -72,16 +86,21 @@ const Boost = () => {
     } else if (energyLevel > energyLevelRequirements.length) {
       setNextEnergyLevelRequirement(null);
     }
-    localStorage.setItem('energyLevel', energyLevel);
+    localStorage.setItem("energyLevel", energyLevel);
   }, [energyLevel]);
 
   useEffect(() => {
-    if (rechargeSpeedLevel > 1 && rechargeSpeedLevel <= rechargeSpeedRequirements.length) {
-      setNextRechargeSpeedRequirement(rechargeSpeedRequirements[rechargeSpeedLevel - 1]);
+    if (
+      rechargeSpeedLevel > 1 &&
+      rechargeSpeedLevel <= rechargeSpeedRequirements.length
+    ) {
+      setNextRechargeSpeedRequirement(
+        rechargeSpeedRequirements[rechargeSpeedLevel - 1]
+      );
     } else if (rechargeSpeedLevel > rechargeSpeedRequirements.length) {
       setNextRechargeSpeedRequirement(null);
     }
-    localStorage.setItem('rechargeSpeedLevel', rechargeSpeedLevel);
+    localStorage.setItem("rechargeSpeedLevel", rechargeSpeedLevel);
   }, [rechargeSpeedLevel]);
 
   const handleMultiTapClick = () => {
@@ -106,7 +125,9 @@ const Boost = () => {
   const handleRechargeSpeedClick = () => {
     if (count >= nextRechargeSpeedRequirement.cost) {
       decrementCount(nextRechargeSpeedRequirement.cost);
-      setRefillRate(refillRate / nextRechargeSpeedRequirement.refillRateMultiplier);
+      setRefillRate(
+        refillRate / nextRechargeSpeedRequirement.refillRateMultiplier
+      );
       setRechargeSpeedLevel(rechargeSpeedLevel + 1);
       showCelebration();
     }
@@ -118,23 +139,29 @@ const Boost = () => {
       setShowAnimation(false);
     }, 3000);
     if (currentLevel === 9) {
-      alert(`You've reached the highest level! Enter the raffle draw here: https://www.chatgpt.com/`);
+      alert(
+        `You've reached the highest level! Enter the raffle draw here: https://www.chatgpt.com/`
+      );
     }
   };
 
   const isMultiTapActive = count >= nextLevelRequirement?.cost;
   const isEnergyUpgradeActive = count >= nextEnergyLevelRequirement?.cost;
   const isRechargeSpeedActive = count >= nextRechargeSpeedRequirement?.cost;
-  const textColor = isMultiTapActive ? 'text-white' : 'text-gray-100';
-  const energyTextColor = isEnergyUpgradeActive ? 'text-white' : 'text-gray-100';
-  const rechargeTextColor = isRechargeSpeedActive ? 'text-white' : 'text-gray-100';
+  const textColor = isMultiTapActive ? "text-white" : "text-gray-100";
+  const energyTextColor = isEnergyUpgradeActive
+    ? "text-white"
+    : "text-gray-100";
+  const rechargeTextColor = isRechargeSpeedActive
+    ? "text-white"
+    : "text-gray-100";
 
   return (
     <section
       className={`h-full w-[90%] flex flex-col mt-10 mb-24 relative ${
-        theme === 'dark'
-          ? 'bg-gradient-to-b from-[#19191E] to-[#232323] text-[#fff]'
-          : 'bg-[#fff] text-[#19191E]'
+        theme === "dark"
+          ? "bg-gradient-to-b from-[#19191E] to-[#232323] text-[#fff]"
+          : "bg-[#fff] text-[#19191E]"
       } `}
     >
       <h1 className="sm:text-2xl text-xl my-3 text-center font-semibold text-gray-100">
@@ -143,9 +170,9 @@ const Boost = () => {
 
       <div
         className={`w-full min-h-[70vh] sm:pb-12 pb-0 rounded overflow-y-scroll scrollbar-hide ${
-          theme === 'dark'
-            ? 'bg-[#19191E] text-[#fff]'
-            : 'bg-[#F1F2F2] text-[#19191E]'
+          theme === "dark"
+            ? "bg-[#19191E] text-[#fff]"
+            : "bg-[#F1F2F2] text-[#19191E]"
         }`}
       >
         <div className="flex flex-col items-center sm:p-0 p-3">
@@ -157,9 +184,9 @@ const Boost = () => {
               <img src={crypto} className="sm:w-11 w-8" />
               <div
                 className={`${
-                  theme === 'dark'
-                    ? 'bg-[#19191E] text-[#fff]'
-                    : 'bg-[#F1F2F2] text-[#19191E]'
+                  theme === "dark"
+                    ? "bg-[#19191E] text-[#fff]"
+                    : "bg-[#F1F2F2] text-[#19191E]"
                 } sm:text-6xl text-3xl font-semibold`}
               >
                 {count}
@@ -180,11 +207,11 @@ const Boost = () => {
                 <div
                   onClick={isMultiTapActive ? handleMultiTapClick : undefined}
                   className={`${
-                    theme === 'dark'
-                      ? 'bg-[#232323] border border-gray-200'
-                      : 'bg-[#fff] border border-[#F1F2F2]'
+                    theme === "dark"
+                      ? "bg-[#232323] border border-gray-200"
+                      : "bg-[#fff] border border-[#F1F2F2]"
                   } flex flex-row gap-1 items-center justify-between px-6 py-3 rounded-md ${
-                    isMultiTapActive ? 'cursor-pointer' : 'cursor-not-allowed'
+                    isMultiTapActive ? "cursor-pointer" : "cursor-not-allowed"
                   } hover:bg-gray-300 transition-all duration-200 ease-in`}
                 >
                   <div className="flex flex-row items-center gap-2">
@@ -193,7 +220,13 @@ const Boost = () => {
                       <div className={`${textColor} text-sm`}>Multi tap</div>
                       <div className="text-gray-100 text-sm flex flex-row gap-2 items-center">
                         <img src={crypto} className="sm:w-6 w-4" />
-                        <div className={textColor}>{nextLevelRequirement.cost.toLocaleString()}</div> | <div className="text-gray-100">level {currentLevel}</div>
+                        <div className={textColor}>
+                          {nextLevelRequirement.cost.toLocaleString()}
+                        </div>{" "}
+                        |{" "}
+                        <div className="text-gray-100">
+                          level {currentLevel}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -204,22 +237,32 @@ const Boost = () => {
               {/* Energy Limit Upgrade */}
               {nextEnergyLevelRequirement && (
                 <div
-                  onClick={isEnergyUpgradeActive ? handleEnergyUpgradeClick : undefined}
+                  onClick={
+                    isEnergyUpgradeActive ? handleEnergyUpgradeClick : undefined
+                  }
                   className={`${
-                    theme === 'dark'
-                      ? 'bg-[#232323] border border-gray-200'
-                      : 'bg-[#fff] border border-[#F1F2F2]'
+                    theme === "dark"
+                      ? "bg-[#232323] border border-gray-200"
+                      : "bg-[#fff] border border-[#F1F2F2]"
                   } flex flex-row gap-1 items-center justify-between px-6 py-3 rounded-md ${
-                    isEnergyUpgradeActive ? 'cursor-pointer' : 'cursor-not-allowed'
+                    isEnergyUpgradeActive
+                      ? "cursor-pointer"
+                      : "cursor-not-allowed"
                   } hover:bg-gray-300 transition-all duration-200 ease-in`}
                 >
                   <div className="flex flex-row items-center gap-2">
                     <MdBatteryChargingFull className="text-gray-100 sm:text-4xl text-3xl" />
                     <div className="flex flex-col gap-1">
-                      <div className={`${energyTextColor} text-sm`}>Energy Limits</div>
+                      <div className={`${energyTextColor} text-sm`}>
+                        Energy Limits
+                      </div>
                       <div className="text-gray-100 text-sm flex flex-row gap-2 items-center">
                         <img src={crypto} className="sm:w-6 w-4" />
-                        <div className={energyTextColor}>{nextEnergyLevelRequirement.cost.toLocaleString()}</div> | <div className="text-gray-100">Level {energyLevel}</div>
+                        <div className={energyTextColor}>
+                          {nextEnergyLevelRequirement.cost.toLocaleString()}
+                        </div>{" "}
+                        |{" "}
+                        <div className="text-gray-100">Level {energyLevel}</div>
                       </div>
                     </div>
                   </div>
@@ -230,22 +273,34 @@ const Boost = () => {
               {/* Recharge Speed Upgrade */}
               {nextRechargeSpeedRequirement && (
                 <div
-                  onClick={isRechargeSpeedActive ? handleRechargeSpeedClick : undefined}
+                  onClick={
+                    isRechargeSpeedActive ? handleRechargeSpeedClick : undefined
+                  }
                   className={`${
-                    theme === 'dark'
-                      ? 'bg-[#232323] border border-gray-200'
-                      : 'bg-[#fff] border border-[#F1F2F2]'
+                    theme === "dark"
+                      ? "bg-[#232323] border border-gray-200"
+                      : "bg-[#fff] border border-[#F1F2F2]"
                   } flex flex-row gap-1 items-center justify-between px-6 py-3 rounded-md ${
-                    isRechargeSpeedActive ? 'cursor-pointer' : 'cursor-not-allowed'
+                    isRechargeSpeedActive
+                      ? "cursor-pointer"
+                      : "cursor-not-allowed"
                   } hover:bg-gray-300 transition-all duration-200 ease-in`}
                 >
                   <div className="flex flex-row items-center gap-2">
                     <MdElectricBolt className="text-gray-100 sm:text-4xl text-3xl" />
                     <div className="flex flex-col gap-1">
-                      <div className={`${rechargeTextColor} text-sm`}>Recharge Speed</div>
+                      <div className={`${rechargeTextColor} text-sm`}>
+                        Recharge Speed
+                      </div>
                       <div className="text-gray-100 text-sm flex flex-row gap-2 items-center">
                         <img src={crypto} className="sm:w-6 w-4" />
-                        <div className={rechargeTextColor}>{nextRechargeSpeedRequirement.cost.toLocaleString()}</div> | <div className="text-gray-100">Level {rechargeSpeedLevel}</div>
+                        <div className={rechargeTextColor}>
+                          {nextRechargeSpeedRequirement.cost.toLocaleString()}
+                        </div>{" "}
+                        |{" "}
+                        <div className="text-gray-100">
+                          Level {rechargeSpeedLevel}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -254,10 +309,11 @@ const Boost = () => {
               )}
 
               {/* Other boosters (unchanged) */}
-              <div className={`${
-                  theme === 'dark'
-                    ? 'bg-[#232323] border border-gray-200'
-                    : 'bg-[#fff] border border-[#F1F2F2]'
+              <div
+                className={`${
+                  theme === "dark"
+                    ? "bg-[#232323] border border-gray-200"
+                    : "bg-[#fff] border border-[#F1F2F2]"
                 } flex flex-row gap-1 items-center justify-between px-6 py-3 rounded-md cursor-pointer hover:bg-gray-300 transition-all duration-200 ease-in`}
               >
                 <div className="flex flex-row items-center gap-2">
@@ -272,12 +328,13 @@ const Boost = () => {
                 </div>
                 <MdOutlineKeyboardArrowRight className="text-gray-100" />
               </div>
-
             </div>
           </div>
         </div>
       </div>
-      {showAnimation && <div className="celebration-animation">🎉 Congratulations! 🎉</div>}
+      {showAnimation && (
+        <div className="celebration-animation">🎉 Congratulations! 🎉</div>
+      )}
     </section>
   );
 };

@@ -1,7 +1,7 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
-import Filters from "../components/Filters";
-import TableComponent from "../components/TableComponent";
+import Filters from "../components/Filters.js";
+import TableComponent from "../components/TableComponent.js";
 
 const Crypto = () => {
   return (

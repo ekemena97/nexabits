@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useThemeContext } from "../context/ThemeContext";
+import { useThemeContext } from "../context/ThemeContext.js";
 import { FaGift, FaCopy, FaThumbsUp } from "react-icons/fa";
 import { FiRefreshCw } from "react-icons/fi";
 import { GoPersonAdd } from "react-icons/go";
 import crypto from "../assets/crypto.png";
-import { useTapContext } from "../context/TapContext";
+import { useTapContext } from "../context/TapContext.js";
 
 // Utility function to generate a unique referral link
 const generateUniqueReferralLink = () => {
@@ -13,13 +13,16 @@ const generateUniqueReferralLink = () => {
   const referralText = `🎁 New and Hot! First Time Gift for Playing with Me\n💵 5K $Squad tokens as a first-time gift.\n🔥 25K $Squad tokens if you have Telegram Premium.`;
   return {
     link: `${baseUrl}${uniqueNumber}`,
-    textLink: `${baseUrl}${uniqueNumber}&text=${encodeURIComponent(referralText)}`,
+    textLink: `${baseUrl}${uniqueNumber}&text=${encodeURIComponent(
+      referralText
+    )}`,
   };
 };
 
 const Referrals = () => {
   const { theme } = useThemeContext();
-  const { referredUsers, addReferredUser, successfulReferrals } = useTapContext();
+  const { referredUsers, addReferredUser, successfulReferrals } =
+    useTapContext();
   const [uniqueReferralLink, setUniqueReferralLink] = useState("");
   const [textReferralLink, setTextReferralLink] = useState("");
   const [copySuccess, setCopySuccess] = useState(false);
@@ -54,7 +57,9 @@ const Referrals = () => {
     window.open(telegramShareUrl, "_blank");
   };
 
-  const premiumReferralsCount = referredUsers.filter(user => user.isPremium).length;
+  const premiumReferralsCount = referredUsers.filter(
+    (user) => user.isPremium
+  ).length;
 
   return (
     <section
@@ -188,7 +193,9 @@ const Referrals = () => {
               <ul>
                 {referredUsers.map((user) => (
                   <li key={user.id}>
-                    User ID: {user.id} - {user.telegramName} - {user.isPremium ? "Premium" : "Normal"} - {user.success ? "Successful" : "Pending"}
+                    User ID: {user.id} - {user.telegramName} -{" "}
+                    {user.isPremium ? "Premium" : "Normal"} -{" "}
+                    {user.success ? "Successful" : "Pending"}
                   </li>
                 ))}
               </ul>

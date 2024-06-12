@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
-import { useThemeContext } from "../context/ThemeContext";
-import { TrendingContext } from "../context/TrendingContext";
-import { tasks } from "../data";
+import { useThemeContext } from "../context/ThemeContext.js";
+import { TrendingContext } from "../context/TrendingContext.js";
+import { tasks } from "../data/index.js";
 import { Link, useNavigate } from "react-router-dom";
 import { SlLike } from "react-icons/sl";
 
@@ -37,7 +37,6 @@ const NewsFeed = () => {
           theme === "dark" ? "bg-[#19191E]" : "bg-[#FCFCFC]"
         }`}
       >
-
         {/* To display only the limited trending coin */}
         {/* {trendData?.slice(0, limit).map((data, index) => { */}
 
@@ -74,7 +73,6 @@ const NewsFeed = () => {
         })}
       </div>
 
-
       <div className=" w-full min-h-[60vh] py-8   mx-auto  grid max-w-2xl grid-cols-1 items-start  lg:max-w-none lg:grid-cols-3 ">
         {tasks.map((task, index) => (
           // console.log(index),
@@ -101,7 +99,7 @@ const NewsFeed = () => {
                 {task.desc}
               </h1>
             </div>
-           
+
             {/* <div
               className={`absolute top-[1rem] glassmorphism  right-[1.2rem] sm:text-base tracking-wide text-sm bg-[#15231D] text-[#D3B166] p-2 rounded-md border border-gray-100`}
             >

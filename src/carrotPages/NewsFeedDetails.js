@@ -1,8 +1,8 @@
 import React from "react";
-import { useThemeContext } from "../context/ThemeContext";
+import { useThemeContext } from "../context/ThemeContext.js";
 import { useParams, useLocation, Link } from "react-router-dom";
 import ReactDOM from "react-dom";
-import { useNews } from "../context/NewsContext";
+import { useNews } from "../context/NewsContext.js";
 
 import { MdOutlineArrowBackIos } from "react-icons/md";
 import { SlLike } from "react-icons/sl";

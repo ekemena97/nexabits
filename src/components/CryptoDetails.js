@@ -3,8 +3,8 @@ import React, { useContext, useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import { useNavigate, useParams } from "react-router-dom";
 import { useLayoutEffect } from "react";
-import { CryptoContext } from "../context/CryptoContext";
-import Chart from "./Chart";
+import { CryptoContext } from "../context/CryptoContext.js";
+import Chart from "./Chart.js";
 
 const HighLowIndicator = ({ currentPrice, high, low }) => {
   const [green, setGreen] = useState();

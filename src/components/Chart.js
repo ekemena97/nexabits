@@ -11,7 +11,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { useContext } from "react";
-import { CryptoContext } from "./../context/CryptoContext";
+import { CryptoContext } from "./../context/CryptoContext.js";
 
 function CustomTooltip({ payload, label, active, currency = "usd" }) {
   if (active && payload && payload.length > 0) {

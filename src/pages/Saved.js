@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { Outlet } from "react-router-dom";
-import { StorageContext } from "../context/StorageContext";
-import { CryptoContext } from "./../context/CryptoContext";
+import { StorageContext } from "../context/StorageContext.js";
+import { CryptoContext } from "./../context/CryptoContext.js";
 import { Link } from "react-router-dom";
 
 const SaveBtn = ({ data }) => {

@@ -1,8 +1,8 @@
 import { data } from "autoprefixer";
 import React, { useContext } from "react";
 import { Outlet } from "react-router-dom";
-import { TrendingContext } from "../context/TrendingContext";
-import TrendingCoin from "./../components/TrendingCoin";
+import { TrendingContext } from "../context/TrendingContext.js";
+import TrendingCoin from "./../components/TrendingCoin.js";
 
 const Trending = () => {
   const { trendData, resetTrendingResult } = useContext(TrendingContext);

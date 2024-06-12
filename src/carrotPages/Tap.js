@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { useThemeContext } from "../context/ThemeContext";
+import { useThemeContext } from "../context/ThemeContext.js";
 import { TbMilitaryRank } from "react-icons/tb";
 import { IoIosArrowForward } from "react-icons/io";
 import crypto from "../assets/crypto.png";
-import { useTapContext } from "../context/TapContext";
+import { useTapContext } from "../context/TapContext.js";
 import { Link } from "react-router-dom";
-import DailyCheckIn from "./DailyCheckIn"; // Import the DailyCheckIn component
+import DailyCheckIn from "./DailyCheckIn.js"; // Import the DailyCheckIn component
 
 const GiftIcon = ({ onClick }) => {
   const [visible, setVisible] = useState(true);
@@ -63,7 +63,9 @@ const GiftIcon = ({ onClick }) => {
         <div className={`circle-animation ${visible ? "blink" : ""}`}></div>
         <div
           onClick={handleGiftClick}
-          className={`fixed top-1/4 right-11 cursor-pointer z-20 ${shake ? "animate-shake" : ""}`}
+          className={`fixed top-1/4 right-11 cursor-pointer z-20 ${
+            shake ? "animate-shake" : ""
+          }`}
           style={{ transform: "scale(2.5)" }} // Make the icon smaller
         >
           🎁
@@ -75,7 +77,15 @@ const GiftIcon = ({ onClick }) => {
 
 const Tap = () => {
   const { theme } = useThemeContext();
-  const { count, incrementTap, coinsPerTap, energyLimit, energy, incrementPoints, checkReferralSuccess } = useTapContext();
+  const {
+    count,
+    incrementTap,
+    coinsPerTap,
+    energyLimit,
+    energy,
+    incrementPoints,
+    checkReferralSuccess,
+  } = useTapContext();
 
   const [animate, setAnimate] = useState(false);
   const [isTappable, setIsTappable] = useState(true);
@@ -98,7 +108,9 @@ const Tap = () => {
       const newCoin = { id: Date.now(), value: coinsPerTap };
       setCoinAnimations((prev) => [...prev, newCoin]);
       setTimeout(() => {
-        setCoinAnimations((prev) => prev.filter((coin) => coin.id !== newCoin.id));
+        setCoinAnimations((prev) =>
+          prev.filter((coin) => coin.id !== newCoin.id)
+        );
       }, 1000);
       checkReferralSuccess(); // Ensure this is called after every tap
     }
@@ -138,7 +150,12 @@ const Tap = () => {
         }`}
       >
         {showGiftIcon && <GiftIcon onClick={handleGiftClick} />}
-        {showDailyCheckIn && <DailyCheckIn onClose={() => setShowDailyCheckIn(false)} onClaimReward={handleRewardClaim} />}
+        {showDailyCheckIn && (
+          <DailyCheckIn
+            onClose={() => setShowDailyCheckIn(false)}
+            onClaimReward={handleRewardClaim}
+          />
+        )}
         <div className="flex flex-col items-center sm:p-0 p-3">
           <div className="flex flex-col h-full sm:w-[80%] w-full items-center py-6 justify-items-center sm:space-y-20 space-y-16">
             <div className="flex flex-col gap-1 items-center relative">
@@ -163,7 +180,7 @@ const Tap = () => {
                 <span>{getRankText()}</span>
                 <IoIosArrowForward />
               </Link>
-              
+
               {coinAnimations.map((coin) => (
                 <div key={coin.id} className="coin-animation">
                   +{coin.value}
@@ -188,22 +205,27 @@ const Tap = () => {
               <br></br>
             </div>
 
-            <div className="w-full flex flex-col items-center mb-16" style={{ marginTop: '-0.02%' }}>
+            <div
+              className="w-full flex flex-col items-center mb-16"
+              style={{ marginTop: "-0.02%" }}
+            >
               <div className="flex flex-col items-center justify-center w-[80%] mb-4">
                 <div className="w-full bg-[#D2B48C] rounded-full h-6 overflow-hidden mb-2">
                   <div
                     className="h-6 rounded-full bg-gradient-to-r from-[#5A5FFF] to-[#6B7CFE]"
                     style={{
-                      width: `${(energy / energyLimit) * 100}%`
+                      width: `${(energy / energyLimit) * 100}%`,
                     }}
                   ></div>
                 </div>
                 <div className="flex items-center text-sm text-gray-100">
-                  <span className="text-2xl mx-2">🔥</span> Energy Level <span className="ml-2 font-bold text-white">{energy}/{energyLimit}</span>
+                  <span className="text-2xl mx-2">🔥</span> Energy Level{" "}
+                  <span className="ml-2 font-bold text-white">
+                    {energy}/{energyLimit}
+                  </span>
                 </div>
               </div>
             </div>
-
           </div>
         </div>
       </div>
