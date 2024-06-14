@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import AWS from 'aws-sdk';
 
 const TapContext = createContext();
@@ -6,7 +6,6 @@ const TapContext = createContext();
 export const useTapContext = () => useContext(TapContext);
 
 export const TapProvider = ({ children }) => {
-  const [username, setUsername] = useState('defaultUser');
   const [count, setCount] = useState(0);
   const [coinsPerTap, setCoinsPerTap] = useState(1);
   const [energyLimit, setEnergyLimit] = useState(500);
@@ -27,11 +26,40 @@ export const TapProvider = ({ children }) => {
   const dynamoDB = new AWS.DynamoDB.DocumentClient();
   const tableName = process.env.REACT_APP_DYNAMODB_TABLE || 'TapUsers';
 
+  // Utility function to update state and local storage
+  const updateStateAndLocalStorage = useCallback((key, value, setState) => {
+    setState(value);
+    localStorage.setItem(key, JSON.stringify(value));
+    stateChanged.current = true;
+  }, []);
+
+  // Generate or retrieve the persistent unique ID
+  const getUniqueId = () => {
+    let uniqueId = localStorage.getItem('uniqueId');
+    if (!uniqueId) {
+      uniqueId = Math.floor(100000000 + Math.random() * 900000000).toString();
+      localStorage.setItem('uniqueId', uniqueId);
+    }
+    return uniqueId;
+  };
+
+  const uniqueId = getUniqueId();
+
+  // Utility function to generate a unique referral link
+  const generateUniqueReferralLink = (uniqueId) => {
+    const baseUrl = "https://t.me/TapLengendBot/start?startapp=";
+    const referralText = `🎁 New and Hot! First Time Gift for Playing with Me\n💵 5K $Squad tokens as a first-time gift.`;
+    return {
+      link: `${baseUrl}${uniqueId}`,
+      textLink: `${baseUrl}${uniqueId}&text=${encodeURIComponent(referralText)}`,
+    };
+  };
+
   const fetchUser = async () => {
     try {
       const params = {
         TableName: tableName,
-        Key: { username: username },
+        Key: { username: uniqueId },
       };
       const response = await dynamoDB.get(params).promise();
       const user = response.Item || {};
@@ -42,6 +70,9 @@ export const TapProvider = ({ children }) => {
       setEnergy(user.energy || user.energyLimit || 500);
       setReferredUsers(user.referredUsers || []);
       setSuccessfulReferrals(user.successfulReferrals || 0);
+      if (user.startappId) {
+        localStorage.setItem('startappId', user.startappId);
+      }
     } catch (error) {
       console.error('Error fetching user data:', error);
     }
@@ -51,10 +82,11 @@ export const TapProvider = ({ children }) => {
     if (!stateChanged.current) return;
 
     try {
+      const startappId = localStorage.getItem('startappId');
       const params = {
         TableName: tableName,
         Item: {
-          username: username,
+          username: uniqueId,
           count: count,
           coinsPerTap: coinsPerTap,
           energyLimit: energyLimit,
@@ -62,6 +94,7 @@ export const TapProvider = ({ children }) => {
           energy: energy,
           referredUsers: referredUsers,
           successfulReferrals: successfulReferrals,
+          startappId: startappId,
         },
       };
       await dynamoDB.put(params).promise();
@@ -73,10 +106,10 @@ export const TapProvider = ({ children }) => {
 
   useEffect(() => {
     fetchUser();
-  }, [username]);
+  }, [uniqueId]);
 
   useEffect(() => {
-    const interval = setInterval(updateUser, 10 * 60 * 1000); // 10 minutes
+    const interval = setInterval(updateUser, 1 * 60 * 1000); // upload to database every 1 minute
 
     return () => clearInterval(interval);
   }, [count, coinsPerTap, energyLimit, refillRate, energy, referredUsers, successfulReferrals]);
@@ -92,11 +125,6 @@ export const TapProvider = ({ children }) => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, [count, coinsPerTap, energyLimit, refillRate, energy, referredUsers, successfulReferrals]);
-
-  const saveStateToLocalStorage = (key, value) => {
-    localStorage.setItem(key, value);
-    stateChanged.current = true;
-  };
 
   useEffect(() => {
     const savedTime = localStorage.getItem("lastUpdateTime");
@@ -122,27 +150,25 @@ export const TapProvider = ({ children }) => {
   }, [energyLimit, refillRate]);
 
   useEffect(() => {
-    return () => {
-      localStorage.clear();
-      setCount(0);
-      setCoinsPerTap(1);
-      setEnergyLimit(500);
-      setRefillRate(300);
-      setEnergy(500);
-      setReferredUsers([]);
-      setSuccessfulReferrals(0);
-    };
+    const startappId = new URLSearchParams(window.location.search).get('startapp');
+    if (startappId) {
+      localStorage.setItem('startappId', startappId);
+      stateChanged.current = true; // Mark state as changed to trigger updateUser
+      console.log(`startappId set in localStorage: ${startappId}`);
+    } else {
+      console.log("startappId not found in URL");
+    }
   }, []);
 
   const incrementTap = () => {
     setCount(prevCount => {
       const newCount = prevCount + coinsPerTap;
-      saveStateToLocalStorage('count', newCount);
+      updateStateAndLocalStorage('count', newCount, setCount);
       return newCount;
     });
     setEnergy(prevEnergy => {
       const newEnergy = Math.max(prevEnergy - 1, 0);
-      saveStateToLocalStorage('energy', newEnergy);
+      updateStateAndLocalStorage('energy', newEnergy, setEnergy);
       return newEnergy;
     });
     checkReferralSuccess();
@@ -151,7 +177,7 @@ export const TapProvider = ({ children }) => {
   const incrementPoints = (points) => {
     setCount(prevCount => {
       const newCount = prevCount + points;
-      saveStateToLocalStorage('count', newCount);
+      updateStateAndLocalStorage('count', newCount, setCount);
       return newCount;
     });
   };
@@ -159,40 +185,49 @@ export const TapProvider = ({ children }) => {
   const decrementCount = (amount) => {
     setCount(prevCount => {
       const newCount = prevCount - amount;
-      saveStateToLocalStorage('count', newCount);
+      updateStateAndLocalStorage('count', newCount, setCount);
       return newCount;
     });
   };
 
   const addReferredUser = (userId) => {
+    console.log(`Adding referred user: ${userId}`);
     setReferredUsers(prev => {
       const newReferredUsers = [...prev, { id: userId, success: false }];
-      saveStateToLocalStorage('referredUsers', JSON.stringify(newReferredUsers));
+      updateStateAndLocalStorage('referredUsers', newReferredUsers, setReferredUsers);
       return newReferredUsers;
     });
   };
 
   const checkReferralSuccess = () => {
-    const referrerId = localStorage.getItem('referrerId');
-    if (referrerId && count >= 100) {
+    const startappId = localStorage.getItem('startappId');
+    console.log(`Checking referral success for: ${startappId} with count: ${count}`);
+    if (startappId && count >= 100) {
       setReferredUsers(prev => {
         const newReferredUsers = prev.map(user => {
-          if (user.id === referrerId && !user.success) {
+          if (user.id === startappId && !user.success) {
             setSuccessfulReferrals(prevCount => {
               const newCount = prevCount + 1;
-              saveStateToLocalStorage('successfulReferrals', newCount);
+              updateStateAndLocalStorage('successfulReferrals', newCount, setSuccessfulReferrals);
+              console.log(`Incrementing successful referrals: ${newCount}`);
               return newCount;
             });
             return { ...user, success: true };
           }
           return user;
         });
-        saveStateToLocalStorage('referredUsers', JSON.stringify(newReferredUsers));
+        updateStateAndLocalStorage('referredUsers', newReferredUsers, setReferredUsers);
         return newReferredUsers;
       });
-      localStorage.removeItem('referrerId');
+      localStorage.removeItem('startappId');
+    } else {
+      console.log("Referral success criteria not met or startappId not found");
     }
   };
+
+  useEffect(() => {
+    checkReferralSuccess();
+  }, [count]);
 
   return (
     <TapContext.Provider
@@ -201,18 +236,19 @@ export const TapProvider = ({ children }) => {
         incrementTap,
         incrementPoints,
         coinsPerTap,
-        setCoinsPerTap: (value) => { setCoinsPerTap(value); saveStateToLocalStorage('coinsPerTap', value); },
+        setCoinsPerTap: (value) => updateStateAndLocalStorage('coinsPerTap', value, setCoinsPerTap),
         energyLimit,
-        setEnergyLimit: (value) => { setEnergyLimit(value); saveStateToLocalStorage('energyLimit', value); },
+        setEnergyLimit: (value) => updateStateAndLocalStorage('energyLimit', value, setEnergyLimit),
         refillRate,
-        setRefillRate: (value) => { setRefillRate(value); saveStateToLocalStorage('refillRate', value); },
+        setRefillRate: (value) => updateStateAndLocalStorage('refillRate', value, setRefillRate),
         decrementCount,
         energy,
-        setEnergy: (value) => { setEnergy(value); saveStateToLocalStorage('energy', value); },
+        setEnergy: (value) => updateStateAndLocalStorage('energy', value, setEnergy),
         referredUsers,
         addReferredUser,
         checkReferralSuccess,
         successfulReferrals,
+        generateUniqueReferralLink, // Exporting the function
       }}
     >
       {children}

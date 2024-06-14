@@ -1,7 +1,7 @@
 {
   "files": {
-    "main.css": "/static/css/main.8071bcfa.css",
-    "main.js": "/static/js/main.bf734160.js",
+    "main.css": "/static/css/main.075bbbb2.css",
+    "main.js": "/static/js/main.badf009e.js",
     "static/media/coin.png": "/static/media/coin.172ca91031cfb23a6e48.png",
     "static/media/crypto.png": "/static/media/crypto.f4fa51553989ede18564.png",
     "static/media/boost.png": "/static/media/boost.e9292c756917f961ba30.png",
@@ -14,18 +14,18 @@
     "static/media/img4.jpg": "/static/media/img4.af6f095a13fd3a11b55e.jpg",
     "static/media/img1.jpg": "/static/media/img1.ca836dd6d7cbb2268391.jpg",
     "static/media/fraction.cjs": "/static/media/fraction.7992481f3d8339b77604.cjs",
-    "static/media/logo.svg": "/static/media/logo.5d76389065012ec8590c4e949c83061d.svg",
-    "static/media/submit-icon.svg": "/static/media/submit-icon.e4339f5525903ab6758211da17e848b7.svg",
-    "static/media/pagination-arrow.svg": "/static/media/pagination-arrow.178c9e026e96d3157c68aa003413b7a7.svg",
+    "static/media/logo.svg": "/static/media/logo.f80156422664f983d1d31c89b57399e3.svg",
+    "static/media/submit-icon.svg": "/static/media/submit-icon.df6311ef7bd1383b2860a218cc7d01a4.svg",
+    "static/media/pagination-arrow.svg": "/static/media/pagination-arrow.e21b39464a11475d1397ae4bb52a177f.svg",
     "index.html": "/index.html",
-    "static/media/select-icon.svg": "/static/media/select-icon.32036b836d893fa33bc73cc38cf75d42.svg",
-    "static/media/search-icon.svg": "/static/media/search-icon.2495c6465338e239b370150f484a8d8a.svg",
+    "static/media/select-icon.svg": "/static/media/select-icon.bd2e95499d73462213dd5e222d294013.svg",
+    "static/media/search-icon.svg": "/static/media/search-icon.523d9a8cb9ecb1aa8d160bd7e4e815a6.svg",
     "static/media/index.cjs": "/static/media/index.cd351d7c31d0d3fccf96.cjs",
-    "main.8071bcfa.css.map": "/static/css/main.8071bcfa.css.map",
-    "main.bf734160.js.map": "/static/js/main.bf734160.js.map"
+    "main.075bbbb2.css.map": "/static/css/main.075bbbb2.css.map",
+    "main.badf009e.js.map": "/static/js/main.badf009e.js.map"
   },
   "entrypoints": [
-    "static/css/main.8071bcfa.css",
-    "static/js/main.bf734160.js"
+    "static/css/main.075bbbb2.css",
+    "static/js/main.badf009e.js"
   ]
 }
