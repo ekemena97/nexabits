@@ -1,0 +1,854 @@
+{
+  "C:\\Users\\Hp\\Desktop\\TapTap\\nexabit": {
+    "versionSfCore": null,
+    "versionFramework": "4.1.4",
+    "isWithinCompose": false,
+    "isCompose": false,
+    "composeOrgName": null,
+    "composeResolverProviders": {
+      "env": {
+        "instance": {
+          "credentials": "<REDACTED>",
+          "serviceConfigFile": {
+            "org": "nexabit",
+            "service": "nexabit-backend-dev",
+            "provider": {
+              "name": "aws",
+              "runtime": "nodejs20.x",
+              "region": "us-east-1",
+              "environment": {
+                "DYNAMODB_TABLE": "TapUsers",
+                "TELEGRAM_BOT_TOKEN": "<REDACTED>",
+                "REACT_APP_API_URL": "https://56rcffqix2.execute-api.us-east-1.amazonaws.com/dev",
+                "PORT": "5000"
+              },
+              "iamRoleStatements": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents",
+                    "logs:DescribeLogGroups",
+                    "logs:DescribeLogStreams",
+                    "lambda:*",
+                    "apigateway:*",
+                    "dynamodb:*",
+                    "iam:PassRole"
+                  ],
+                  "Resource": "*"
+                }
+              ],
+              "stage": "dev",
+              "versionFunctions": true,
+              "compiledCloudFormationTemplate": {
+                "AWSTemplateFormatVersion": "2010-09-09",
+                "Description": "The AWS CloudFormation template for this Serverless application",
+                "Resources": {
+                  "ServerlessDeploymentBucket": {
+                    "Type": "AWS::S3::Bucket",
+                    "Properties": {
+                      "BucketEncryption": {
+                        "ServerSideEncryptionConfiguration": [
+                          {
+                            "ServerSideEncryptionByDefault": {
+                              "SSEAlgorithm": "AES256"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "ServerlessDeploymentBucketPolicy": {
+                    "Type": "AWS::S3::BucketPolicy",
+                    "Properties": {
+                      "Bucket": {
+                        "Ref": "ServerlessDeploymentBucket"
+                      },
+                      "PolicyDocument": {
+                        "Statement": [
+                          {
+                            "Action": "s3:*",
+                            "Effect": "Deny",
+                            "Principal": "*",
+                            "Resource": [
+                              {
+                                "Fn::Join": [
+                                  "",
+                                  [
+                                    "arn:",
+                                    {
+                                      "Ref": "AWS::Partition"
+                                    },
+                                    ":s3:::",
+                                    {
+                                      "Ref": "ServerlessDeploymentBucket"
+                                    },
+                                    "/*"
+                                  ]
+                                ]
+                              },
+                              {
+                                "Fn::Join": [
+                                  "",
+                                  [
+                                    "arn:",
+                                    {
+                                      "Ref": "AWS::Partition"
+                                    },
+                                    ":s3:::",
+                                    {
+                                      "Ref": "ServerlessDeploymentBucket"
+                                    }
+                                  ]
+                                ]
+                              }
+                            ],
+                            "Condition": {
+                              "Bool": {
+                                "aws:SecureTransport": false
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "AppLogGroup": {
+                    "Type": "AWS::Logs::LogGroup",
+                    "Properties": {
+                      "LogGroupName": "/aws/lambda/NewTapAppFunction"
+                    }
+                  },
+                  "IamRoleLambdaExecution": {
+                    "Type": "AWS::IAM::Role",
+                    "Properties": {
+                      "AssumeRolePolicyDocument": {
+                        "Version": "2012-10-17",
+                        "Statement": [
+                          {
+                            "Effect": "Allow",
+                            "Principal": {
+                              "Service": [
+                                "lambda.amazonaws.com"
+                              ]
+                            },
+                            "Action": [
+                              "sts:AssumeRole"
+                            ]
+                          }
+                        ]
+                      },
+                      "Policies": [
+                        {
+                          "PolicyName": {
+                            "Fn::Join": [
+                              "-",
+                              [
+                                "nexabit-backend-dev",
+                                "dev",
+                                "lambda"
+                              ]
+                            ]
+                          },
+                          "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                              {
+                                "Effect": "Allow",
+                                "Action": [
+                                  "logs:CreateLogStream",
+                                  "logs:CreateLogGroup",
+                                  "logs:TagResource"
+                                ],
+                                "Resource": [
+                                  {
+                                    "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/NewTapAppFunction:*"
+                                  }
+                                ]
+                              },
+                              {
+                                "Effect": "Allow",
+                                "Action": [
+                                  "logs:PutLogEvents"
+                                ],
+                                "Resource": [
+                                  {
+                                    "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/NewTapAppFunction:*:*"
+                                  }
+                                ]
+                              },
+                              {
+                                "Effect": "Allow",
+                                "Action": [
+                                  "logs:CreateLogGroup",
+                                  "logs:CreateLogStream",
+                                  "logs:PutLogEvents",
+                                  "logs:DescribeLogGroups",
+                                  "logs:DescribeLogStreams",
+                                  "lambda:*",
+                                  "apigateway:*",
+                                  "dynamodb:*",
+                                  "iam:PassRole"
+                                ],
+                                "Resource": "*"
+                              }
+                            ]
+                          }
+                        }
+                      ],
+                      "Path": "/",
+                      "RoleName": {
+                        "Fn::Join": [
+                          "-",
+                          [
+                            "nexabit-backend-dev",
+                            "dev",
+                            {
+                              "Ref": "AWS::Region"
+                            },
+                            "lambdaRole"
+                          ]
+                        ]
+                      }
+                    }
+                  }
+                },
+                "Outputs": {
+                  "ServerlessDeploymentBucketName": {
+                    "Value": {
+                      "Ref": "ServerlessDeploymentBucket"
+                    }
+                  }
+                }
+              },
+              "coreCloudFormationTemplate": {
+                "AWSTemplateFormatVersion": "2010-09-09",
+                "Description": "The AWS CloudFormation template for this Serverless application",
+                "Resources": {
+                  "ServerlessDeploymentBucket": {
+                    "Type": "AWS::S3::Bucket",
+                    "Properties": {
+                      "BucketEncryption": {
+                        "ServerSideEncryptionConfiguration": [
+                          {
+                            "ServerSideEncryptionByDefault": {
+                              "SSEAlgorithm": "AES256"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "ServerlessDeploymentBucketPolicy": {
+                    "Type": "AWS::S3::BucketPolicy",
+                    "Properties": {
+                      "Bucket": {
+                        "Ref": "ServerlessDeploymentBucket"
+                      },
+                      "PolicyDocument": {
+                        "Statement": [
+                          {
+                            "Action": "s3:*",
+                            "Effect": "Deny",
+                            "Principal": "*",
+                            "Resource": [
+                              {
+                                "Fn::Join": [
+                                  "",
+                                  [
+                                    "arn:",
+                                    {
+                                      "Ref": "AWS::Partition"
+                                    },
+                                    ":s3:::",
+                                    {
+                                      "Ref": "ServerlessDeploymentBucket"
+                                    },
+                                    "/*"
+                                  ]
+                                ]
+                              },
+                              {
+                                "Fn::Join": [
+                                  "",
+                                  [
+                                    "arn:",
+                                    {
+                                      "Ref": "AWS::Partition"
+                                    },
+                                    ":s3:::",
+                                    {
+                                      "Ref": "ServerlessDeploymentBucket"
+                                    }
+                                  ]
+                                ]
+                              }
+                            ],
+                            "Condition": {
+                              "Bool": {
+                                "aws:SecureTransport": false
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                },
+                "Outputs": {
+                  "ServerlessDeploymentBucketName": {
+                    "Value": {
+                      "Ref": "ServerlessDeploymentBucket"
+                    }
+                  }
+                }
+              }
+            },
+            "functions": {
+              "app": {
+                "handler": "server.handler",
+                "name": "NewTapAppFunction",
+                "events": [
+                  {
+                    "http": {
+                      "path": "api/user/{uniqueId}",
+                      "method": "get",
+                      "cors": {
+                        "origin": "https://bitsquadtap.netlify.app",
+                        "headers": [
+                          "Content-Type",
+                          "Authorization"
+                        ],
+                        "methods": [
+                          "OPTIONS",
+                          "GET",
+                          "POST",
+                          "PUT",
+                          "DELETE"
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "http": {
+                      "path": "api/user/{uniqueId}",
+                      "method": "post",
+                      "cors": {
+                        "origin": "https://bitsquadtap.netlify.app",
+                        "headers": [
+                          "Content-Type",
+                          "Authorization"
+                        ],
+                        "methods": [
+                          "OPTIONS",
+                          "GET",
+                          "POST",
+                          "PUT",
+                          "DELETE"
+                        ]
+                      }
+                    }
+                  }
+                ],
+                "package": {}
+              }
+            },
+            "plugins": [
+              "serverless-offline",
+              "serverless-dotenv-plugin",
+              "serverless-plugin-include-dependencies"
+            ],
+            "package": {
+              "individually": true,
+              "exclude": [
+                ".git/**",
+                ".serverless/**",
+                ".vscode/**",
+                "node_modules/**"
+              ],
+              "include": [
+                "node_modules/express/**",
+                "node_modules/serverless-http/**",
+                "node_modules/body-parser/**",
+                "node_modules/cors/**",
+                "node_modules/aws-sdk/**",
+                "node_modules/dotenv/**",
+                "node_modules/depd/**",
+                "node_modules/debug/**",
+                "node_modules/ms/**",
+                "node_modules/inherits/**",
+                "node_modules/util/**",
+                "node_modules/merge-descriptors/**",
+                "node_modules/cookie/**",
+                "node_modules/cookie-signature/**",
+                "node_modules/qs/**",
+                "node_modules/type-is/**",
+                "node_modules/mime-types/**",
+                "node_modules/mime/**",
+                "node_modules/**/required-package/**",
+                "server.js"
+              ],
+              "artifactsS3KeyDirname": "serverless/nexabit-backend-dev/dev/code-artifacts",
+              "patterns": [
+                "!node_modules/**"
+              ]
+            }
+          },
+          "configFileDirPath": "C:\\Users\\Hp\\Desktop\\TapTap\\nexabit",
+          "config": {
+            "type": "env"
+          },
+          "options": {},
+          "stage": "dev",
+          "dashboard": null
+        },
+        "resolvers": {}
+      }
+    },
+    "composeServiceName": null,
+    "servicePath": "C:\\Users\\Hp\\Desktop\\TapTap\\nexabit",
+    "serviceConfigFileName": "serverless.yml",
+    "service": {
+      "org": "nexabit",
+      "service": "nexabit-backend-dev",
+      "provider": {
+        "name": "aws",
+        "runtime": "nodejs20.x",
+        "region": "us-east-1",
+        "environment": {
+          "DYNAMODB_TABLE": "TapUsers",
+          "TELEGRAM_BOT_TOKEN": "<REDACTED>",
+          "REACT_APP_API_URL": "https://56rcffqix2.execute-api.us-east-1.amazonaws.com/dev",
+          "PORT": "5000"
+        },
+        "iamRoleStatements": [
+          {
+            "Effect": "Allow",
+            "Action": [
+              "logs:CreateLogGroup",
+              "logs:CreateLogStream",
+              "logs:PutLogEvents",
+              "logs:DescribeLogGroups",
+              "logs:DescribeLogStreams",
+              "lambda:*",
+              "apigateway:*",
+              "dynamodb:*",
+              "iam:PassRole"
+            ],
+            "Resource": "*"
+          }
+        ],
+        "stage": "dev",
+        "versionFunctions": true,
+        "compiledCloudFormationTemplate": {
+          "AWSTemplateFormatVersion": "2010-09-09",
+          "Description": "The AWS CloudFormation template for this Serverless application",
+          "Resources": {
+            "ServerlessDeploymentBucket": {
+              "Type": "AWS::S3::Bucket",
+              "Properties": {
+                "BucketEncryption": {
+                  "ServerSideEncryptionConfiguration": [
+                    {
+                      "ServerSideEncryptionByDefault": {
+                        "SSEAlgorithm": "AES256"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "ServerlessDeploymentBucketPolicy": {
+              "Type": "AWS::S3::BucketPolicy",
+              "Properties": {
+                "Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "PolicyDocument": {
+                  "Statement": [
+                    {
+                      "Action": "s3:*",
+                      "Effect": "Deny",
+                      "Principal": "*",
+                      "Resource": [
+                        {
+                          "Fn::Join": [
+                            "",
+                            [
+                              "arn:",
+                              {
+                                "Ref": "AWS::Partition"
+                              },
+                              ":s3:::",
+                              {
+                                "Ref": "ServerlessDeploymentBucket"
+                              },
+                              "/*"
+                            ]
+                          ]
+                        },
+                        {
+                          "Fn::Join": [
+                            "",
+                            [
+                              "arn:",
+                              {
+                                "Ref": "AWS::Partition"
+                              },
+                              ":s3:::",
+                              {
+                                "Ref": "ServerlessDeploymentBucket"
+                              }
+                            ]
+                          ]
+                        }
+                      ],
+                      "Condition": {
+                        "Bool": {
+                          "aws:SecureTransport": false
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "AppLogGroup": {
+              "Type": "AWS::Logs::LogGroup",
+              "Properties": {
+                "LogGroupName": "/aws/lambda/NewTapAppFunction"
+              }
+            },
+            "IamRoleLambdaExecution": {
+              "Type": "AWS::IAM::Role",
+              "Properties": {
+                "AssumeRolePolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Principal": {
+                        "Service": [
+                          "lambda.amazonaws.com"
+                        ]
+                      },
+                      "Action": [
+                        "sts:AssumeRole"
+                      ]
+                    }
+                  ]
+                },
+                "Policies": [
+                  {
+                    "PolicyName": {
+                      "Fn::Join": [
+                        "-",
+                        [
+                          "nexabit-backend-dev",
+                          "dev",
+                          "lambda"
+                        ]
+                      ]
+                    },
+                    "PolicyDocument": {
+                      "Version": "2012-10-17",
+                      "Statement": [
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "logs:CreateLogStream",
+                            "logs:CreateLogGroup",
+                            "logs:TagResource"
+                          ],
+                          "Resource": [
+                            {
+                              "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/NewTapAppFunction:*"
+                            }
+                          ]
+                        },
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "logs:PutLogEvents"
+                          ],
+                          "Resource": [
+                            {
+                              "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/NewTapAppFunction:*:*"
+                            }
+                          ]
+                        },
+                        {
+                          "Effect": "Allow",
+                          "Action": [
+                            "logs:CreateLogGroup",
+                            "logs:CreateLogStream",
+                            "logs:PutLogEvents",
+                            "logs:DescribeLogGroups",
+                            "logs:DescribeLogStreams",
+                            "lambda:*",
+                            "apigateway:*",
+                            "dynamodb:*",
+                            "iam:PassRole"
+                          ],
+                          "Resource": "*"
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "Path": "/",
+                "RoleName": {
+                  "Fn::Join": [
+                    "-",
+                    [
+                      "nexabit-backend-dev",
+                      "dev",
+                      {
+                        "Ref": "AWS::Region"
+                      },
+                      "lambdaRole"
+                    ]
+                  ]
+                }
+              }
+            }
+          },
+          "Outputs": {
+            "ServerlessDeploymentBucketName": {
+              "Value": {
+                "Ref": "ServerlessDeploymentBucket"
+              }
+            }
+          }
+        },
+        "coreCloudFormationTemplate": {
+          "AWSTemplateFormatVersion": "2010-09-09",
+          "Description": "The AWS CloudFormation template for this Serverless application",
+          "Resources": {
+            "ServerlessDeploymentBucket": {
+              "Type": "AWS::S3::Bucket",
+              "Properties": {
+                "BucketEncryption": {
+                  "ServerSideEncryptionConfiguration": [
+                    {
+                      "ServerSideEncryptionByDefault": {
+                        "SSEAlgorithm": "AES256"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "ServerlessDeploymentBucketPolicy": {
+              "Type": "AWS::S3::BucketPolicy",
+              "Properties": {
+                "Bucket": {
+                  "Ref": "ServerlessDeploymentBucket"
+                },
+                "PolicyDocument": {
+                  "Statement": [
+                    {
+                      "Action": "s3:*",
+                      "Effect": "Deny",
+                      "Principal": "*",
+                      "Resource": [
+                        {
+                          "Fn::Join": [
+                            "",
+                            [
+                              "arn:",
+                              {
+                                "Ref": "AWS::Partition"
+                              },
+                              ":s3:::",
+                              {
+                                "Ref": "ServerlessDeploymentBucket"
+                              },
+                              "/*"
+                            ]
+                          ]
+                        },
+                        {
+                          "Fn::Join": [
+                            "",
+                            [
+                              "arn:",
+                              {
+                                "Ref": "AWS::Partition"
+                              },
+                              ":s3:::",
+                              {
+                                "Ref": "ServerlessDeploymentBucket"
+                              }
+                            ]
+                          ]
+                        }
+                      ],
+                      "Condition": {
+                        "Bool": {
+                          "aws:SecureTransport": false
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "Outputs": {
+            "ServerlessDeploymentBucketName": {
+              "Value": {
+                "Ref": "ServerlessDeploymentBucket"
+              }
+            }
+          }
+        }
+      },
+      "functions": {
+        "app": {
+          "handler": "server.handler",
+          "name": "NewTapAppFunction",
+          "events": [
+            {
+              "http": {
+                "path": "api/user/{uniqueId}",
+                "method": "get",
+                "cors": {
+                  "origin": "https://bitsquadtap.netlify.app",
+                  "headers": [
+                    "Content-Type",
+                    "Authorization"
+                  ],
+                  "methods": [
+                    "OPTIONS",
+                    "GET",
+                    "POST",
+                    "PUT",
+                    "DELETE"
+                  ]
+                }
+              }
+            },
+            {
+              "http": {
+                "path": "api/user/{uniqueId}",
+                "method": "post",
+                "cors": {
+                  "origin": "https://bitsquadtap.netlify.app",
+                  "headers": [
+                    "Content-Type",
+                    "Authorization"
+                  ],
+                  "methods": [
+                    "OPTIONS",
+                    "GET",
+                    "POST",
+                    "PUT",
+                    "DELETE"
+                  ]
+                }
+              }
+            }
+          ],
+          "package": {}
+        }
+      },
+      "plugins": [
+        "serverless-offline",
+        "serverless-dotenv-plugin",
+        "serverless-plugin-include-dependencies"
+      ],
+      "package": {
+        "individually": true,
+        "exclude": [
+          ".git/**",
+          ".serverless/**",
+          ".vscode/**",
+          "node_modules/**"
+        ],
+        "include": [
+          "node_modules/express/**",
+          "node_modules/serverless-http/**",
+          "node_modules/body-parser/**",
+          "node_modules/cors/**",
+          "node_modules/aws-sdk/**",
+          "node_modules/dotenv/**",
+          "node_modules/depd/**",
+          "node_modules/debug/**",
+          "node_modules/ms/**",
+          "node_modules/inherits/**",
+          "node_modules/util/**",
+          "node_modules/merge-descriptors/**",
+          "node_modules/cookie/**",
+          "node_modules/cookie-signature/**",
+          "node_modules/qs/**",
+          "node_modules/type-is/**",
+          "node_modules/mime-types/**",
+          "node_modules/mime/**",
+          "node_modules/**/required-package/**",
+          "server.js"
+        ],
+        "artifactsS3KeyDirname": "serverless/nexabit-backend-dev/dev/code-artifacts",
+        "patterns": [
+          "!node_modules/**"
+        ]
+      }
+    },
+    "serviceRawFile": "org: nexabit\r\nservice: nexabit-backend-dev\r\n\r\nprovider:\r\n  name: aws\r\n  runtime: nodejs20.x\r\n  region: us-east-1\r\n  environment:\r\n    DYNAMODB_TABLE: ${env:DYNAMODB_TABLE}\r\n    TELEGRAM_BOT_TOKEN: ${env:TELEGRAM_BOT_TOKEN}\r\n    REACT_APP_API_URL: ${env:REACT_APP_API_URL}\r\n    PORT: ${env:PORT}\r\n  iamRoleStatements:\r\n    - Effect: \"Allow\"\r\n      Action:\r\n        - \"logs:CreateLogGroup\"\r\n        - \"logs:CreateLogStream\"\r\n        - \"logs:PutLogEvents\"\r\n        - \"logs:DescribeLogGroups\"\r\n        - \"logs:DescribeLogStreams\"\r\n        - \"lambda:*\"\r\n        - \"apigateway:*\"\r\n        - \"dynamodb:*\"\r\n        - \"iam:PassRole\"\r\n      Resource: \"*\"\r\n\r\nfunctions:\r\n  app:\r\n    handler: server.handler\r\n    name: NewTapAppFunction\r\n    events:\r\n      - http:\r\n          path: api/user/{uniqueId}\r\n          method: get\r\n          cors:\r\n            origin: 'https://bitsquadtap.netlify.app'\r\n            headers:\r\n              - Content-Type\r\n              - Authorization\r\n            methods:\r\n              - OPTIONS\r\n              - GET\r\n              - POST\r\n              - PUT\r\n              - DELETE\r\n      - http:\r\n          path: api/user/{uniqueId}\r\n          method: post\r\n          cors:\r\n            origin: 'https://bitsquadtap.netlify.app'\r\n            headers:\r\n              - Content-Type\r\n              - Authorization\r\n            methods:\r\n              - OPTIONS\r\n              - GET\r\n              - POST\r\n              - PUT\r\n              - DELETE\r\n\r\nplugins:\r\n  - serverless-offline\r\n  - serverless-dotenv-plugin\r\n  - serverless-plugin-include-dependencies\r\n\r\npackage:\r\n  individually: true\r\n  exclude:\r\n    - .git/**\r\n    - .serverless/**\r\n    - .vscode/**\r\n    - node_modules/**\r\n  include:\r\n    - node_modules/express/**\r\n    - node_modules/serverless-http/**\r\n    - node_modules/body-parser/**\r\n    - node_modules/cors/**\r\n    - node_modules/aws-sdk/**\r\n    - node_modules/dotenv/**\r\n    - node_modules/depd/**\r\n    - node_modules/debug/**\r\n    - node_modules/ms/**\r\n    - node_modules/inherits/**\r\n    - node_modules/util/**\r\n    - node_modules/merge-descriptors/**\r\n    - node_modules/cookie/**\r\n    - node_modules/cookie-signature/**\r\n    - node_modules/qs/**\r\n    - node_modules/type-is/**\r\n    - node_modules/mime-types/**\r\n    - node_modules/mime/**\r\n    - node_modules/**/required-package/**\r\n    - server.js\r\n",
+    "command": [
+      "deploy"
+    ],
+    "options": {},
+    "error": {
+      "message": "Cannot read properties of undefined (reading 'filter')",
+      "stack": "TypeError: Cannot read properties of undefined (reading 'filter')\n    at IncludeDependencies.getDependencies (C:\\Users\\Hp\\Desktop\\TapTap\\nexabit\\node_modules\\serverless-plugin-include-dependencies\\include-dependencies.js:148:33)\n    at IncludeDependencies.processNodeFunction (C:\\Users\\Hp\\Desktop\\TapTap\\nexabit\\node_modules\\serverless-plugin-include-dependencies\\include-dependencies.js:118:31)\n    at IncludeDependencies.processFunction (C:\\Users\\Hp\\Desktop\\TapTap\\nexabit\\node_modules\\serverless-plugin-include-dependencies\\include-dependencies.js:97:12)\n    at IncludeDependencies.createDeploymentArtifacts (C:\\Users\\Hp\\Desktop\\TapTap\\nexabit\\node_modules\\serverless-plugin-include-dependencies\\include-dependencies.js:80:12)\n    at PluginManager.runHooks (file:///C:/Users/Hp/.serverless/releases/4.1.4/package/dist/sf-core.js:1008:9296)\n    at async PluginManager.invoke (file:///C:/Users/Hp/.serverless/releases/4.1.4/package/dist/sf-core.js:1008:9997)\n    at async PluginManager.spawn (file:///C:/Users/Hp/.serverless/releases/4.1.4/package/dist/sf-core.js:1008:10416)\n    at async before:deploy:deploy (file:///C:/Users/Hp/.serverless/releases/4.1.4/package/dist/sf-core.js:792:39593)\n    at async PluginManager.runHooks (file:///C:/Users/Hp/.serverless/releases/4.1.4/package/dist/sf-core.js:1008:9290)\n    at async PluginManager.invoke (file:///C:/Users/Hp/.serverless/releases/4.1.4/package/dist/sf-core.js:1008:9997)\n    at async PluginManager.run (file:///C:/Users/Hp/.serverless/releases/4.1.4/package/dist/sf-core.js:1008:10779)\n    at async Serverless.run (file:///C:/Users/Hp/.serverless/releases/4.1.4/package/dist/sf-core.js:1015:10442)\n    at async runFramework (file:///C:/Users/Hp/.serverless/releases/4.1.4/package/dist/sf-core.js:1059:2314)\n    at async route (file:///C:/Users/Hp/.serverless/releases/4.1.4/package/dist/sf-core.js:1068:14692)\n    at async Object.run2 [as run] (file:///C:/Users/Hp/.serverless/releases/4.1.4/package/dist/sf-core.js:1068:15090)\n    at async run3 (file:///C:/Users/Hp/.serverless/releases/4.1.4/package/dist/sf-core.js:1068:16324)"
+    },
+    "params": {},
+    "machineId": "3634fa30b8b2678b360770a994089be2",
+    "accessKeyV2": "<REDACTED>",
+    "accessKeyV1": "<REDACTED>",
+    "orgId": "68ec4166-8d1a-426e-8e16-50af1eacc9b2",
+    "orgName": "nexabit",
+    "userId": "nq5CJmJfsFTz6xzjdB",
+    "dashboard": {
+      "isEnabledForService": false,
+      "requiredAuthentication": false,
+      "orgFeaturesInUse": null,
+      "orgObservabilityIntegrations": null,
+      "serviceAppId": null,
+      "serviceProvider": null,
+      "instanceParameters": null
+    },
+    "userName": "nexabit",
+    "subscription": null,
+    "userEmail": "maxxhubb@gmail.com",
+    "serviceProviderAwsCredentials": "<REDACTED>",
+    "serviceProviderAwsAccountId": "767397732333",
+    "versionSf": "4.1.4",
+    "serviceProviderAwsCfStackName": "nexabit-backend-dev-dev",
+    "serviceProviderAwsCfStackId": "arn:aws:cloudformation:us-east-1:767397732333:stack/nexabit-backend-dev-dev/c03c2520-2b06-11ef-a9dd-0e8538e4dbb1",
+    "serviceProviderAwsCfStackCreated": "2024-06-15T11:02:26.761Z",
+    "serviceProviderAwsCfStackUpdated": "2024-06-16T18:55:46.486Z",
+    "serviceProviderAwsCfStackStatus": "UPDATE_COMPLETE",
+    "serviceProviderAwsCfStackOutputs": [
+      {
+        "OutputKey": "AppLambdaFunctionQualifiedArn",
+        "OutputValue": "arn:aws:lambda:us-east-1:767397732333:function:NewTapAppFunction:11",
+        "Description": "Current Lambda function version",
+        "ExportName": "sls-nexabit-backend-dev-dev-AppLambdaFunctionQualifiedArn"
+      },
+      {
+        "OutputKey": "ServiceEndpoint",
+        "OutputValue": "https://56rcffqix2.execute-api.us-east-1.amazonaws.com/dev",
+        "Description": "URL of the service endpoint",
+        "ExportName": "sls-nexabit-backend-dev-dev-ServiceEndpoint"
+      },
+      {
+        "OutputKey": "ServerlessDeploymentBucketName",
+        "OutputValue": "nexabit-backend-dev-dev-serverlessdeploymentbucket-pwv6b6uuhbwm",
+        "ExportName": "sls-nexabit-backend-dev-dev-ServerlessDeploymentBucketName"
+      }
+    ]
+  }
+}

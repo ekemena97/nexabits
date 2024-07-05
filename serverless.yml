@@ -1,19 +1,53 @@
+org: nexabit
 service: nexabit-backend-dev
 
 provider:
   name: aws
   runtime: nodejs20.x
-  region: us-east-2
+  region: us-east-1
+  environment:
+    DYNAMODB_TABLE: ${env:DYNAMODB_TABLE}
+    TELEGRAM_BOT_TOKEN: ${env:TELEGRAM_BOT_TOKEN}
+    REACT_APP_API_URL: ${env:REACT_APP_API_URL}
+    PORT: ${env:PORT}
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "logs:CreateLogGroup"
+        - "logs:CreateLogStream"
+        - "logs:PutLogEvents"
+        - "logs:DescribeLogGroups"
+        - "logs:DescribeLogStreams"
+        - "lambda:*"
+        - "apigateway:*"
+        - "dynamodb:*"
+        - "iam:PassRole"
+      Resource: "*"
 
 functions:
-  user:
-    handler: handler.getUser
+  app:
+    handler: server.handler
+    name: NewTapAppFunction
     events:
       - http:
-          path: user/{username}
+          path: api/user/{uniqueId}
           method: get
           cors:
-            origin: 'http://localhost:3000'
+            origin: 'https://bitsquadtap.netlify.app'
+            headers:
+              - Content-Type
+              - Authorization
+            methods:
+              - OPTIONS
+              - GET
+              - POST
+              - PUT
+              - DELETE
+      - http:
+          path: api/user/{uniqueId}
+          method: post
+          cors:
+            origin: 'https://bitsquadtap.netlify.app'
             headers:
               - Content-Type
               - Authorization
@@ -26,9 +60,34 @@ functions:
 
 plugins:
   - serverless-offline
+  - serverless-dotenv-plugin
+  - serverless-plugin-include-dependencies
 
 package:
+  individually: true
   exclude:
-    - node_modules/**
-    - .serverless/**
     - .git/**
+    - .serverless/**
+    - .vscode/**
+    - node_modules/**
+  include:
+    - node_modules/express/**
+    - node_modules/serverless-http/**
+    - node_modules/body-parser/**
+    - node_modules/cors/**
+    - node_modules/aws-sdk/**
+    - node_modules/dotenv/**
+    - node_modules/depd/**
+    - node_modules/debug/**
+    - node_modules/ms/**
+    - node_modules/inherits/**
+    - node_modules/util/**
+    - node_modules/merge-descriptors/**
+    - node_modules/cookie/**
+    - node_modules/cookie-signature/**
+    - node_modules/qs/**
+    - node_modules/type-is/**
+    - node_modules/mime-types/**
+    - node_modules/mime/**
+    - node_modules/**/required-package/**
+    - server.js

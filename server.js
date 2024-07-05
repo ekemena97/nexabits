@@ -1,50 +1,405 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const dotenv = require('dotenv');
-const { getUser, updateUser } = require('./dynamoDBHandler');
-const { getTelegramUserInfo } = require('./telegramApiHandler'); // Corrected path
+import express from 'express';
+import bodyParser from 'body-parser';
+import cors from 'cors';
+import { Telegraf } from 'telegraf';
+import { Firestore } from '@google-cloud/firestore';
+import dotenv from 'dotenv';
+import fetch from 'node-fetch';
+import keepAlive from './keepAlive.js'; // Import the keep-alive function
+import session from 'express-session'; // Add session support
+import LocalSession from 'telegraf-session-local';
+import { WebSocketServer } from 'ws';
 
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 5000;
-
 app.use(cors());
 app.use(bodyParser.json());
 
-app.get('/api/user/:username', async (req, res) => {
-  const { username } = req.params;
+const firestore = new Firestore();
+const collectionName = process.env.FIRESTORE_COLLECTION || 'TapUsers';
+
+const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
+const bot = new Telegraf(TELEGRAM_TOKEN);
+
+const server = app.listen(process.env.PORT || 8080, () => {
+  console.log(`Server running on port ${server.address().port}`);
+  bot.launch();
+  console.log('Bot launched');
+  keepAlive();
+});
+
+const wss = new WebSocketServer({ server });
+
+const userSessions = new Map();
+
+wss.on('connection', (ws) => {
+  console.log('WebSocket connection established');
+
+  ws.on('message', (message) => {
+    console.log('Received:', message);
+    const { userId, referralLink } = JSON.parse(message);
+    userSessions.set(userId, { ws, referralLink });
+  });
+
+  ws.on('close', () => {
+    console.log('WebSocket connection closed');
+    // Handle WebSocket disconnection if needed
+  });
+});
+
+const generateReferralLink = (userId) => `https://t.me/TapLengendBot?start=${userId}`;
+
+const removeUndefinedValues = (obj) => Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined && v !== null));
+
+const saveOrUpdateUser = async (user) => {
+  if (!user.id) {
+    console.error('Cannot save or update user without id');
+    return;
+  }
   try {
-    const data = await getUser(username);
-    res.json(data.Item);
+    const sanitizedUser = removeUndefinedValues(user);
+    await firestore.collection(collectionName).doc(user.id).set(sanitizedUser, { merge: true });
+    console.log('User saved or updated:', user);
   } catch (error) {
-    res.status(500).send('Error fetching user data');
+    console.error('Error saving or updating user:', error);
+  }
+};
+
+const saveReferral = async (referral) => {
+  try {
+    const referrerDoc = firestore.collection('Referrals').doc(referral.referrerId);
+    await referrerDoc.set({
+      referredUsers: Firestore.FieldValue.arrayUnion(referral.userId)
+    }, { merge: true });
+    console.log('Referral saved:', referral);
+    await rewardUser(referral.referrerId);
+  } catch (error) {
+    console.error('Error saving referral:', error);
+  }
+};
+
+const getUserById = async (userId) => {
+  try {
+    const userDoc = await firestore.collection(collectionName).doc(userId).get();
+    if (userDoc.exists) {
+      const userData = userDoc.data();
+      userData.referralLink = generateReferralLink(userId); // Include referralLink in the user data
+      console.log('User found by ID:', userId);
+      return userData;
+    } else {
+      console.log('User not found by ID:', userId);
+      return null;
+    }
+  } catch (error) {
+    console.error('Error getting user by ID:', error);
+    return null;
+  }
+};
+
+const rewardUser = async (referrerId) => {
+  try {
+    const user = await getUserById(referrerId);
+    if (user) {
+      user.count = (user.count || 0) + 10; // Example reward count
+      await saveOrUpdateUser(user);
+      console.log('User rewarded:', referrerId, 'New count:', user.count);
+    } else {
+      console.error('Referrer not found:', referrerId);
+    }
+  } catch (error) {
+    console.error('Error rewarding user:', error);
+  }
+};
+
+// Add session support for Express and Telegraf
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: true } // Note: Set to true if using HTTPS
+}));
+
+bot.use(new LocalSession({ database: 'sessions.json' }).middleware());
+
+// Function to handle start command and send welcome message
+const handleStartCommand = async (ctx) => {
+  const userId = ctx.from.id.toString();
+  const referrerId = ctx.startPayload ? ctx.startPayload.toString() : null;
+  const username = ctx.from.username;
+  const isBot = ctx.from.is_bot;
+  const isPremium = ctx.from.is_premium || false;
+  const firstName = ctx.from.first_name;
+  const timestamp = Firestore.FieldValue.serverTimestamp();
+  const referralLink = generateReferralLink(userId);
+
+  // Store userId in the session
+  ctx.session.userId = userId;
+
+  // Send the welcome message to the user with inline buttons immediately
+  await ctx.replyWithHTML(
+    `Hey ${firstName}, Welcome to Nexabit.\nAn L1 that leverages the taps to train AI,\n
+    bringing gamification and reward distribution to your fingertip.\n
+    We launched our mini app to enable you to farm as many count as possible now.\n
+    These count will be exchanged for the $NEXT token when we launch in Q4.\n
+    Got friends? Bring them in, the more, the merrier.\n
+    Click on <b>Open App</b> to begin.`,
+    {
+      reply_markup: {
+        inline_keyboard: [
+          [{ text: '🚀 Open App', url: 'https://t.me/TapLengendBot/start' }],
+          [{ text: '🌐 Join community', url: 'https://t.me/nexabitHQ' }]
+        ]
+      }
+    }
+  );
+
+  // Proceed with processing the user and referrals asynchronously
+  (async () => {
+    console.log('Bot start command received:', { userId, referrerId, username, isBot, isPremium, firstName, timestamp, referralLink });
+
+    let user = await getUserById(userId);
+    if (!user) {
+      user = {
+        id: userId,
+        username,
+        isBot,
+        isPremium,
+        firstName,
+        timestamp,
+        count: 0,
+        referralLink // Save the referral link in the user data
+      };
+
+      await saveOrUpdateUser(user);
+    } else {
+      console.log('User already exists:', userId);
+    }
+
+    user = await getUserById(userId);
+    console.log('User after saving:', user);
+
+    if (referrerId) {
+      console.log('Processing referral:', { referrerId, userId });
+
+      if (referrerId === userId) {
+        console.log('User cannot refer himself. No action taken.');
+        return;
+      }
+
+      const referrer = await getUserById(referrerId);
+      if (referrer) {
+        console.log('Referrer exists:', referrerId);
+
+        const existingReverseReferralSnapshot = await firestore.collection('Referrals').where('referrerId', '==', userId).where('referredUsers', 'array-contains', referrerId).get();
+        if (!existingReverseReferralSnapshot.empty) {
+          console.log('Referred user cannot refer the referrer. No action taken.');
+          return;
+        }
+
+        const existingReferralSnapshot = await firestore.collection('Referrals').where('referredUsers', 'array-contains', userId).get();
+        if (existingReferralSnapshot.empty) {
+          await saveReferral({ referrerId, userId });
+        } else {
+          console.log('User already referred by someone. No action taken.');
+        }
+      } else {
+        console.log('Referrer does not exist:', referrerId);
+      }
+    } else {
+      console.log('No valid referrer ID. No referral action taken.');
+    }
+
+    // Store the user session data
+    userSessions.set(userId, { referralLink });
+  })();
+};
+
+bot.start(async (ctx) => {
+  handleStartCommand(ctx);
+});
+
+app.post('/webhook', (req, res) => {
+  try {
+    console.log('Webhook request received:', JSON.stringify(req.body, null, 2));
+    bot.handleUpdate(req.body);
+    res.sendStatus(200);
+  } catch (error) {
+    console.error('Error handling webhook request:', error);
+    res.sendStatus(500);
   }
 });
 
-app.post('/api/user/:username', async (req, res) => {
-  const { username } = req.params;
+app.post('/user', async (req, res) => {
   const user = req.body;
-  user.username = username;
-  try {
-    await updateUser(user);
-    res.send('User data updated successfully');
-  } catch (error) {
-    res.status(500).send('Error updating user data');
+  console.log('POST /user request received:', user);
+  await saveOrUpdateUser(user);
+  res.status(201).send(user);
+  console.log('User added via REST endpoint:', user);
+});
+
+app.post('/referral', async (req, res) => {
+  const referral = req.body;
+  console.log('POST /referral request received:', referral);
+  await saveReferral(referral);
+  res.status(201).send(referral);
+  console.log('Referral added via REST endpoint:', referral);
+});
+
+app.get('/user/:id', async (req, res) => {
+  const userId = req.params.id;
+  console.log('GET /user/:id request received for ID:', userId);
+  const user = await getUserById(userId);
+  if (user) {
+    res.send(user);
+    console.log('User fetched by ID:', userId, 'Result:', user);
+  } else {
+    res.status(404).send('User not found');
+    console.log('User not found by ID:', userId);
   }
 });
 
-app.get('/api/telegram-username/:userId', async (req, res) => {
-  const { userId } = req.params;
-  try {
-    const userInfo = await getTelegramUserInfo(userId);
-    res.json(userInfo);
-  } catch (error) {
-    res.status(500).send('Error fetching Telegram user info');
+app.put('/user/:id', async (req, res) => {
+  const userId = req.params.id;
+  console.log('PUT /user/:id request received for ID:', userId, 'with data:', req.body);
+  let user = await getUserById(userId);
+  if (user) {
+    user = { ...user, ...req.body };
+    await saveOrUpdateUser(user);
+    res.send(user);
+    console.log('User updated via REST endpoint:', userId, 'New data:', req.body);
+  } else {
+    res.status(404).send('User not found');
+    console.log('User not found for update by ID:', userId);
   }
 });
 
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+app.get('/checkref', async (req, res) => {
+  const userId = req.query.userId; // Use the appropriate method to get userId
+  console.log('GET /checkref request received for userId:', userId);
+  try {
+    const user = await getUserById(userId);
+    if (user) {
+      // Fetch referred users
+      const referralDoc = await firestore.collection('Referrals').doc(userId).get();
+      const referredUsers = referralDoc.exists ? referralDoc.data().referredUsers : [];
+      
+      // Fetch successful referrals
+      const successfulReferrals = [];
+      for (const referredUserId of referredUsers) {
+        const referredUserDoc = await firestore.collection(collectionName).doc(referredUserId).get();
+        if (referredUserDoc.exists && referredUserDoc.data().count >= 100) {
+          successfulReferrals.push(referredUserId);
+        }
+      }
+      
+      res.send({ 
+        referralLink: user.referralLink, 
+        referredUsers: referredUsers.map(id => ({ id, success: successfulReferrals.includes(id) })), 
+        successfulReferrals: successfulReferrals.length
+      });
+      console.log('Checkref response sent for userId:', userId);
+    } else {
+      res.status(404).send('User not found');
+      console.log('User not found for checkref by ID:', userId);
+    }
+  } catch (error) {
+    console.error('Error fetching referral link:', error);
+    res.status(500).send('Internal Server Error');
+  }
 });
+
+app.get('/user-id', async (req, res) => {
+  // Retrieve userId from the session
+  const userId = req.session.userId;
+  console.log('GET /user-id request received');
+  if (userId) {
+    res.send({ userId });
+    console.log('User ID response sent:', userId);
+  } else {
+    res.status(400).send('User ID not found');
+    console.log('User ID not found for request');
+  }
+});
+
+app.get('/keep-alive', (req, res) => {
+  res.sendStatus(200); // Respond with 200 OK status
+  console.log('GET /keep-alive request received');
+});
+
+app.get('/retrieve-session', (req, res) => {
+  const userId = req.query.userId;
+  const sessionData = userSessions.get(userId);
+  if (sessionData) {
+    res.json(sessionData);
+  } else {
+    res.status(404).send('Session data not found');
+  }
+});
+
+app.post('/log', (req, res) => {
+  const { message } = req.body;
+  console.log('Log from TapContext.js:', message);
+  res.sendStatus(200);
+});
+
+// Add this route to log IP addresses and update DAU
+app.post('/log-ip', async (req, res) => {
+  const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  const userId = req.body.userId; // Assuming userId is sent in the request body
+
+  // Debug log for userId
+  console.log('Received log-ip request with userId:', userId);
+
+  // Check if userId is valid
+  if (!userId) {
+    console.error('Invalid userId:', userId);
+    res.status(400).send('Invalid userId');
+    return;
+  }
+
+  // Ensure userId is a string
+  const userIdStr = userId.toString();
+
+  try {
+    const userDocRef = firestore.collection(collectionName).doc(userIdStr);
+    const userDoc = await userDocRef.get();
+    const currentTime = Firestore.FieldValue.serverTimestamp();
+
+    if (userDoc.exists) {
+      const userData = userDoc.data();
+      const lastLoginTime = userData.login ? userData.login.toMillis() : 0;
+      const oneDay = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+      if (Date.now() - lastLoginTime < oneDay) {
+        await userDocRef.update({
+          ip,
+          login: currentTime,
+          DAU: Firestore.FieldValue.increment(1)
+        });
+        res.status(200).send('IP logged and DAU updated');
+      } else {
+        await userDocRef.update({
+          ip,
+          login: currentTime
+        });
+        res.status(200).send('IP logged without updating DAU');
+      }
+    } else {
+      await userDocRef.set({
+        ip,
+        login: currentTime,
+        DAU: 1
+      });
+      res.status(200).send('IP logged and DAU initialized');
+    }
+  } catch (error) {
+    console.error('Error logging IP and updating DAU:', error);
+    res.status(500).send('Error logging IP and updating DAU');
+  }
+});
+
+
+
+
+export default app;

@@ -1,70 +1,152 @@
-import React, { useEffect } from "react";
+// src/App.js
+import React, { useEffect, useState } from "react";
 import logo from "./logo.svg";
 import "./App.css";
 import Logo from "./components/Logo.js";
 import Navigation from "./components/Navigation.js";
 import { Outlet } from "react-router-dom";
 import { useThemeContext } from "./context/ThemeContext.js";
+import TelegramContext from "./context/TelegramContext.js";
+import { TaskProvider } from "./context/TaskContext.js";
+import Loading from "./components/Loading.js";
 
 function App() {
   // Set Theme
   const { theme, setTheme } = useThemeContext();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if the Telegram Web App is available
+    // Simulate a loading delay
+    setTimeout(() => {
+      setLoading(false);
+    }, 2000); // Adjust the time as needed
+
+    // Initialize Telegram Web App
     if (window.Telegram && window.Telegram.WebApp) {
       const webApp = window.Telegram.WebApp;
       webApp.expand();
+      webApp.ready();
 
-      // Disable pull-to-refresh
+      webApp.onEvent("viewportChanged", function () {
+        setFullScreenDimensions();
+      });
+
+      setFullScreenDimensions();
+
       webApp.onEvent("viewportChanged", () => {
         webApp.MainButton.hide();
       });
-    }
 
-    // Prevent default touchmove behavior to avoid pull-to-refresh
-    const preventDefault = (e) => {
-      if (e.touches.length > 1 || (e.scale && e.scale !== 1)) {
-        e.preventDefault();
+      if (webApp.version && parseFloat(webApp.version) >= 6.1) {
+        webApp.BackButton.show();
+
+        webApp.BackButton.onClick(() => {
+          webApp.showConfirm("Are you sure you want to go back?", (confirmed) => {
+            if (confirmed) {
+              webApp.close();
+            }
+          });
+        });
       }
-    };
 
-    document.addEventListener("touchmove", preventDefault, { passive: false });
+      const handleBeforeUnload = (event) => {
+        event.preventDefault();
+        event.returnValue = "";
 
-    return () => {
-      document.removeEventListener("touchmove", preventDefault);
-    };
-  }, []);
+        webApp.showConfirm("Are you sure you want to close the app?", (confirmed) => {
+          if (confirmed) {
+            webApp.close();
+          }
+        });
+      };
 
-  // Capture referrer ID from URL
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const referrerId = urlParams.get("startapp");
-    if (referrerId) {
-      localStorage.setItem("referrerId", referrerId);
+      window.addEventListener("beforeunload", handleBeforeUnload);
+
+      window.addEventListener(
+        "touchmove",
+        function (event) {
+          event.preventDefault();
+        },
+        { passive: false }
+      );
+
+      return () => {
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+        window.removeEventListener("touchmove", function (event) {
+          event.preventDefault();
+        });
+      };
+    } else {
+      const handleBeforeUnload = (event) => {
+        event.preventDefault();
+        event.returnValue = "Are you sure you want to close the app?";
+      };
+
+      const handlePopState = (event) => {
+        if (!window.confirm("Are you sure you want to go back?")) {
+          window.history.pushState(null, "", window.location.href);
+        }
+      };
+
+      window.addEventListener("beforeunload", handleBeforeUnload);
+      window.addEventListener("popstate", handlePopState);
+
+      window.addEventListener(
+        "touchmove",
+        function (event) {
+          event.preventDefault();
+        },
+        { passive: false }
+      );
+
+      return () => {
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+        window.removeEventListener("popstate", handlePopState);
+        window.removeEventListener("touchmove", function (event) {
+          event.preventDefault();
+        });
+      };
     }
   }, []);
+
+  function setFullScreenDimensions() {
+    const appContainer = document.querySelector(".App");
+    if (appContainer) {
+      appContainer.style.width = "100%";
+      appContainer.style.height = "100%";
+    }
+  }
+
+  useEffect(() => {
+    setFullScreenDimensions();
+  }, []);
+
+  if (loading) {
+    return <Loading />;
+  }
 
   return (
-    <div className="">
-      <main
-        className={`w-full h-full flex flex-col content-center items-center relative font-poppins ${
-          theme === "dark"
-            ? "text-[#ffffff] bg-[#19191E]"
-            : "bg-[#fff] text-[#15231D]"
-        }`}
-      >
-        <div className={`${theme === "dark" ? "z-0" : "z-0"}`} />
-        <div
-          className={`w-screen h-screen fixed -z-10 ${
-            theme === "dark" ? "bg-[#19191E]" : "bg-[#fff]"
-          }`}
-        />
-        <Logo />
-        <Outlet />
-        <Navigation />
-      </main>
-    </div>
+    <TelegramContext>
+      <TaskProvider>
+        <div className="">
+          <main
+            className={`w-full h-full flex flex-col content-center items-center relative font-poppins ${
+              theme === "dark" ? "text-[#ffffff] bg-[#19191E]" : "bg-[#fff] text-[#15231D]"
+            }`}
+          >
+            <div className={`${theme === "dark" ? "z-0" : "z-0"}`} />
+            <div
+              className={`w-screen h-screen fixed -z-10 ${
+                theme === "dark" ? "bg-[#19191E]" : "bg-[#fff]"
+              }`}
+            />
+            <Logo />
+            <Outlet />
+            <Navigation />
+          </main>
+        </div>
+      </TaskProvider>
+    </TelegramContext>
   );
 }
 

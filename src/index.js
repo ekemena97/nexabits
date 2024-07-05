@@ -1,93 +1,95 @@
-import React from "react";
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App.js';
+import './index.css';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import Home from './pages/Home.js';
+import Crypto from './pages/Crypto.js';
+import Trending from './pages/Trending.js';
+import Saved from './pages/Saved.js';
+import CryptoDetails from './components/CryptoDetails.js';
 
-import ReactDOM from "react-dom/client";
-import App from "./App.js";
-import "./index.css";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import Home from "./pages/Home.js";
-import Crypto from "./pages/Crypto.js";
-import Trending from "./pages/Trending.js";
-import Saved from "./pages/Saved.js";
-import CryptoDetails from "./components/CryptoDetails.js";
+import Boost from './carrotPages/Boost.js';
+import NewsFeed from './carrotPages/NewsFeed.js';
+import Referrals from './carrotPages/Referrals.js';
+import Task from './carrotPages/Task.js';
+import Tap from './carrotPages/Tap.js';
+import NewsFeedDetails from './carrotPages/NewsFeedDetails.js';
 
-import Boost from "./carrotPages/Boost.js";
-import NewsFeed from "./carrotPages/NewsFeed.js";
-import Referrals from "./carrotPages/Referrals.js";
-import Task from "./carrotPages/Task.js";
-import Tap from "./carrotPages/Tap.js";
-import NewsFeedDetails from "./carrotPages/NewsFeedDetails.js";
+import { TapProvider } from './context/TapContext.js';
+import TelegramContext from './context/TelegramContext.js';
 
 const router = createBrowserRouter([
   {
-    path: "/",
+    path: '/',
     element: <Home />,
     children: [
       {
-        path: "/",
+        path: '/',
         element: <Tap />,
         children: [
           {
-            path: ":coinId",
+            path: ':coinId',
             element: <CryptoDetails />,
           },
         ],
       },
       {
-        path: "/task",
+        path: '/task',
         element: <Task />,
         children: [
           {
-            path: ":coinId",
+            path: ':coinId',
             element: <CryptoDetails />,
           },
         ],
       },
       {
-        path: "/ref",
+        path: '/ref',
         element: <Referrals />,
         children: [
           {
-            path: ":coinId",
+            path: ':coinId',
             element: <CryptoDetails />,
           },
         ],
       },
       {
-        path: "/boost",
+        path: '/boost',
         element: <Boost />,
         children: [
           {
-            path: ":coinId",
+            path: ':coinId',
             element: <CryptoDetails />,
           },
         ],
       },
       {
-        path: "/news",
+        path: '/news',
         element: <NewsFeed />,
         children: [
           {
-            path: `/news/id`,
+            path: '/news/id',
             element: <NewsFeedDetails />,
           },
         ],
       },
       {
-        path: `/news/:id`,
+        path: '/news/:id',
         element: <NewsFeedDetails />,
         children: [
           {
-            path: ":coinId",
+            path: ':coinId',
             element: <CryptoDetails />,
           },
         ],
       },
       {
-        path: "/trending",
+        path: '/trending',
         element: <Trending />,
         children: [
           {
-            path: ":coinId",
+            path: ':coinId',
             element: <CryptoDetails />,
           },
         ],
@@ -96,10 +98,14 @@ const router = createBrowserRouter([
   },
 ]);
 
-const root = ReactDOM.createRoot(document.getElementById("root"));
+const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <TelegramContext>
+      <TapProvider>
+        <RouterProvider router={router} />
+      </TapProvider>
+    </TelegramContext>
   </React.StrictMode>
 );
 

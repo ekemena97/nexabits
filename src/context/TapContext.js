@@ -1,183 +1,181 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
-import AWS from 'aws-sdk';
+import { useTelegramUser } from './TelegramContext.js'; // Import the hook from TelegramContext
 
 const TapContext = createContext();
 
 export const useTapContext = () => useContext(TapContext);
 
 export const TapProvider = ({ children }) => {
-  const [count, setCount] = useState(0);
-  const [coinsPerTap, setCoinsPerTap] = useState(1);
-  const [energyLimit, setEnergyLimit] = useState(500);
-  const [refillRate, setRefillRate] = useState(300);
-  const [energy, setEnergy] = useState(500);
-  const [referredUsers, setReferredUsers] = useState([]);
-  const [successfulReferrals, setSuccessfulReferrals] = useState(0);
+  const userId = useTelegramUser(); // Use the hook to get userId
+
+  const calculateInitialEnergy = () => {
+    const storedEnergy = getParsedLocalStorageItem('energy', 618);
+    const lastUpdateTime = parseInt(localStorage.getItem('lastUpdateTime'), 10) || Date.now();
+    const elapsedSeconds = Math.floor((Date.now() - lastUpdateTime) / 1000);
+    const refillRate = getParsedLocalStorageItem('refillRate', 2400);
+    const energyLimit = getParsedLocalStorageItem('energyLimit', 3000);
+    const energyGain = Math.floor(elapsedSeconds / refillRate);
+    const initialEnergy = Math.min(storedEnergy + energyGain, energyLimit);
+
+    // Debugging logs
+    console.log("Stored Energy:", storedEnergy);
+    console.log("Last Update Time:", lastUpdateTime);
+    console.log("Elapsed Seconds:", elapsedSeconds);
+    console.log("Energy Gain:", energyGain);
+    console.log("Initial Energy Calculated:", initialEnergy);
+
+    return initialEnergy;
+  };
+
+  const [count, setCount] = useState(() => getParsedLocalStorageItem('count', 2955187));
+  const [coinsPerTap, setCoinsPerTap] = useState(() => getParsedLocalStorageItem('coinsPerTap', 20));
+  const [energyLimit, setEnergyLimit] = useState(() => getParsedLocalStorageItem('energyLimit', 3000));
+  const [refillRate, setRefillRate] = useState(() => getParsedLocalStorageItem('refillRate', 2400));
+  const [energy, setEnergy] = useState(calculateInitialEnergy);
 
   const stateChanged = useRef(false);
+  const lastUpdate = useRef(Date.now());
 
-  // AWS Configuration
-  AWS.config.update({
-    accessKeyId: process.env.REACT_APP_AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.REACT_APP_AWS_SECRET_ACCESS_KEY,
-    region: process.env.REACT_APP_AWS_REGION,
-  });
-
-  const dynamoDB = new AWS.DynamoDB.DocumentClient();
-  const tableName = process.env.REACT_APP_DYNAMODB_TABLE || 'TapUsers';
-
-  // Utility function to update state and local storage
-  const updateStateAndLocalStorage = useCallback((key, value, setState) => {
-    setState(value);
-    localStorage.setItem(key, JSON.stringify(value));
-    stateChanged.current = true;
-  }, []);
-
-  // Generate or retrieve the persistent unique ID
-  const getUniqueId = () => {
-    let uniqueId = localStorage.getItem('uniqueId');
-    if (!uniqueId) {
-      uniqueId = Math.floor(100000000 + Math.random() * 900000000).toString();
-      localStorage.setItem('uniqueId', uniqueId);
-    }
-    return uniqueId;
-  };
-
-  const uniqueId = getUniqueId();
-
-  // Utility function to generate a unique referral link
-  const generateUniqueReferralLink = (uniqueId) => {
-    const baseUrl = "https://t.me/TapLengendBot/start?startapp=";
-    const referralText = `🎁 New and Hot! First Time Gift for Playing with Me\n💵 5K $Squad tokens as a first-time gift.`;
-    return {
-      link: `${baseUrl}${uniqueId}`,
-      textLink: `${baseUrl}${uniqueId}&text=${encodeURIComponent(referralText)}`,
-    };
-  };
-
-  const fetchUser = async () => {
-    try {
-      const params = {
-        TableName: tableName,
-        Key: { username: uniqueId },
-      };
-      const response = await dynamoDB.get(params).promise();
-      const user = response.Item || {};
-      setCount(user.count || 0);
-      setCoinsPerTap(user.coinsPerTap || 1);
-      setEnergyLimit(user.energyLimit || 500);
-      setRefillRate(user.refillRate || 300);
-      setEnergy(user.energy || user.energyLimit || 500);
-      setReferredUsers(user.referredUsers || []);
-      setSuccessfulReferrals(user.successfulReferrals || 0);
-      if (user.startappId) {
-        localStorage.setItem('startappId', user.startappId);
-      }
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-    }
-  };
-
-  const updateUser = async () => {
-    if (!stateChanged.current) return;
+  const logIpAddress = useCallback(async () => {
+    if (!userId) return;
 
     try {
-      const startappId = localStorage.getItem('startappId');
-      const params = {
-        TableName: tableName,
-        Item: {
-          username: uniqueId,
-          count: count,
-          coinsPerTap: coinsPerTap,
-          energyLimit: energyLimit,
-          refillRate: refillRate,
-          energy: energy,
-          referredUsers: referredUsers,
-          successfulReferrals: successfulReferrals,
-          startappId: startappId,
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/log-ip`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ userId }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      console.log('IP address logged successfully.');
+    } catch (error) {
+      console.error('Error logging IP address:', error);
+    }
+  }, [userId]);
+
+  const updateFirestoreUser = useCallback(async () => {
+    if (!userId) return;
+
+    try {
+      const user = {
+        count,
+        coinsPerTap,
+        energyLimit,
+        refillRate,
+        lastUpdateTime: Date.now(),
       };
-      await dynamoDB.put(params).promise();
+
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/user/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(user),
+      });
+
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+      const text = await response.text();
+      try {
+        JSON.parse(text);
+      } catch (jsonError) {
+        // Non-JSON response
+      }
+
       stateChanged.current = false;
     } catch (error) {
-      console.error('Error updating user data:', error);
+      console.error(`Error updating user data: ${error}`);
     }
-  };
+  }, [userId, count, coinsPerTap, energyLimit, refillRate]);
 
   useEffect(() => {
-    fetchUser();
-  }, [uniqueId]);
-
-  useEffect(() => {
-    const interval = setInterval(updateUser, 1 * 60 * 1000); // upload to database every 1 minute
-
-    return () => clearInterval(interval);
-  }, [count, coinsPerTap, energyLimit, refillRate, energy, referredUsers, successfulReferrals]);
-
-  useEffect(() => {
-    const handleBeforeUnload = async (event) => {
-      await updateUser();
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [count, coinsPerTap, energyLimit, refillRate, energy, referredUsers, successfulReferrals]);
-
-  useEffect(() => {
-    const savedTime = localStorage.getItem("lastUpdateTime");
-    if (savedTime) {
-      const elapsedSeconds = Math.floor((Date.now() - parseInt(savedTime, 10)) / 1000);
-      const energyGain = Math.floor(elapsedSeconds / refillRate);
-      setEnergy((prevEnergy) => Math.min(prevEnergy + energyGain, energyLimit));
-    }
-    localStorage.setItem("lastUpdateTime", Date.now());
-  }, [energyLimit, refillRate]);
+    logIpAddress(); // Log IP address when the component mounts or userId changes
+  }, [logIpAddress]);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setEnergy((prevEnergy) => {
-        const newEnergy = prevEnergy < energyLimit ? prevEnergy + 1 : energyLimit;
-        localStorage.setItem("energy", newEnergy);
-        localStorage.setItem("lastUpdateTime", Date.now());
-        return newEnergy;
-      });
-    }, refillRate * 1000 / energyLimit);
+      const currentTime = Date.now();
+      if (stateChanged.current && (currentTime - lastUpdate.current >= 60 * 1000)) {
+        updateFirestoreUser();
+        lastUpdate.current = currentTime;
+      }
+    }, 60000); // Check every minute
 
     return () => clearInterval(interval);
+  }, [updateFirestoreUser]);
+
+  const updateStateAndLocalStorage = useCallback((key, value, setState) => {
+    setState(value);
+    localStorage.setItem(key, JSON.stringify(value));
+    if (['count', 'coinsPerTap', 'energyLimit', 'refillRate'].includes(key)) {
+      stateChanged.current = true;
+    }
+  }, []);
+
+  const calculateEnergyGain = () => {
+    const lastUpdateTime = parseInt(localStorage.getItem('lastUpdateTime'), 10) || Date.now();
+    const elapsedSeconds = Math.floor((Date.now() - lastUpdateTime) / 1000);
+    const energyGain = Math.floor(elapsedSeconds / refillRate);
+    
+    // Debugging logs
+    console.log("Calculating Energy Gain:");
+    console.log("Last Update Time:", lastUpdateTime);
+    console.log("Elapsed Seconds:", elapsedSeconds);
+    console.log("Energy Gain Calculated:", energyGain);
+    
+    return energyGain;
+  };
+
+  const applyEnergyGain = useCallback(() => {
+    const energyGain = calculateEnergyGain();
+    setEnergy(prevEnergy => {
+      const newEnergy = Math.min(prevEnergy + energyGain, energyLimit);
+      console.log("Applying Energy Gain:", energyGain, "New Energy:", newEnergy); // Debugging log
+      return newEnergy;
+    });
+    localStorage.setItem('lastUpdateTime', Date.now().toString());
   }, [energyLimit, refillRate]);
 
   useEffect(() => {
-    const startappId = new URLSearchParams(window.location.search).get('startapp');
-    if (startappId) {
-      localStorage.setItem('startappId', startappId);
-      stateChanged.current = true; // Mark state as changed to trigger updateUser
-      console.log(`startappId set in localStorage: ${startappId}`);
-    } else {
-      console.log("startappId not found in URL");
-    }
-  }, []);
+    applyEnergyGain();
+  }, [applyEnergyGain]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      applyEnergyGain();
+    }, 1000); // Check every second
+
+    return () => clearInterval(interval);
+  }, [applyEnergyGain]);
+
+  useEffect(() => {
+    localStorage.setItem('energy', JSON.stringify(energy));
+  }, [energy]);
 
   const incrementTap = () => {
     setCount(prevCount => {
       const newCount = prevCount + coinsPerTap;
-      updateStateAndLocalStorage('count', newCount, setCount);
+      localStorage.setItem('count', JSON.stringify(newCount));
+      stateChanged.current = true;
       return newCount;
     });
     setEnergy(prevEnergy => {
       const newEnergy = Math.max(prevEnergy - 1, 0);
-      updateStateAndLocalStorage('energy', newEnergy, setEnergy);
+      localStorage.setItem('energy', JSON.stringify(newEnergy));
       return newEnergy;
     });
-    checkReferralSuccess();
   };
 
   const incrementPoints = (points) => {
     setCount(prevCount => {
       const newCount = prevCount + points;
-      updateStateAndLocalStorage('count', newCount, setCount);
+      localStorage.setItem('count', JSON.stringify(newCount));
+      stateChanged.current = true;
       return newCount;
     });
   };
@@ -185,53 +183,16 @@ export const TapProvider = ({ children }) => {
   const decrementCount = (amount) => {
     setCount(prevCount => {
       const newCount = prevCount - amount;
-      updateStateAndLocalStorage('count', newCount, setCount);
+      localStorage.setItem('count', JSON.stringify(newCount));
+      stateChanged.current = true;
       return newCount;
     });
   };
 
-  const addReferredUser = (userId) => {
-    console.log(`Adding referred user: ${userId}`);
-    setReferredUsers(prev => {
-      const newReferredUsers = [...prev, { id: userId, success: false }];
-      updateStateAndLocalStorage('referredUsers', newReferredUsers, setReferredUsers);
-      return newReferredUsers;
-    });
-  };
-
-  const checkReferralSuccess = () => {
-    const startappId = localStorage.getItem('startappId');
-    console.log(`Checking referral success for: ${startappId} with count: ${count}`);
-    if (startappId && count >= 100) {
-      setReferredUsers(prev => {
-        const newReferredUsers = prev.map(user => {
-          if (user.id === startappId && !user.success) {
-            setSuccessfulReferrals(prevCount => {
-              const newCount = prevCount + 1;
-              updateStateAndLocalStorage('successfulReferrals', newCount, setSuccessfulReferrals);
-              console.log(`Incrementing successful referrals: ${newCount}`);
-              return newCount;
-            });
-            return { ...user, success: true };
-          }
-          return user;
-        });
-        updateStateAndLocalStorage('referredUsers', newReferredUsers, setReferredUsers);
-        return newReferredUsers;
-      });
-      localStorage.removeItem('startappId');
-    } else {
-      console.log("Referral success criteria not met or startappId not found");
-    }
-  };
-
-  useEffect(() => {
-    checkReferralSuccess();
-  }, [count]);
-
   return (
     <TapContext.Provider
       value={{
+        userId,
         count,
         incrementTap,
         incrementPoints,
@@ -244,14 +205,22 @@ export const TapProvider = ({ children }) => {
         decrementCount,
         energy,
         setEnergy: (value) => updateStateAndLocalStorage('energy', value, setEnergy),
-        referredUsers,
-        addReferredUser,
-        checkReferralSuccess,
-        successfulReferrals,
-        generateUniqueReferralLink, // Exporting the function
+        updateStateAndLocalStorage,
       }}
     >
       {children}
     </TapContext.Provider>
   );
 };
+
+const getParsedLocalStorageItem = (key, defaultValue) => {
+  const storedValue = localStorage.getItem(key);
+  try {
+    return storedValue ? JSON.parse(storedValue) : defaultValue;
+  } catch (error) {
+    console.error(`Error parsing localStorage key "${key}":`, error);
+    return defaultValue;
+  }
+};
+
+export default TapProvider;

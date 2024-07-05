@@ -1,53 +1,52 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { useThemeContext } from "../context/ThemeContext.js";
+import { useTelegramUser } from "../context/TelegramContext.js"; // Add .js extension
 import { FaGift, FaCopy, FaThumbsUp } from "react-icons/fa";
 import { FiRefreshCw } from "react-icons/fi";
 import { GoPersonAdd } from "react-icons/go";
 import crypto from "../assets/crypto.png";
-import { useTapContext } from "../context/TapContext.js";
-
-// Utility function to update local storage
-const updateLocalStorage = (key, value) => {
-  localStorage.setItem(key, value);
-};
 
 const Referrals = () => {
   const { theme } = useThemeContext();
-  const { referredUsers, successfulReferrals, generateUniqueReferralLink } = useTapContext();
-  const [uniqueReferralLink, setUniqueReferralLink] = useState("");
-  const [textReferralLink, setTextReferralLink] = useState("");
+  const userId = useTelegramUser(); // Get the userId from the context
   const [copySuccess, setCopySuccess] = useState(false);
-
-  const uniqueId = useMemo(() => localStorage.getItem('uniqueId'), []);
+  const [referredUsers, setReferredUsers] = useState([]);
+  const [successfulReferrals, setSuccessfulReferrals] = useState(0);
+  const [referralLink, setReferralLink] = useState('');
 
   useEffect(() => {
-    let storedLink = localStorage.getItem("uniqueReferralLink");
-    let storedTextLink = localStorage.getItem("textReferralLink");
-    if (!storedLink || !storedTextLink) {
-      const { link, textLink } = generateUniqueReferralLink(uniqueId);
-      storedLink = link;
-      storedTextLink = textLink;
-      updateLocalStorage("uniqueReferralLink", link);
-      updateLocalStorage("textReferralLink", textLink);
+    if (userId) {
+      setReferralLink(`https://t.me/TapLengendBot?start=${userId}`);
+      
+      // Fetch referral data from the server
+      fetch(`${process.env.REACT_APP_API_URL}/checkref?userId=${userId}`)
+        .then(response => response.json())
+        .then(data => {
+          setReferredUsers(data.referredUsers);
+          setSuccessfulReferrals(data.successfulReferrals);
+        })
+        .catch(error => {
+          console.error('Error fetching referral data:', error);
+        });
     }
-    setUniqueReferralLink(storedLink);
-    setTextReferralLink(storedTextLink);
-  }, [uniqueId, generateUniqueReferralLink]);
+  }, [userId]);
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(uniqueReferralLink).then(() => {
+    navigator.clipboard.writeText(referralLink).then(() => {
       setCopySuccess(true);
       setTimeout(() => {
         setCopySuccess(false);
       }, 3000);
+      console.log('Referral link copied to clipboard');
     });
   };
 
   const handleShareLink = () => {
-    const telegramShareUrl = `https://t.me/share/url?url=${uniqueReferralLink}&text=${encodeURIComponent(
+    const telegramShareUrl = `https://t.me/share/url?url=${referralLink}&text=${encodeURIComponent(
       "🎁 New and Hot! First Time Gift for Playing with Me\n💵 5K $Squad tokens as a first-time gift."
     )}`;
     window.open(telegramShareUrl, "_blank");
+    console.log('Sharing referral link:', telegramShareUrl);
   };
 
   return (
@@ -121,16 +120,16 @@ const Referrals = () => {
             </div>
           </div>
 
-          <div className="flex flex-row items-center sm:w-[80%] w-full mt-2">
+          <div className="flex flex-row items-center sm:w-[90%] w-[90%] mt-2"> {/* Adjusted width */}
             <div
               className={`${
                 theme === "dark"
                   ? "bg-[#232323] border border-gray-200"
                   : "bg-[#fff] border border-[#F1F2F2]"
-              } flex flex-row sm:gap-4 gap-1 items-center px-6 py-3 rounded-md cursor-pointer transition-all duration-150 ease-in hover:bg-gray-300 text-gray-100 sm:w-[80%] w-full`}
+              } flex flex-row sm:gap-4 gap-1 items-center px-6 py-3 rounded-md cursor-pointer transition-all duration-150 ease-in hover:bg-gray-300 text-gray-100 sm:w-full w-full`}
               onClick={handleCopyLink}
             >
-              <h1 className="text-sm">{uniqueReferralLink}</h1>
+              <h1 className="text-xs">{referralLink}</h1> {/* Reduce the font size */}
             </div>
             <FaCopy className="cursor-pointer" onClick={handleCopyLink} />
           </div>
@@ -143,31 +142,6 @@ const Referrals = () => {
             <GoPersonAdd />
           </div>
 
-          <div className="flex flex-row items-center justify-between sm:w-[80%] w-full mt-6">
-            <div className="sm:text-base text-sm">List of your friends</div>
-            <FiRefreshCw onClick={() => window.location.reload()} />
-          </div>
-          <div
-            className={`${
-              theme === "dark"
-                ? "bg-[#232323] border border-gray-200"
-                : "bg-[#fff] border border-[#F1F2F2]"
-            } flex flex-row sm:gap-4 gap-1 items-center px-6 sm:w-[80%] w-full py-3 rounded-md cursor-pointer transition-all duration-150 ease-in hover:bg-gray-300 text-gray-100`}
-          >
-            {referredUsers.length === 0 ? (
-              "You haven't invited anyone yet"
-            ) : (
-              <ul>
-                {referredUsers.map((user) => (
-                  <li key={user.id}>
-                    User ID: {user.id} - {user.telegramName || 'N/A'} -{" "}
-                    {user.success ? "Successful" : "Pending"}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-
           <div className="sm:w-[80%] w-full py-3">
             <div className="text-center">
               Total Referrals: {referredUsers.length}
@@ -175,6 +149,14 @@ const Referrals = () => {
             <div className="text-center">
               Successful Referrals: {successfulReferrals}
             </div>
+          </div>
+
+          <div className="sm:w-[80%] w-full py-3">
+            {referredUsers.length === 0 ? (
+              "You haven't invited anyone yet"
+            ) : (
+              <p className="text-gray-500"></p>
+            )}
           </div>
         </div>
       </div>

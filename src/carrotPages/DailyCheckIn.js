@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './DailyCheckIn.css';
-import { FaCoins, FaCheckCircle } from 'react-icons/fa'; // Import the coin and checkmark icons
+import { FaCoins, FaCheckCircle } from 'react-icons/fa';
 
 const rewards = [
   { day: 1, amount: '500' },
@@ -22,36 +22,81 @@ const DailyCheckIn = ({ onClose, onClaimReward }) => {
   const [currentDay, setCurrentDay] = useState(parseInt(localStorage.getItem('currentDay')) || 1);
   const [canClaim, setCanClaim] = useState(true);
   const [timer, setTimer] = useState(0);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
     const endTime = localStorage.getItem('endTime');
+    const resetEndTime = localStorage.getItem('resetEndTime');
+    
     if (endTime) {
       const remainingTime = new Date(endTime) - new Date();
       if (remainingTime > 0) {
         setCanClaim(false);
         setTimer(remainingTime);
-        const timerId = setInterval(() => {
-          const newRemainingTime = new Date(endTime) - new Date();
-          if (newRemainingTime <= 0) {
-            clearInterval(timerId);
-            setCanClaim(true);
-            localStorage.removeItem('endTime');
-            // Update UI when time ends
-            const nextDay = getNextDay(currentDay);
-            setCurrentDay(nextDay);
-            localStorage.setItem('currentDay', nextDay);
-            if (nextDay === 1) {
-              setClaimedDays([]);
-              localStorage.removeItem('claimedDays');
-            }
-          } else {
-            setTimer(newRemainingTime);
-          }
-        }, 1000);
-        return () => clearInterval(timerId);
+        startClaimTimer(remainingTime);
+      } else {
+        handleClaimTimerEnd();
       }
     }
-  }, [currentDay]);
+
+    if (resetEndTime) {
+      const remainingResetTime = new Date(resetEndTime) - new Date();
+      if (remainingResetTime > 0) {
+        startResetTimer(remainingResetTime);
+      } else {
+        handleResetTimerEnd();
+      }
+    }
+  }, []);
+
+  const startClaimTimer = (remainingTime) => {
+    const timerId = setInterval(() => {
+      const newRemainingTime = remainingTime - 1000;
+      if (newRemainingTime <= 0) {
+        clearInterval(timerId);
+        handleClaimTimerEnd();
+      } else {
+        setTimer(newRemainingTime);
+        remainingTime = newRemainingTime;
+      }
+    }, 1000);
+  };
+
+  const handleClaimTimerEnd = () => {
+    const nextDay = getNextDay(currentDay);
+    setCurrentDay(nextDay);
+    setCanClaim(true);
+    localStorage.setItem('currentDay', nextDay);
+    localStorage.removeItem('endTime');
+    if (nextDay === 1) {
+      setClaimedDays([]);
+      localStorage.removeItem('claimedDays');
+    }
+    const resetEndTime = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
+    localStorage.setItem('resetEndTime', resetEndTime);
+    startResetTimer(24 * 60 * 60 * 1000);
+  };
+
+  const startResetTimer = (remainingResetTime) => {
+    const resetTimerId = setInterval(() => {
+      const newRemainingResetTime = remainingResetTime - 1000;
+      if (newRemainingResetTime <= 0) {
+        clearInterval(resetTimerId);
+        handleResetTimerEnd();
+      } else {
+        remainingResetTime = newRemainingResetTime;
+      }
+    }, 1000);
+  };
+
+  const handleResetTimerEnd = () => {
+    setCurrentDay(1);
+    setClaimedDays([]);
+    setCanClaim(true);
+    localStorage.setItem('currentDay', 1);
+    localStorage.removeItem('claimedDays');
+    localStorage.removeItem('resetEndTime');
+  };
 
   const handleClaim = () => {
     if (canClaim) {
@@ -59,33 +104,26 @@ const DailyCheckIn = ({ onClose, onClaimReward }) => {
       setClaimedDays(newClaimedDays);
       localStorage.setItem('claimedDays', JSON.stringify(newClaimedDays));
 
-      const endTime = new Date(new Date().getTime() + 120000); // 2 minutes from now
+      const endTime = new Date(new Date().getTime() + 12 * 60 * 60 * 1000);
       localStorage.setItem('endTime', endTime);
 
       setCanClaim(false);
-      setTimer(120000);
-      const timerId = setInterval(() => {
-        const remainingTime = new Date(endTime) - new Date();
-        if (remainingTime <= 0) {
-          clearInterval(timerId);
-          const nextDay = getNextDay(currentDay);
-          setCurrentDay(nextDay);
-          setCanClaim(true);
-          localStorage.setItem('currentDay', nextDay);
-          localStorage.removeItem('endTime');
-          if (nextDay === 1) {
-            setClaimedDays([]);
-            localStorage.removeItem('claimedDays');
-          }
-        } else {
-          setTimer(remainingTime);
-        }
-      }, 1000);
+      startClaimTimer(12 * 60 * 60 * 1000);
 
       const rewardAmount = convertToPoints(rewards.find(reward => reward.day === currentDay).amount);
-      onClaimReward(rewardAmount); // Call the callback to update points
+      onClaimReward(rewardAmount);
 
-      setTimeout(onClose, 4000); // Close the page after 4 seconds
+      if (navigator.vibrate) {
+        navigator.vibrate(200);
+      }
+
+      setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+        onClose();
+      }, 1000); // Display success message for 2 seconds
+
+      localStorage.removeItem('resetEndTime');
     }
   };
 
@@ -108,36 +146,11 @@ const DailyCheckIn = ({ onClose, onClaimReward }) => {
   }, [claimedDays, currentDay]);
 
   const formatTime = (milliseconds) => {
+    const hours = Math.floor((milliseconds % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const minutes = Math.floor((milliseconds % (1000 * 60 * 60)) / (1000 * 60));
     const seconds = Math.floor((milliseconds % (1000 * 60)) / 1000);
-    return `${minutes}m ${seconds}s`;
+    return `${hours}h ${minutes}m ${seconds}s`;
   };
-
-  // New effect to check and update state periodically
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      const endTime = localStorage.getItem('endTime');
-      if (endTime) {
-        const remainingTime = new Date(endTime) - new Date();
-        if (remainingTime <= 0) {
-          const nextDay = getNextDay(currentDay);
-          setCurrentDay(nextDay);
-          setCanClaim(true);
-          localStorage.setItem('currentDay', nextDay);
-          localStorage.removeItem('endTime');
-          if (nextDay === 1) {
-            setClaimedDays([]);
-            localStorage.removeItem('claimedDays');
-          }
-        } else {
-          setTimer(remainingTime);
-          setCanClaim(false);
-        }
-      }
-    }, 1000);
-
-    return () => clearInterval(intervalId);
-  }, [currentDay]);
 
   return (
     <div className="daily-check-in-overlay">
@@ -145,28 +158,33 @@ const DailyCheckIn = ({ onClose, onClaimReward }) => {
         <div className="header">
           <h2>Daily reward</h2>
           <p>Get Reward for Opening the App Daily</p>
-          <button className="close-button" onClick={onClose}>X</button>
+          <button className="close-button" onClick={() => !showSuccess && onClose()}>X</button>
         </div>
-        <div className="rewards-grid">
-          {rewards.map((reward, index) => (
-            <div
-              key={index}
-              className={`reward ${reward.day === currentDay ? 'reward-day-1' : ''} ${claimedDays.includes(reward.day) ? 'reward-day-1-claimed' : ''} ${index < 8 ? 'active' : ''}`}
-            >
-              <div className="day">Day {reward.day}</div>
-              <div className="amount">
-                {reward.amount} <FaCoins className="coin-icon" />
+        {showSuccess && (
+          <div className="success-message">Success 🎉</div>
+        )}
+        <div className={`content ${showSuccess ? 'blur' : ''}`}>
+          <div className="rewards-grid">
+            {rewards.map((reward, index) => (
+              <div
+                key={index}
+                className={`reward ${reward.day === currentDay ? 'reward-day-1' : ''} ${claimedDays.includes(reward.day) ? 'reward-day-1-claimed' : ''} ${index < 8 ? 'active' : ''}`}
+              >
+                <div className="day">Day {reward.day}</div>
+                <div className="amount">
+                  {reward.amount} <FaCoins className="coin-icon" />
+                </div>
+                {claimedDays.includes(reward.day) && (
+                  <FaCheckCircle className="checkmark-icon" />
+                )}
               </div>
-              {claimedDays.includes(reward.day) && (
-                <FaCheckCircle className="checkmark-icon" />
-              )}
-            </div>
-          ))}
-        </div>
-        <div className="footer">
-          <button onClick={handleClaim} disabled={!canClaim} className={canClaim ? '' : 'disabled-button'}>
-            {canClaim ? 'Claim Reward' : `Claim More in (${formatTime(timer)})`}
-          </button>
+            ))}
+          </div>
+          <div className="footer">
+            <button onClick={handleClaim} disabled={!canClaim} className={canClaim ? '' : 'disabled-button'}>
+              {canClaim ? 'Claim Reward' : `Claim More in (${formatTime(timer)})`}
+            </button>
+          </div>
         </div>
       </div>
     </div>

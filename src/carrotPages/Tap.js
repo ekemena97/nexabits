@@ -83,8 +83,9 @@ const Tap = () => {
     coinsPerTap,
     energyLimit,
     energy,
+    setEnergy,
     incrementPoints,
-    checkReferralSuccess,
+    refillRate,
   } = useTapContext();
 
   const [animate, setAnimate] = useState(false);
@@ -101,6 +102,79 @@ const Tap = () => {
     }
   }, [energy, coinsPerTap]);
 
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        const savedTime = localStorage.getItem("lastUpdateTime");
+        if (savedTime) {
+          const elapsedSeconds = Math.floor(
+            (Date.now() - parseInt(savedTime, 10)) / 1000
+          );
+          const energyGain = Math.floor(elapsedSeconds / refillRate);
+          setEnergy((prevEnergy) =>
+            Math.min(prevEnergy + energyGain, energyLimit)
+          );
+          localStorage.setItem("lastUpdateTime", Date.now());
+        }
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [energyLimit, refillRate, setEnergy]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setEnergy((prevEnergy) => {
+        const newEnergy =
+          prevEnergy < energyLimit ? prevEnergy + 1 : energyLimit;
+        localStorage.setItem("energy", JSON.stringify(newEnergy));
+        localStorage.setItem("lastUpdateTime", Date.now());
+        return newEnergy;
+      });
+    }, (refillRate * 1000) / energyLimit);
+
+    return () => clearInterval(interval);
+  }, [energyLimit, refillRate, setEnergy]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (event) => {
+      event.preventDefault();
+      event.returnValue = "";
+      if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.showConfirm(
+          "Are you sure you want to close the app?",
+          (confirmed) => {
+            if (confirmed) {
+              window.Telegram.WebApp.close();
+            }
+          }
+        );
+      } else {
+        return "Are you sure you want to close the app?";
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
+
+  useEffect(() => {
+    const lastClickTime = localStorage.getItem("lastGiftClickTime");
+    if (lastClickTime) {
+      const timeElapsed = Date.now() - parseInt(lastClickTime, 10);
+      if (timeElapsed < 4 * 60 * 60 * 1000) {
+        setShowGiftIcon(false);
+        setTimeout(() => setShowGiftIcon(true), 4 * 60 * 60 * 1000 - timeElapsed);
+      }
+    }
+  }, []);
+
   const handleClick = () => {
     if (isTappable) {
       setAnimate(!animate);
@@ -112,15 +186,21 @@ const Tap = () => {
           prev.filter((coin) => coin.id !== newCoin.id)
         );
       }, 1000);
-      checkReferralSuccess(); // Ensure this is called after every tap
     }
+  };
+
+  const handleGiftClick = () => {
+    setShowGiftIcon(false);
+    setShowDailyCheckIn(true);
+    localStorage.setItem("lastGiftClickTime", Date.now().toString());
+    setTimeout(() => setShowGiftIcon(true), 4 * 60 * 60 * 1000); // Show gift icon again after 4 hours
   };
 
   const getRankText = () => {
     if (count >= 100000000) return "Immortal";
     if (count >= 50000000) return "GrandMaster";
     if (count >= 20000000) return "Champion";
-    if (count >= 12000000) return "Conqueror";
+    if ( count >= 12000000) return "Conqueror";
     if (count >= 5000000) return "Titan";
     if (count >= 1000000) return "Supreme";
     if (count >= 200000) return "Guru";
@@ -131,14 +211,13 @@ const Tap = () => {
     return "Explorer";
   };
 
-  const handleGiftClick = () => {
-    setShowGiftIcon(false);
-    setShowDailyCheckIn(true);
-    setTimeout(() => setShowGiftIcon(true), 24 * 60 * 60 * 1000);
-  };
-
   const handleRewardClaim = (rewardAmount) => {
     incrementPoints(rewardAmount);
+  };
+
+  // Function to format number with commas
+  const formatCount = (num) => {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
 
   return (
@@ -160,13 +239,13 @@ const Tap = () => {
           <div className="flex flex-col h-full sm:w-[80%] w-full items-center py-6 justify-items-center sm:space-y-20 space-y-16">
             <div className="flex flex-col gap-1 items-center relative">
               <div className="flex flex-row gap-1 items-center">
-                <img src={crypto} className="sm:w-14 w-9" />
+                <img src={crypto} className="sm:w-14 w-9" alt="Crypto" />
                 <div
                   className={`${
                     theme === "dark" ? "text-[#fff]" : "text-[#19191E]"
-                  } sm:text-6xl text-3xl font-semibold`}
+                  } sm:text-5xl text-2xl font-semibold`} // Reduced font size
                 >
-                  {count}
+                  {formatCount(count)}
                 </div>
               </div>
 

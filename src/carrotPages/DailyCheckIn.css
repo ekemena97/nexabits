@@ -191,3 +191,10 @@
     opacity: 0;
   }
 }
+
+.success-message {
+  font-size: 24px;
+  color: green;
+  text-align: center;
+  margin-top: 20px;
+}
