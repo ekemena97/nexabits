@@ -152,11 +152,7 @@ const Referrals = () => {
           </div>
 
           <div className="sm:w-[80%] w-full py-3">
-            {referredUsers.length === 0 ? (
-              "You haven't invited anyone yet"
-            ) : (
-              <p className="text-gray-500"></p>
-            )}
+          
           </div>
         </div>
       </div>

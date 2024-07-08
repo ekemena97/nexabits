@@ -3,9 +3,12 @@ import { useThemeContext } from "../context/ThemeContext.js";
 import { TbMilitaryRank } from "react-icons/tb";
 import { IoIosArrowForward } from "react-icons/io";
 import crypto from "../assets/crypto.png";
+import fallbackImage from "../assets/fallback.png";
+import logo3 from "../assets/logo3.png"; // Import the new logo
 import { useTapContext } from "../context/TapContext.js";
+import { useTelegramUser } from "../context/TelegramContext.js";
 import { Link } from "react-router-dom";
-import DailyCheckIn from "./DailyCheckIn.js"; // Import the DailyCheckIn component
+import DailyCheckIn from "./DailyCheckIn.js";
 
 const GiftIcon = ({ onClick }) => {
   const [visible, setVisible] = useState(true);
@@ -17,11 +20,11 @@ const GiftIcon = ({ onClick }) => {
 
     const hideGift = () => {
       setVisible(false);
-      showTimeout = setTimeout(() => setVisible(true), 10 * 60 * 1000); // Reappear after 10 minutes
+      showTimeout = setTimeout(() => setVisible(true), 10 * 60 * 1000);
     };
 
     const startHideGiftTimer = () => {
-      hideTimeout = setTimeout(hideGift, 5 * 60 * 1000); // Disappear after 5 minutes
+      hideTimeout = setTimeout(hideGift, 5 * 60 * 1000);
     };
 
     if (visible) {
@@ -30,13 +33,13 @@ const GiftIcon = ({ onClick }) => {
       showTimeout = setTimeout(() => {
         setVisible(true);
         startHideGiftTimer();
-      }, 10 * 60 * 1000); // Reappear after 10 minutes
+      }, 10 * 60 * 1000);
     }
 
     shakeInterval = setInterval(() => {
       setShake(true);
-      setTimeout(() => setShake(false), 1000); // Shake duration
-    }, 10 * 1000); // Shake every 10 seconds
+      setTimeout(() => setShake(false), 1000);
+    }, 10 * 1000);
 
     disappearTimeout = setInterval(() => {
       if (Date.now() - lastClickTime >= 5 * 60 * 1000) {
@@ -63,10 +66,8 @@ const GiftIcon = ({ onClick }) => {
         <div className={`circle-animation ${visible ? "blink" : ""}`}></div>
         <div
           onClick={handleGiftClick}
-          className={`fixed top-1/4 right-11 cursor-pointer z-20 ${
-            shake ? "animate-shake" : ""
-          }`}
-          style={{ transform: "scale(2.5)" }} // Make the icon smaller
+          className={`fixed top-1/4 right-11 cursor-pointer z-20 ${shake ? "animate-shake" : ""}`}
+          style={{ transform: "scale(2.5)" }}
         >
           🎁
         </div>
@@ -77,6 +78,7 @@ const GiftIcon = ({ onClick }) => {
 
 const Tap = () => {
   const { theme } = useThemeContext();
+  const userId = useTelegramUser(); // Use the context to get userId
   const {
     count,
     incrementTap,
@@ -193,7 +195,7 @@ const Tap = () => {
     setShowGiftIcon(false);
     setShowDailyCheckIn(true);
     localStorage.setItem("lastGiftClickTime", Date.now().toString());
-    setTimeout(() => setShowGiftIcon(true), 4 * 60 * 60 * 1000); // Show gift icon again after 4 hours
+    setTimeout(() => setShowGiftIcon(true), 4 * 60 * 60 * 1000);
   };
 
   const getRankText = () => {
@@ -215,7 +217,6 @@ const Tap = () => {
     incrementPoints(rewardAmount);
   };
 
-  // Function to format number with commas
   const formatCount = (num) => {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   };
@@ -239,11 +240,11 @@ const Tap = () => {
           <div className="flex flex-col h-full sm:w-[80%] w-full items-center py-6 justify-items-center sm:space-y-20 space-y-16">
             <div className="flex flex-col gap-1 items-center relative">
               <div className="flex flex-row gap-1 items-center">
-                <img src={crypto} className="sm:w-14 w-9" alt="Crypto" />
+                <img src={logo3} className="sm:w-14 w-9 rounded-full object-cover" alt="Logo" /> {/* Update the src to logo3 */}
                 <div
                   className={`${
                     theme === "dark" ? "text-[#fff]" : "text-[#19191E]"
-                  } sm:text-5xl text-2xl font-semibold`} // Reduced font size
+                  } sm:text-5xl text-2xl font-semibold`}
                 >
                   {formatCount(count)}
                 </div>
@@ -252,11 +253,12 @@ const Tap = () => {
               <Link
                 to={`/boost`}
                 className="cursor-pointer sm:text-base text-sm flex flex-row gap-1 items-center text-gray-100 hover:gray-300"
+                style={{ marginLeft: '1rem' }} // Add left margin
               >
                 <span className="text-xl">
                   <TbMilitaryRank />
                 </span>
-                <span>{getRankText()}</span>
+                <span style={{ color: "#96DED1" }}>{getRankText()}</span>
                 <IoIosArrowForward />
               </Link>
 

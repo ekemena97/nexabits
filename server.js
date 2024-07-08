@@ -6,9 +6,6 @@ import { Firestore } from '@google-cloud/firestore';
 import dotenv from 'dotenv';
 import fetch from 'node-fetch';
 import keepAlive from './keepAlive.js'; // Import the keep-alive function
-import session from 'express-session'; // Add session support
-import LocalSession from 'telegraf-session-local';
-import { WebSocketServer } from 'ws';
 
 dotenv.config();
 
@@ -27,25 +24,6 @@ const server = app.listen(process.env.PORT || 8080, () => {
   bot.launch();
   console.log('Bot launched');
   keepAlive();
-});
-
-const wss = new WebSocketServer({ server });
-
-const userSessions = new Map();
-
-wss.on('connection', (ws) => {
-  console.log('WebSocket connection established');
-
-  ws.on('message', (message) => {
-    console.log('Received:', message);
-    const { userId, referralLink } = JSON.parse(message);
-    userSessions.set(userId, { ws, referralLink });
-  });
-
-  ws.on('close', () => {
-    console.log('WebSocket connection closed');
-    // Handle WebSocket disconnection if needed
-  });
 });
 
 const generateReferralLink = (userId) => `https://t.me/TapLengendBot?start=${userId}`;
@@ -101,7 +79,7 @@ const rewardUser = async (referrerId) => {
   try {
     const user = await getUserById(referrerId);
     if (user) {
-      user.count = (user.count || 0) + 10; // Example reward count
+      user.count = (user.count || 0) + 5000; // Example reward count
       await saveOrUpdateUser(user);
       console.log('User rewarded:', referrerId, 'New count:', user.count);
     } else {
@@ -111,16 +89,6 @@ const rewardUser = async (referrerId) => {
     console.error('Error rewarding user:', error);
   }
 };
-
-// Add session support for Express and Telegraf
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: true,
-  cookie: { secure: true } // Note: Set to true if using HTTPS
-}));
-
-bot.use(new LocalSession({ database: 'sessions.json' }).middleware());
 
 // Function to handle start command and send welcome message
 const handleStartCommand = async (ctx) => {
@@ -132,9 +100,6 @@ const handleStartCommand = async (ctx) => {
   const firstName = ctx.from.first_name;
   const timestamp = Firestore.FieldValue.serverTimestamp();
   const referralLink = generateReferralLink(userId);
-
-  // Store userId in the session
-  ctx.session.userId = userId;
 
   // Send the welcome message to the user with inline buttons immediately
   await ctx.replyWithHTML(
@@ -209,9 +174,6 @@ const handleStartCommand = async (ctx) => {
     } else {
       console.log('No valid referrer ID. No referral action taken.');
     }
-
-    // Store the user session data
-    userSessions.set(userId, { referralLink });
   })();
 };
 
@@ -309,32 +271,9 @@ app.get('/checkref', async (req, res) => {
   }
 });
 
-app.get('/user-id', async (req, res) => {
-  // Retrieve userId from the session
-  const userId = req.session.userId;
-  console.log('GET /user-id request received');
-  if (userId) {
-    res.send({ userId });
-    console.log('User ID response sent:', userId);
-  } else {
-    res.status(400).send('User ID not found');
-    console.log('User ID not found for request');
-  }
-});
-
 app.get('/keep-alive', (req, res) => {
   res.sendStatus(200); // Respond with 200 OK status
   console.log('GET /keep-alive request received');
-});
-
-app.get('/retrieve-session', (req, res) => {
-  const userId = req.query.userId;
-  const sessionData = userSessions.get(userId);
-  if (sessionData) {
-    res.json(sessionData);
-  } else {
-    res.status(404).send('Session data not found');
-  }
 });
 
 app.post('/log', (req, res) => {
@@ -398,8 +337,5 @@ app.post('/log-ip', async (req, res) => {
     res.status(500).send('Error logging IP and updating DAU');
   }
 });
-
-
-
 
 export default app;

@@ -1,0 +1,196 @@
+.newsfeed-container {
+  width: 100%;
+}
+
+.carousel-container {
+  margin-bottom: 10px; /* Reduced margin between carousel and trending coins */
+  padding: 10px;
+}
+
+.carousel-image {
+  border-radius: 10px;
+  height: 110px; /* Reduce the height of the carousel images */
+  object-fit: cover; /* Ensure images fit well within the reduced height */
+}
+
+.trending-coins-container {
+  padding: 10px 20px; /* Adjust padding to move closer to the carousel */
+  text-align: center; /* Center the text */
+}
+
+.trending-coins-container h2 {
+  margin-bottom: 5px; /* Reduced margin below heading */
+  margin-top: -10px; /* Move the heading closer to the carousel */
+}
+
+.trending-coins-row {
+  display: flex;
+  overflow-x: auto;
+  gap: 10px;
+  scrollbar-width: none; /* For Firefox */
+}
+
+.trending-coins-row::-webkit-scrollbar {
+  display: none; /* For Chrome, Safari, and Opera */
+}
+
+.coin-card {
+  flex: 0 0 auto;
+  width: calc(100% / 4 - 10px); /* Adjusted width to fit 4 cards within the screen */
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 5px; /* Reduced padding */
+  background-color: #FAF9F6;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  color: black; /* Set text color to black */
+  height: auto; /* Ensure the height adjusts to content */
+}
+
+.coin-card h3 {
+  margin-bottom: 3px; /* Reduced margin */
+  font-size: 0.8em; /* Adjusted font size */
+}
+
+.coin-card p {
+  margin: 2px 0; /* Reduced margins */
+  font-size: 0.7em; /* Adjusted font size */
+}
+
+.coin-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 3px; /* Reduced margin */
+}
+
+.coin-logo {
+  width: 20px; /* Reduced size */
+  height: 20px; /* Reduced size */
+  margin-right: 3px; /* Reduced margin */
+}
+
+.coin-name {
+  font-size: 0.8em; /* Adjusted font size */
+}
+
+.sparkline-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 3px; /* Reduced margin */
+}
+
+.sparkline-image {
+  max-width: 60px; /* Reduced max width */
+  max-height: 30px; /* Reduced max height */
+  width: 100%; /* Ensures the image scales with the container */
+  height: auto; /* Maintains the aspect ratio */
+}
+
+.news-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px; /* Reduce gap between news items */
+  padding: 10px 20px;
+  margin-top: -10px; /* Move the news section closer to the coin cards */
+}
+
+.news-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px; /* Add some space between news items */
+}
+
+.news-image {
+  width: 20%;
+  height: auto; /* Allow the image height to adjust based on width */
+  object-fit: cover;
+  margin-right: 10px;
+}
+
+.news-details {
+  display: flex;
+  flex-direction: column;
+  width: 75%;
+}
+
+.news-title {
+  font-size: 14px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.news-meta {
+  display: flex;
+  justify-content: flex-start;
+  font-size: 12px;
+}
+
+.news-views {
+  margin-right: 5px; /* Move views closer to time */
+}
+
+@media (max-width: 600px) {
+  .trending-coins-container {
+    padding: 10px;
+  }
+
+  .trending-coins-container h2 {
+    margin-bottom: 3px; /* Further reduced margin below heading */
+    margin-top: -25px; /* Move the heading even closer to the carousel */
+  }
+
+  .trending-coins-row {
+    gap: 8px; /* Reduced gap between coin cards */
+  }
+
+  .coin-card {
+    width: calc(100% / 3 - 8px); /* Adjust width for smaller screens */
+    padding: 3px; /* Reduced padding for smaller screens */
+    margin-top: -1px; /* Move coin cards closer to the carousel */
+  }
+
+  .coin-card h3 {
+    font-size: 0.7em; /* Adjusted font size for smaller screens */
+  }
+
+  .coin-card p {
+    font-size: 0.6em; /* Adjusted font size for smaller screens */
+  }
+
+  .coin-logo {
+    width: 18px; /* Further reduced size for smaller screens */
+    height: 18px; /* Further reduced size for smaller screens */
+  }
+
+  .news-section {
+    padding-left: 10px; /* Move the news section closer to the left */
+  }
+
+  .news-item {
+    margin-left: 0; /* Ensure news items are aligned to the left */
+  }
+
+  .news-image {
+    width: 25%;
+    height: auto;
+    margin-right: 5px;
+  }
+
+  .news-title {
+    font-size: 12px;
+  }
+
+  .news-meta {
+    font-size: 10px;
+  }
+}
+
+.positive-change {
+  color: #2EBD85;
+  font-weight: bold;
+}
+
+.negative-change {
+  color: red;
+  font-weight: bold;
+}

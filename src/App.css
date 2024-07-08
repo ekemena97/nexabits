@@ -154,7 +154,7 @@ html, body #root {
   position: absolute;
   animation: moveUpFadeOut 1s forwards;
   font-size: 1.5rem;
-  color: gold;
+  color: #2ebd85;
   left: 50%;
   top: 150%; /* Adjusted to be closer to the icon */
   transform: translate(-50%, -50%);

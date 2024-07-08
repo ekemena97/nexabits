@@ -1,8 +1,8 @@
-import utility from '../assets/img1.jpg'
-import tokenMetric from '../assets/img2.jpg'
-import myTonWallet from '../assets/img3.jpg'
-import FootballFest from '../assets/img4.jpg'
-import Fantons from '../assets/img5.jpg'
+import utility from '../assets/image1.jpg'
+import tokenMetric from '../assets/image2.jpg'
+import myTonWallet from '../assets/image3.jpg'
+import FootballFest from '../assets/image4.jpg'
+import Fantons from '../assets/news5.jpg'
 
 
 
@@ -241,7 +241,6 @@ export const tasks = [
 export const realTasks = [
     {
       id: "0",
-      image: myTonWallet,
       task_status: "Ongoing",
       task_status_message: "Challenge is Open",
       bonus_total: 1000000,

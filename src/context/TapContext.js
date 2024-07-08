@@ -9,11 +9,11 @@ export const TapProvider = ({ children }) => {
   const userId = useTelegramUser(); // Use the hook to get userId
 
   const calculateInitialEnergy = () => {
-    const storedEnergy = getParsedLocalStorageItem('energy', 618);
+    const storedEnergy = getParsedLocalStorageItem('energy', 500);
     const lastUpdateTime = parseInt(localStorage.getItem('lastUpdateTime'), 10) || Date.now();
     const elapsedSeconds = Math.floor((Date.now() - lastUpdateTime) / 1000);
     const refillRate = getParsedLocalStorageItem('refillRate', 2400);
-    const energyLimit = getParsedLocalStorageItem('energyLimit', 3000);
+    const energyLimit = getParsedLocalStorageItem('energyLimit', 500);
     const energyGain = Math.floor(elapsedSeconds / refillRate);
     const initialEnergy = Math.min(storedEnergy + energyGain, energyLimit);
 
@@ -27,9 +27,9 @@ export const TapProvider = ({ children }) => {
     return initialEnergy;
   };
 
-  const [count, setCount] = useState(() => getParsedLocalStorageItem('count', 2955187));
-  const [coinsPerTap, setCoinsPerTap] = useState(() => getParsedLocalStorageItem('coinsPerTap', 20));
-  const [energyLimit, setEnergyLimit] = useState(() => getParsedLocalStorageItem('energyLimit', 3000));
+  const [count, setCount] = useState(() => getParsedLocalStorageItem('count', 50));
+  const [coinsPerTap, setCoinsPerTap] = useState(() => getParsedLocalStorageItem('coinsPerTap', 1));
+  const [energyLimit, setEnergyLimit] = useState(() => getParsedLocalStorageItem('energyLimit', 500));
   const [refillRate, setRefillRate] = useState(() => getParsedLocalStorageItem('refillRate', 2400));
   const [energy, setEnergy] = useState(calculateInitialEnergy);
 

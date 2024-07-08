@@ -1,124 +1,105 @@
-import React, { useContext } from "react";
+import React, { useEffect, useState } from "react";
 import { useThemeContext } from "../context/ThemeContext.js";
-import { TrendingContext } from "../context/TrendingContext.js";
-import { tasks } from "../data/index.js";
-import { Link, useNavigate } from "react-router-dom";
-import { SlLike } from "react-icons/sl";
+import { Carousel } from 'react-responsive-carousel';
+import "react-responsive-carousel/lib/styles/carousel.min.css";
+import image1 from '../assets/image1.jpg';
+import image2 from '../assets/image2.jpg';
+import image3 from '../assets/image3.jpg';
+import image4 from '../assets/image4.jpg';
+import './NewsFeed.css';  // Import the CSS file
+import axios from 'axios';
+import { news } from '../data/news.js'; // Import the news data
 
 const NewsFeed = () => {
-  // Set Theme shadow-md shadow-gray-900/5
-  const { theme, setTheme } = useThemeContext();
-  const { trendData } = useContext(TrendingContext);
+  const { theme } = useThemeContext();
+  const [trendingCoins, setTrendingCoins] = useState([]);
 
-  // variable to limit the number of trending coins
-  const limit = 3;
+  useEffect(() => {
+    const fetchTrendingCoins = async () => {
+      try {
+        const response = await axios.get('https://api.coingecko.com/api/v3/search/trending');
+        setTrendingCoins(response.data.coins);
+      } catch (error) {
+        console.error("Error fetching trending coins:", error);
+      }
+    };
 
-  const storeTrend = trendData;
+    fetchTrendingCoins();
 
-  console.log(storeTrend);
+  }, []);
+
+  const getPriceChangeClass = (change) => {
+    return change > 0 ? 'positive-change' : 'negative-change';
+  };
 
   return (
-    <section
-      className={`h-full w-full items-center flex flex-col mt-20 mb-24  relative ${
-        theme === "dark"
-          ? "bg-[#19191E] text-[#fff]"
-          : "bg-[#F1F2F2] text-[#19191E]"
-      } `}
-    >
-      <h1 className=" sm:text-5xl text-3xl mt-4 text-center font-semibold">
-        {" "}
-        News & Media
-      </h1>
-
-      <div className=" font-poppins mt-2">Trending Coins</div>
-      <div
-        className={`pt-2 pb-4  sm:w-full w-[100%] space-x-2  pl-16 -pr-16
-        h-40 overflow-y-scroll scrollbar-hide flex items-center justify-around mt-2   mx-6 rounded-md ${
-          theme === "dark" ? "bg-[#19191E]" : "bg-[#FCFCFC]"
-        }`}
-      >
-        {/* To display only the limited trending coin */}
-        {/* {trendData?.slice(0, limit).map((data, index) => { */}
-
-        {/* To display all the trending coin */}
-        {trendData?.map((data, index) => {
-          return (
-            <div
-              className={`${
-                theme === "dark"
-                  ? " bg-gradient-to-b from-[#19191E] to-[#010C0C] border border-gray-200"
-                  : "bg-gradient-to-t from-[#FFFFFF] to-[#F1F2F2] border border-[#F1F2F2]"
-              } justify-center w-32 h-32 flex flex-col p-3 mt-6 rounded-md `}
-            >
-              <img
-                src={data.item.thumb}
-                alt={data.name}
-                className=" w-8 h-8 rounded-full"
-              />
-              {data.item.name}
-              <h3 className=" flex flex-col items-left my-0.5 text-sm ">
-                <span className="text-gray-100 uppercase w-28">
-                  price (in usd):&nbsp;
-                </span>
-                <span className="text-[#D3B166]">
-                  {new Intl.NumberFormat("en-IN", {
-                    style: "currency",
-                    currency: "usd",
-                    maximumSignificantDigits: 3,
-                  }).format(data.item.data.price)}
-                </span>
-              </h3>
-            </div>
-          );
-        })}
+    <div className="newsfeed-container">
+      <div className="carousel-container">
+        <Carousel
+          autoPlay
+          interval={10000}
+          infiniteLoop
+          showThumbs={false}
+          showStatus={false}
+        >
+          <div>
+            <img className="carousel-image" src={image1} alt="Banner 1" />
+          </div>
+          <div>
+            <img className="carousel-image" src={image2} alt="Banner 2" />
+          </div>
+          <div>
+            <img className="carousel-image" src={image3} alt="Banner 3" />
+          </div>
+          <div>
+            <img className="carousel-image" src={image4} alt="Banner 4" />
+          </div>
+        </Carousel>
       </div>
 
-      <div className=" w-full min-h-[60vh] py-8   mx-auto  grid max-w-2xl grid-cols-1 items-start  lg:max-w-none lg:grid-cols-3 ">
-        {tasks.map((task, index) => (
-          // console.log(index),
-          <Link
-            to={{
-              pathname: `/news/${index}`,
-              state: `one`,
-            }}
-            key={index}
-            className={`relative flex flex-row overflow-hidden rounded-md p-3 mr-2 mb-2  shadow-md shadow-gray-900/5 ${
-              theme === "dark"
-                ? "bg-[#232323] border border-gray-200"
-                : "bg-[#ffffff] "
-            }     cursor-pointer`}
-          >
-            <div className=" flex flex-1">
-              <img src={task.image} className=" object-cover rounded-md" />
-            </div>
-            <div className=" flex flex-[0.3] flex-col w-full">
-              <h1 className=" px-3 font-poppins sm:text-[1.3rem]  text-xl font-semibold w-64">
-                {task.title}
-              </h1>
-              <h1 className=" px-3 font-poppins sm:text-base  text-sm font-normal text-gray-100">
-                {task.desc}
-              </h1>
-            </div>
-
-            {/* <div
-              className={`absolute top-[1rem] glassmorphism  right-[1.2rem] sm:text-base tracking-wide text-sm bg-[#15231D] text-[#D3B166] p-2 rounded-md border border-gray-100`}
-            >
-              <div className=" flex flex-row items-center gap-2">
-                <SlLike />
-                <h1
-                  className={`${
-                    theme === "dark" ? "text-[#D3B166]" : "text-[#010C0C]"
-                  } text-base  font-normal bg-indigo-500 `}
-                >
-                  2
-                </h1>
+      <div className="trending-coins-container">
+        <h2>Trending Coins</h2>
+        <div className="trending-coins-row">
+          {trendingCoins.slice(0, 5).map((coin, index) => (
+            <div key={index} className="coin-card">
+              <div className="coin-header">
+                <img src={coin.item.thumb} alt={`${coin.item.name} logo`} className="coin-logo" />
+                <h3 className="coin-name">{coin.item.name} ({coin.item.symbol})</h3>
               </div>
-            </div> */}
-          </Link>
+              <p className={getPriceChangeClass(coin.item.data.price_change_percentage_24h.usd)}>
+                ${coin.item.data.price.toFixed(5)}
+              </p>
+              <p>
+                24H: {coin.item.data.price_change_percentage_24h.usd.toFixed(1)}%
+              </p>
+              {coin.item.data.sparkline ? (
+                <div className="sparkline-container">
+                  <img src={coin.item.data.sparkline} alt={`${coin.item.name} sparkline`} className="sparkline-image" />
+                </div>
+              ) : (
+                <p>No data available</p>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="news-section">
+        {news.map((newsItem) => (
+          <div key={newsItem.id} className="news-item">
+            <img src={newsItem.image} alt={newsItem.title} className="news-image" />
+            <div className="news-details">
+              <h3 className="news-title">{newsItem.title}</h3>
+              <div className="news-meta">
+                <p className="news-views">👁️ {newsItem.views}</p>
+                <p className="news-time">{newsItem.time}</p>
+              </div>
+            </div>
+          </div>
         ))}
       </div>
-    </section>
+    </div>
   );
-};
+}
 
 export default NewsFeed;

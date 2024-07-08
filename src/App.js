@@ -1,10 +1,9 @@
-// src/App.js
 import React, { useEffect, useState } from "react";
 import logo from "./logo.svg";
 import "./App.css";
 import Logo from "./components/Logo.js";
 import Navigation from "./components/Navigation.js";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { useThemeContext } from "./context/ThemeContext.js";
 import TelegramContext from "./context/TelegramContext.js";
 import { TaskProvider } from "./context/TaskContext.js";
@@ -14,6 +13,7 @@ function App() {
   // Set Theme
   const { theme, setTheme } = useThemeContext();
   const [loading, setLoading] = useState(true);
+  const location = useLocation();
 
   useEffect(() => {
     // Simulate a loading delay
@@ -21,21 +21,16 @@ function App() {
       setLoading(false);
     }, 2000); // Adjust the time as needed
 
-    // Initialize Telegram Web App
+    // Initialize Telegram Web App if available
     if (window.Telegram && window.Telegram.WebApp) {
       const webApp = window.Telegram.WebApp;
       webApp.expand();
       webApp.ready();
 
-      webApp.onEvent("viewportChanged", function () {
-        setFullScreenDimensions();
-      });
-
+      webApp.onEvent("viewportChanged", setFullScreenDimensions);
       setFullScreenDimensions();
 
-      webApp.onEvent("viewportChanged", () => {
-        webApp.MainButton.hide();
-      });
+      webApp.onEvent("viewportChanged", () => webApp.MainButton.hide());
 
       if (webApp.version && parseFloat(webApp.version) >= 6.1) {
         webApp.BackButton.show();
@@ -48,65 +43,42 @@ function App() {
           });
         });
       }
+    }
 
-      const handleBeforeUnload = (event) => {
-        event.preventDefault();
-        event.returnValue = "";
-
-        webApp.showConfirm("Are you sure you want to close the app?", (confirmed) => {
+    const handleBeforeUnload = (event) => {
+      event.preventDefault();
+      event.returnValue = "";
+      if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.showConfirm("Are you sure you want to close the app?", (confirmed) => {
           if (confirmed) {
-            webApp.close();
+            window.Telegram.WebApp.close();
           }
         });
-      };
-
-      window.addEventListener("beforeunload", handleBeforeUnload);
-
-      window.addEventListener(
-        "touchmove",
-        function (event) {
-          event.preventDefault();
-        },
-        { passive: false }
-      );
-
-      return () => {
-        window.removeEventListener("beforeunload", handleBeforeUnload);
-        window.removeEventListener("touchmove", function (event) {
-          event.preventDefault();
-        });
-      };
-    } else {
-      const handleBeforeUnload = (event) => {
-        event.preventDefault();
+      } else {
         event.returnValue = "Are you sure you want to close the app?";
-      };
+      }
+    };
 
-      const handlePopState = (event) => {
-        if (!window.confirm("Are you sure you want to go back?")) {
-          window.history.pushState(null, "", window.location.href);
-        }
-      };
+    const handlePopState = (event) => {
+      if (!window.confirm("Are you sure you want to go back?")) {
+        window.history.pushState(null, "", window.location.href);
+      }
+    };
 
-      window.addEventListener("beforeunload", handleBeforeUnload);
-      window.addEventListener("popstate", handlePopState);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("popstate", handlePopState);
 
-      window.addEventListener(
-        "touchmove",
-        function (event) {
-          event.preventDefault();
-        },
-        { passive: false }
-      );
+    window.addEventListener("touchmove", function (event) {
+      event.preventDefault();
+    }, { passive: false });
 
-      return () => {
-        window.removeEventListener("beforeunload", handleBeforeUnload);
-        window.removeEventListener("popstate", handlePopState);
-        window.removeEventListener("touchmove", function (event) {
-          event.preventDefault();
-        });
-      };
-    }
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("popstate", handlePopState);
+      window.removeEventListener("touchmove", function (event) {
+        event.preventDefault();
+      });
+    };
   }, []);
 
   function setFullScreenDimensions() {
@@ -125,10 +97,16 @@ function App() {
     return <Loading />;
   }
 
+  // Determine whether to show the logo based on the current path
+  const showLogo = location.pathname !== "/news";
+
+  // Determine whether the current page should be scrollable
+  const isScrollablePage = location.pathname === "/news";
+
   return (
     <TelegramContext>
       <TaskProvider>
-        <div className="">
+        <div className={`app-container ${isScrollablePage ? 'scrollable' : 'non-scrollable'}`}>
           <main
             className={`w-full h-full flex flex-col content-center items-center relative font-poppins ${
               theme === "dark" ? "text-[#ffffff] bg-[#19191E]" : "bg-[#fff] text-[#15231D]"
@@ -140,7 +118,7 @@ function App() {
                 theme === "dark" ? "bg-[#19191E]" : "bg-[#fff]"
               }`}
             />
-            <Logo />
+            {showLogo && <Logo />}
             <Outlet />
             <Navigation />
           </main>
