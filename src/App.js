@@ -1,27 +1,55 @@
 import React, { useEffect, useState } from "react";
-import logo from "./logo.svg";
-import "./App.css";
-import Logo from "./components/Logo.js";
-import Navigation from "./components/Navigation.js";
 import { Outlet, useLocation } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useThemeContext } from "./context/ThemeContext.js";
 import TelegramContext from "./context/TelegramContext.js";
 import { TaskProvider } from "./context/TaskContext.js";
 import Loading from "./components/Loading.js";
+import Logo from "./components/Logo.js";
+import Navigation from "./components/Navigation.js";
+
+// List of images to preload from the assets folder
+const imageUrls = [
+  "/assets/image1.jpg",
+  "/assets/image2.jpg",
+  "/assets/image3.jpg",
+  "/assets/image4.jpg",
+  "/assets/news1.jpg",
+  "/assets/news1_1.jpg",
+  "/assets/news2.jpg",
+  "/assets/news2_1.jpg",
+  "/assets/news3.jpg",
+  "/assets/news3_1.jpg",
+  "/assets/news4.jpg",
+  "/assets/news4_1.png",
+  "/assets/news5.jpg",
+  "/assets/news5_1.jpg"
+];
+
+// Utility function to preload images
+function preloadImages(imageUrls) {
+  imageUrls.forEach((url) => {
+    const img = new Image();
+    img.src = url;
+  });
+}
+
+// Create a QueryClient instance
+const queryClient = new QueryClient();
 
 function App() {
-  // Set Theme
   const { theme, setTheme } = useThemeContext();
   const [loading, setLoading] = useState(true);
+  const [showLogo, setShowLogo] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
-    // Simulate a loading delay
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       setLoading(false);
-    }, 2000); // Adjust the time as needed
+    }, 2000);
 
-    // Initialize Telegram Web App if available
+    preloadImages(imageUrls); // Call the preload function
+
     if (window.Telegram && window.Telegram.WebApp) {
       const webApp = window.Telegram.WebApp;
       webApp.expand();
@@ -68,18 +96,17 @@ function App() {
     window.addEventListener("beforeunload", handleBeforeUnload);
     window.addEventListener("popstate", handlePopState);
 
-    window.addEventListener("touchmove", function (event) {
-      event.preventDefault();
-    }, { passive: false });
-
     return () => {
+      clearTimeout(timer);
       window.removeEventListener("beforeunload", handleBeforeUnload);
       window.removeEventListener("popstate", handlePopState);
-      window.removeEventListener("touchmove", function (event) {
-        event.preventDefault();
-      });
     };
   }, []);
+
+  useEffect(() => {
+    const shouldShowLogo = !location.pathname.startsWith("/news") && !location.pathname.startsWith("/blog");
+    setShowLogo(shouldShowLogo);
+  }, [location]);
 
   function setFullScreenDimensions() {
     const appContainer = document.querySelector(".App");
@@ -97,34 +124,31 @@ function App() {
     return <Loading />;
   }
 
-  // Determine whether to show the logo based on the current path
-  const showLogo = location.pathname !== "/news";
-
-  // Determine whether the current page should be scrollable
-  const isScrollablePage = location.pathname === "/news";
-
   return (
-    <TelegramContext>
-      <TaskProvider>
-        <div className={`app-container ${isScrollablePage ? 'scrollable' : 'non-scrollable'}`}>
-          <main
-            className={`w-full h-full flex flex-col content-center items-center relative font-poppins ${
-              theme === "dark" ? "text-[#ffffff] bg-[#19191E]" : "bg-[#fff] text-[#15231D]"
-            }`}
-          >
-            <div className={`${theme === "dark" ? "z-0" : "z-0"}`} />
-            <div
-              className={`w-screen h-screen fixed -z-10 ${
-                theme === "dark" ? "bg-[#19191E]" : "bg-[#fff]"
+    <QueryClientProvider client={queryClient}>
+      <TelegramContext>
+        <TaskProvider>
+          <div className="app-container">
+            <main
+              className={`App-main w-full h-full flex flex-col content-center items-center relative font-poppins ${
+                theme === "dark" ? "text-[#ffffff] bg-[#19191E]" : "bg-[#fff] text-[#15231D]"
               }`}
-            />
-            {showLogo && <Logo />}
-            <Outlet />
-            <Navigation />
-          </main>
-        </div>
-      </TaskProvider>
-    </TelegramContext>
+              onTouchMove={(e) => e.stopPropagation()} // Allow scrolling
+            >
+              <div className={`${theme === "dark" ? "z-0" : "z-0"}`} />
+              <div
+                className={`w-screen h-screen fixed -z-10 ${
+                  theme === "dark" ? "bg-[#19191E]" : "bg-[#fff]"
+                }`}
+              />
+              {showLogo && <Logo />}
+              <Outlet />
+              <Navigation />
+            </main>
+          </div>
+        </TaskProvider>
+      </TelegramContext>
+    </QueryClientProvider>
   );
 }
 

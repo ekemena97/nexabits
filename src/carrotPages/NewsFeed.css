@@ -3,106 +3,113 @@
 }
 
 .carousel-container {
-  margin-bottom: 10px; /* Reduced margin between carousel and trending coins */
+  margin-bottom: 10px;
   padding: 10px;
 }
 
 .carousel-image {
   border-radius: 10px;
-  height: 110px; /* Reduce the height of the carousel images */
-  object-fit: cover; /* Ensure images fit well within the reduced height */
+  height: 110px;
+  object-fit: cover;
 }
 
 .trending-coins-container {
-  padding: 10px 20px; /* Adjust padding to move closer to the carousel */
-  text-align: center; /* Center the text */
+  padding: 10px 20px;
+  text-align: center;
 }
 
 .trending-coins-container h2 {
-  margin-bottom: 5px; /* Reduced margin below heading */
-  margin-top: -10px; /* Move the heading closer to the carousel */
+  margin-bottom: 5px;
+  margin-top: -10px;
 }
 
 .trending-coins-row {
   display: flex;
   overflow-x: auto;
   gap: 10px;
-  scrollbar-width: none; /* For Firefox */
+  scrollbar-width: none;
 }
 
 .trending-coins-row::-webkit-scrollbar {
-  display: none; /* For Chrome, Safari, and Opera */
+  display: none;
 }
 
 .coin-card {
   flex: 0 0 auto;
-  width: calc(100% / 4 - 10px); /* Adjusted width to fit 4 cards within the screen */
+  width: calc(100% / 4 - 10px);
   border: 1px solid #ddd;
   border-radius: 5px;
-  padding: 5px; /* Reduced padding */
+  padding: 5px;
   background-color: #FAF9F6;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  color: black; /* Set text color to black */
-  height: auto; /* Ensure the height adjusts to content */
+  color: black;
+  height: auto;
 }
 
 .coin-card h3 {
-  margin-bottom: 3px; /* Reduced margin */
-  font-size: 0.8em; /* Adjusted font size */
+  margin-bottom: 3px;
+  font-size: 0.8em;
 }
 
 .coin-card p {
-  margin: 2px 0; /* Reduced margins */
-  font-size: 0.7em; /* Adjusted font size */
+  margin: 2px 0;
+  font-size: 0.7em;
 }
 
 .coin-header {
   display: flex;
   align-items: center;
-  margin-bottom: 3px; /* Reduced margin */
+  margin-bottom: 3px;
 }
 
 .coin-logo {
-  width: 20px; /* Reduced size */
-  height: 20px; /* Reduced size */
-  margin-right: 3px; /* Reduced margin */
+  width: 20px;
+  height: 20px;
+  margin-right: 3px;
 }
 
 .coin-name {
-  font-size: 0.8em; /* Adjusted font size */
+  font-size: 0.8em;
 }
 
 .sparkline-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 3px; /* Reduced margin */
+  margin-top: 3px;
 }
 
 .sparkline-image {
-  max-width: 60px; /* Reduced max width */
-  max-height: 30px; /* Reduced max height */
-  width: 100%; /* Ensures the image scales with the container */
-  height: auto; /* Maintains the aspect ratio */
+  max-width: 60px;
+  max-height: 30px;
+  width: 100%;
+  height: auto;
 }
 
 .news-section {
   display: flex;
   flex-direction: column;
-  gap: 4px; /* Reduce gap between news items */
+  gap: 4px;
   padding: 10px 20px;
-  margin-top: -10px; /* Move the news section closer to the coin cards */
+  margin-top: -10px;
 }
 
 .news-item {
   display: flex;
   align-items: center;
-  margin-bottom: 10px; /* Add some space between news items */
+  margin-bottom: 10px;
+}
+
+.news-link {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  text-decoration: none;
 }
 
 .news-image {
   width: 20%;
-  height: auto; /* Allow the image height to adjust based on width */
+  height: auto;
   object-fit: cover;
   margin-right: 10px;
 }
@@ -114,7 +121,7 @@
 }
 
 .news-title {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: bold;
   margin: 0;
 }
@@ -126,7 +133,7 @@
 }
 
 .news-views {
-  margin-right: 5px; /* Move views closer to time */
+  margin-right: 5px;
 }
 
 @media (max-width: 600px) {
@@ -135,39 +142,39 @@
   }
 
   .trending-coins-container h2 {
-    margin-bottom: 3px; /* Further reduced margin below heading */
-    margin-top: -25px; /* Move the heading even closer to the carousel */
+    margin-bottom: 3px;
+    margin-top: -25px;
   }
 
   .trending-coins-row {
-    gap: 8px; /* Reduced gap between coin cards */
+    gap: 8px;
   }
 
   .coin-card {
-    width: calc(100% / 3 - 8px); /* Adjust width for smaller screens */
-    padding: 3px; /* Reduced padding for smaller screens */
-    margin-top: -1px; /* Move coin cards closer to the carousel */
+    width: calc(100% / 3 - 8px);
+    padding: 3px;
+    margin-top: -1px;
   }
 
   .coin-card h3 {
-    font-size: 0.7em; /* Adjusted font size for smaller screens */
+    font-size: 0.7em;
   }
 
   .coin-card p {
-    font-size: 0.6em; /* Adjusted font size for smaller screens */
+    font-size: 0.6em;
   }
 
   .coin-logo {
-    width: 18px; /* Further reduced size for smaller screens */
-    height: 18px; /* Further reduced size for smaller screens */
+    width: 18px;
+    height: 18px;
   }
 
   .news-section {
-    padding-left: 10px; /* Move the news section closer to the left */
+    padding-left: 10px;
   }
 
   .news-item {
-    margin-left: 0; /* Ensure news items are aligned to the left */
+    margin-left: 0;
   }
 
   .news-image {
@@ -177,7 +184,7 @@
   }
 
   .news-title {
-    font-size: 12px;
+    font-size: 14px;
   }
 
   .news-meta {

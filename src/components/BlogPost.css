@@ -1,0 +1,211 @@
+/* src/components/BlogPost.css */
+body, html {
+  height: 100%; /* Ensure the body and html are 100% height */
+  margin: 0;
+  padding: 0;
+  /*overflow-x: hidden; /* Prevent horizontal overflow */
+}
+
+.App {
+  text-align: center;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.App-main {
+  flex: 1;
+  overflow-y: auto; /* Allows scrolling if content overflows */
+}
+
+.blog-post-container {
+  padding: 20px;
+  margin: 0 auto; /* Remove top margin */
+  max-width: 800px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.blog-post-title {
+  font-size: 2.5em; /* Adjust the font size as needed */
+  font-weight: bold;
+  text-align: center; /* Center the title */
+  color: #333;
+  margin-top: 20px; /* Reduce top margin */
+  line-height: 1.2; /* Decrease the space between lines */
+}
+
+.blog-post-image {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.blog-post-intro {
+  font-size: 1.2em;
+  text-align: justify; /* Justify the intro text */
+  color: #555;
+  margin-bottom: 20px;
+  font-family: Arial, sans-serif; /* Set the default font for blog intro */
+}
+
+.blog-post-content {
+  color: #555;
+  line-height: 1.6;
+  font-family: Arial, sans-serif; /* Set the default font for blog content */
+}
+
+.blog-post-image2 {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  display: block; /* Ensure it's a block-level element */
+  margin: 20px auto; /* Center the image */
+}
+
+.blog-post-content-and-conclusion {
+  font-size: 1.2em;
+  text-align: center; /* Center the content and conclusion */
+  color: #555;
+  margin-top: 20px;
+  font-family: Arial, sans-serif; /* Set the default font for content and conclusion */
+}
+
+.blog-post-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  color: #888;
+}
+
+.blog-post-interactions {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+}
+
+.blog-post-button {
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  background: #007bff;
+  color: #fff;
+  cursor: pointer;
+}
+
+.custom-preformatted {
+  white-space: pre-wrap; /* Ensures long lines wrap within the container */
+  /*background-color: #f5f5f5;  Optional: Add background color for preformatted text */
+  padding: 10px;
+  border-radius: 4px;
+  font-family: Arial, sans-serif; /* Set the default font for formatted blog content */
+}
+
+.recommendation-header {
+  margin-top: 40px;
+  text-align: center; /* Center the header */
+}
+
+.recommendation-header h2 {
+  color: #000; /* Black color */
+  font-weight: bold; /* Bold text */
+}
+
+.recommendations {
+  margin-top: 20px;
+  text-align: center; /* Center the recommendations section */
+}
+
+.recommendation {
+  margin-bottom: 20px;
+  text-align: center; /* Center the recommendation content */
+}
+
+.recommendation-image {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.recommendation-title-link {
+  text-decoration: none;
+}
+
+.recommendation-title {
+  font-size: 1.5em;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.recommendation-title-link:hover .recommendation-title {
+  text-decoration: underline;
+}
+
+.recommendation-intro {
+  font-size: 1em;
+  color: #555;
+}
+
+/* Media queries for responsive design */
+@media (max-width: 768px) {
+  .blog-post-container {
+    padding: 15px;
+  }
+
+  .blog-post-title {
+    font-size: 2em; /* Reduce font size for smaller screens */
+    margin-top: 20px; /* Adjust margin for smaller screens */
+    line-height: 1.2; /* Keep the line height */
+  }
+
+  .blog-post-image, .blog-post-image2, .recommendation-image {
+    height: 200px; /* Reduce height for smaller screens */
+    object-fit: cover; /* Ensure the image covers the area */
+  }
+
+  .blog-post-intro, .blog-post-content, .blog-post-content-and-conclusion, .recommendation-intro {
+    font-size: 1em; /* Adjust font size for smaller screens */
+  }
+
+  .recommendation-title {
+    font-size: 1.2em; /* Adjust font size for smaller screens */
+  }
+}
+
+@media (max-width: 480px) {
+  .blog-post-container {
+    padding: 10px;
+  }
+
+  .blog-post-title {
+    font-size: 1.8em; /* Further reduce font size for mobile screens */
+    margin-top: 10px; /* Further adjust margin for mobile screens */
+    line-height: 1.2; /* Keep the line height */
+  }
+
+  .blog-post-image, .blog-post-image2, .recommendation-image {
+    height: 150px; /* Further reduce height for mobile screens */
+    object-fit: cover; /* Ensure the image covers the area */
+  }
+
+  .blog-post-intro {
+    font-size: 1.1em; /* Increase font size for better readability on mobile screens */
+    text-align: justify; /* Ensure the text is justified */
+  }
+
+  .blog-post-content, .blog-post-content-and-conclusion, .recommendation-intro {
+    font-size: 0.9em; /* Further adjust font size for mobile screens */
+  }
+
+  .recommendation-title {
+    font-size: 1em; /* Further adjust font size for mobile screens */
+  }
+
+  .blog-post-button {
+    padding: 8px; /* Adjust button size for mobile screens */
+  }
+}

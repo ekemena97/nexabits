@@ -14,7 +14,7 @@ import NewsFeed from './carrotPages/NewsFeed.js';
 import Referrals from './carrotPages/Referrals.js';
 import Task from './carrotPages/Task.js';
 import Tap from './carrotPages/Tap.js';
-import NewsFeedDetails from './carrotPages/NewsFeedDetails.js';
+import BlogPost from './components/BlogPost.js';  // Ensure correct import path
 
 import { TapProvider } from './context/TapContext.js';
 import TelegramContext from './context/TelegramContext.js';
@@ -67,22 +67,10 @@ const router = createBrowserRouter([
       {
         path: '/news',
         element: <NewsFeed />,
-        children: [
-          {
-            path: '/news/id',
-            element: <NewsFeedDetails />,
-          },
-        ],
       },
       {
-        path: '/news/:id',
-        element: <NewsFeedDetails />,
-        children: [
-          {
-            path: ':coinId',
-            element: <CryptoDetails />,
-          },
-        ],
+        path: '/blog/:id',
+        element: <BlogPost />,  // Use BlogPost component directly
       },
       {
         path: '/trending',
@@ -108,8 +96,3 @@ root.render(
     </TelegramContext>
   </React.StrictMode>
 );
-
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-// reportWebVitals();
