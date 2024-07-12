@@ -1,3 +1,4 @@
+// src/index.js
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.js';
@@ -8,13 +9,13 @@ import Crypto from './pages/Crypto.js';
 import Trending from './pages/Trending.js';
 import Saved from './pages/Saved.js';
 import CryptoDetails from './components/CryptoDetails.js';
-
 import Boost from './carrotPages/Boost.js';
 import NewsFeed from './carrotPages/NewsFeed.js';
 import Referrals from './carrotPages/Referrals.js';
 import Task from './carrotPages/Task.js';
 import Tap from './carrotPages/Tap.js';
 import BlogPost from './components/BlogPost.js';  // Ensure correct import path
+import AiAnalysis from './carrotPages/AiAnalysis.js'; // Import the AiAnalysis component
 
 import { TapProvider } from './context/TapContext.js';
 import TelegramContext from './context/TelegramContext.js';
@@ -81,6 +82,10 @@ const router = createBrowserRouter([
             element: <CryptoDetails />,
           },
         ],
+      },
+      {
+        path: '/ai', // Define the new route
+        element: <AiAnalysis />, // Use the AiAnalysis component
       },
     ],
   },

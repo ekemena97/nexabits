@@ -1,3 +1,4 @@
+// src/App.js
 import React, { useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -142,7 +143,7 @@ function App() {
                 }`}
               />
               {showLogo && <Logo />}
-              <Outlet />
+              <Outlet /> {/* Ensure Outlet is included to render nested routes */}
               <Navigation />
             </main>
           </div>
