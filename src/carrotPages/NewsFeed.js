@@ -1,6 +1,7 @@
-import React, { Suspense, lazy } from "react";
-import { Link } from 'react-router-dom';
+import React, { Suspense, lazy, memo, useRef } from "react";
+import { Link } from 'react-router-dom'; // Ensure Link is imported
 import { useThemeContext } from "../context/ThemeContext.js";
+import { useTreasureContext } from "../context/treasureContext.js";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import './NewsFeed.css';
 import { useQuery } from '@tanstack/react-query';
@@ -8,8 +9,8 @@ import { news } from '../data/news.js';
 import axios from 'axios';
 import image1 from '../assets/image1.jpg';
 import image2 from '../assets/image2.jpg';
-import image3 from '../assets/image3.jpg';
-import image4 from '../assets/image4.jpg';
+import image3 from '../assets/image3.png';
+import image4 from '../assets/image4.png';
 
 const Carousel = lazy(() => import('react-responsive-carousel').then(module => ({ default: module.Carousel })));
 
@@ -18,9 +19,9 @@ const fetchTrendingCoins = async () => {
   return response.data.coins;
 };
 
-const NewsFeed = React.memo(() => {
+const NewsFeed = () => {
   const { theme } = useThemeContext(); // If `theme` is not used, you can remove this line.
-
+  const { addTreasurePoint } = useTreasureContext();
   const { data: trendingCoins, error, isLoading } = useQuery({
     queryKey: ['trendingCoins'],
     queryFn: fetchTrendingCoins
@@ -28,6 +29,29 @@ const NewsFeed = React.memo(() => {
 
   const getPriceChangeClass = (change) => {
     return change > 0 ? 'positive-change' : 'negative-change';
+  };
+
+  const handleLinkClick = (id) => {
+    const currentTime = new Date().getTime();
+    sessionStorage.setItem(`startTime-${id}`, currentTime);
+    console.log(`Start time for ${id} stored in session storage:`, currentTime);
+
+    const pointAdded = sessionStorage.getItem(`pointAdded-${id}`) === 'true';
+
+    const checkTimeOnPage = () => {
+      if (!pointAdded) {
+        const startTime = sessionStorage.getItem(`startTime-${id}`);
+        const currentTime = new Date().getTime();
+        const timeSpent = (currentTime - startTime) / 1000;
+        console.log(`Time spent on ${id}:`, timeSpent, 'seconds');
+        if (timeSpent >= 60) {
+          addTreasurePoint();
+          sessionStorage.setItem(`pointAdded-${id}`, 'true');
+        }
+      }
+    };
+
+    setTimeout(checkTimeOnPage, 60000);
   };
 
   return (
@@ -91,7 +115,7 @@ const NewsFeed = React.memo(() => {
       <div className="news-section">
         {news.map((newsItem) => (
           <div key={newsItem.id} className="news-item">
-            <Link to={`/blog/${newsItem.id}`} className="news-link">
+            <Link to={`/blog/${newsItem.id}`} className="news-link" onClick={() => handleLinkClick(newsItem.id)}>
               <img src={newsItem.image} alt={newsItem.title} className="news-image" />
               <div className="news-details">
                 <h3 className="news-title">{newsItem.title}</h3>
@@ -106,6 +130,6 @@ const NewsFeed = React.memo(() => {
       </div>
     </div>
   );
-});
+};
 
-export default NewsFeed;
+export default memo(NewsFeed);

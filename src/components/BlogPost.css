@@ -22,17 +22,29 @@ body, html {
   padding: 20px;
   margin: 0 auto; /* Remove top margin */
   max-width: 800px;
-  background: #fff;
+  /*background: #fff; */
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.title-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.title-image {
+  margin-right: 10px; /* Adjust as needed */
+  width: 30px; /* Adjust as needed */
+  height: auto;
 }
 
 .blog-post-title {
   font-size: 2.5em; /* Adjust the font size as needed */
   font-weight: bold;
-  text-align: center; /* Center the title */
-  color: #333;
-  margin-top: 20px; /* Reduce top margin */
+  margin: 0;
+  /*color: #333; */
   line-height: 1.2; /* Decrease the space between lines */
 }
 
@@ -46,15 +58,16 @@ body, html {
 .blog-post-intro {
   font-size: 1.2em;
   text-align: justify; /* Justify the intro text */
-  color: #555;
+  /*color: #555; */
   margin-bottom: 20px;
   font-family: Arial, sans-serif; /* Set the default font for blog intro */
 }
 
 .blog-post-content {
-  color: #555;
+  /*color: #555; */
   line-height: 1.6;
   font-family: Arial, sans-serif; /* Set the default font for blog content */
+  text-align: justify;
 }
 
 .blog-post-image2 {
@@ -67,10 +80,10 @@ body, html {
 
 .blog-post-content-and-conclusion {
   font-size: 1.2em;
-  text-align: center; /* Center the content and conclusion */
-  color: #555;
+  /*color: #555;  */
   margin-top: 20px;
   font-family: Arial, sans-serif; /* Set the default font for content and conclusion */
+  text-align: justify;
 }
 
 .blog-post-meta {
@@ -78,22 +91,32 @@ body, html {
   justify-content: space-between;
   margin-top: 20px;
   margin-bottom: 20px;
-  color: #888;
+  padding: 10px 0;
+  gap: 20px; /* Add horizontal space between items */
+  /*color: #888; */
 }
 
 .blog-post-interactions {
   display: flex;
   justify-content: space-around;
   margin-top: 20px;
+  gap: 30px; /* Add horizontal space between items */
 }
 
 .blog-post-button {
-  padding: 10px;
+  padding: 10px 20px; /* Ensure consistent size */
   border: none;
-  border-radius: 5px;
-  background: #007bff;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #4e78f7, #6a0dad, #ff7f50); /* Gradient colors */
   color: #fff;
   cursor: pointer;
+  box-shadow: 8px 8px 15px #0d0d0d, -8px -8px 15px #282828; /* Neumorphism effect */
+  transition: all 0.3s ease;
+  font-size: 1em;
+}
+
+.blog-post-button:hover {
+  box-shadow: inset 8px 8px 15px #0d0d0d, inset -8px -8px 15px #282828; /* Inset shadow on hover */
 }
 
 .custom-preformatted {
@@ -110,7 +133,7 @@ body, html {
 }
 
 .recommendation-header h2 {
-  color: #000; /* Black color */
+  /*color: #000; /* Black color */
   font-weight: bold; /* Bold text */
 }
 
@@ -136,8 +159,8 @@ body, html {
 }
 
 .recommendation-title {
-  font-size: 1.5em;
-  color: #333;
+  font-size: 1.3em;
+  /*color: #333; */
   margin-bottom: 10px;
 }
 
@@ -182,8 +205,8 @@ body, html {
   }
 
   .blog-post-title {
-    font-size: 1.8em; /* Further reduce font size for mobile screens */
-    margin-top: 10px; /* Further adjust margin for mobile screens */
+    font-size: 1.2em; /* Further reduce font size for mobile screens */
+    margin-top: 15px; /* Further adjust margin for mobile screens */
     line-height: 1.2; /* Keep the line height */
   }
 
@@ -208,4 +231,27 @@ body, html {
   .blog-post-button {
     padding: 8px; /* Adjust button size for mobile screens */
   }
+}
+
+.custom-link {
+  text-decoration: underline;
+  color: gold; /* Change this to your desired link color */
+}
+
+.custom-link:hover {
+  color: darkblue; /* Optional: Change color on hover */
+}
+
+.flex-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Align items to the center */
+  justify-content: flex-start; /* Justify items to the start */
+  width: calc(100% - 1px); /* Adjust the width to fit within the viewport */
+  /*background-color: white; /* Updated background color */
+  padding: 10px 10px; /* Add padding to both left and right sides */
+  margin: 10px auto; /* Center the container and add vertical margins */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Add subtle shadow for depth */
+  border-radius: 10px; /* Add border radius */
+  box-sizing: border-box; /* Ensure padding is included in element's total width and height */
 }

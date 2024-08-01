@@ -8,7 +8,13 @@ import {
   sma,
   IchimokuCloud
 } from 'technicalindicators';
-import coinListData from '../assets/coinlist3.json'; // Adjust the path as necessary
+import coinListData from '../assets/coinlist3.json';
+import summaryVariations from '../assets/summaryVariations.json';
+import technicalsVariations from '../assets/technicalsVariations.json';
+import './CryptoAnalysis.css'; // Import the CSS file
+import { news } from '../data/news.js'; // Import the news data
+import { Link } from 'react-router-dom';
+import { useThemeContext } from "../context/ThemeContext.js";
 
 const calculateFibonacciLevels = (high, low) => {
   const diff = high - low;
@@ -25,7 +31,6 @@ const calculateFibonacciLevels = (high, low) => {
 
 const calculateIchimoku = (data) => {
   if (data.length < 52) {
-    // Ichimoku requires at least 52 data points
     return null;
   }
 
@@ -65,7 +70,10 @@ const calculateCVD = (prices, volumes) => {
   return cvd;
 };
 
-const getRandomElement = (arr) => arr[Math.floor(Math.random() * arr.length)];
+const getRandomElements = (arr, count) => {
+  const shuffled = arr.sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
+};
 
 const roundNumber = (num) => {
   if (num < 0.1) return num.toFixed(5);
@@ -73,7 +81,7 @@ const roundNumber = (num) => {
   return num.toFixed(2);
 };
 
-const CryptoAnalysis = () => {
+const CryptoAnalysis = ({ onFetchAnalysis }) => {
   const [coin, setCoin] = useState('');
   const [analysis, setAnalysis] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -84,11 +92,23 @@ const CryptoAnalysis = () => {
   const [highestPrice60, setHighestPrice60] = useState(null);
   const [lowestPrice60, setLowestPrice60] = useState(null);
   const [error, setError] = useState(null);
+  const [selectedNews, setSelectedNews] = useState([]);
+  const { theme } = useThemeContext();
+  const [message, setMessage] = useState(''); // New state variable for the message
 
   useEffect(() => {
-    // Load the coin list from the local JSON file
     setCoinList(coinListData);
+    setSelectedNews(getRandomElements(news, 4));
   }, []);
+
+  useEffect(() => {
+    if (message) {
+      const timer = setTimeout(() => {
+        setMessage('');
+      }, 5000);
+      return () => clearTimeout(timer); // Cleanup the timer on unmount or if message changes
+    }
+  }, [message]);
 
   const handleInputChange = (e) => {
     const input = e.target.value.toLowerCase();
@@ -99,48 +119,38 @@ const CryptoAnalysis = () => {
     setCoinSymbol(matchedCoin ? matchedCoin.symbol : '');
   };
 
-  const fetchHighestAndLowestPrice = async (period) => {
+  const fetchBitcoinData = async () => {
     try {
       const response = await axios.get(`https://min-api.cryptocompare.com/data/v2/histoday`, {
         params: {
-          fsym: coinSymbol.toUpperCase(),
+          fsym: 'BTC',
           tsym: 'USD',
-          limit: period
+          limit: 60
         }
       });
-      console.log(response.data); // Log the response data
       if (response.data.Response === 'Error') {
         throw new Error(response.data.Message);
       }
       const data = response.data.Data.Data;
-
-      // Extract the highest and lowest prices over the specified period
-      let highest = -Infinity;
-      let lowest = Infinity;
-      
-      data.forEach(day => {
-        if (day.high > highest) highest = day.high;
-        if (day.low < lowest) lowest = day.low;
-      });
-
-      return { highest, lowest, data };
+      return data;
     } catch (err) {
       setError(err.message);
-      throw err; // Ensure the error is thrown to be caught in the fetchAnalysis function
+      throw err;
     }
   };
 
   const fetchAnalysis = async () => {
     if (!coinSymbol) {
-      alert('Please enter a valid coin name or symbol.');
+      setMessage('Coins will come in the future. Check other coins'); // Set the message
       return;
     }
 
     setLoading(true);
     setError(null);
+    setMessage(''); // Clear the message
 
     try {
-      const [sevenDayResponse, sixtyDayResponse, coinDataResponse, fearGreedResponse] = await Promise.all([
+      const [sevenDayResponse, sixtyDayResponse, coinDataResponse, fearGreedResponse, btcDataResponse] = await Promise.all([
         axios.get(`https://min-api.cryptocompare.com/data/v2/histoday`, {
           params: {
             fsym: coinSymbol.toUpperCase(),
@@ -161,13 +171,9 @@ const CryptoAnalysis = () => {
             tsyms: 'USD'
           }
         }),
-        axios.get('https://api.alternative.me/fng/')
+        axios.get('https://api.alternative.me/fng/'),
+        fetchBitcoinData()
       ]);
-
-      console.log(sevenDayResponse.data); // Log the response data
-      console.log(sixtyDayResponse.data); // Log the response data
-      console.log(coinDataResponse.data); // Log the response data
-      console.log(fearGreedResponse.data); // Log the response data
 
       if (sevenDayResponse.data.Response === 'Error') {
         throw new Error(sevenDayResponse.data.Message);
@@ -181,15 +187,15 @@ const CryptoAnalysis = () => {
       const sixtyDayData = sixtyDayResponse.data.Data.Data;
       const coinData = coinDataResponse.data;
       const fearGreedData = fearGreedResponse.data.data[0];
+      const btcData = btcDataResponse;
 
       if (!coinData) {
         throw new Error('Coin data not found');
       }
 
-      // Extract the highest and lowest prices over the 7-day period
       let highest7 = -Infinity;
       let lowest7 = Infinity;
-      
+
       sevenDayData.forEach(day => {
         if (day.high > highest7) highest7 = day.high;
         if (day.low < lowest7) lowest7 = day.low;
@@ -198,7 +204,6 @@ const CryptoAnalysis = () => {
       setHighestPrice(highest7);
       setLowestPrice(lowest7);
 
-      // Extract the highest and lowest prices over the 60-day period
       let highest60 = -Infinity;
       let lowest60 = Infinity;
 
@@ -210,7 +215,6 @@ const CryptoAnalysis = () => {
       setHighestPrice60(highest60);
       setLowestPrice60(lowest60);
 
-      // Ensure highestPrice and lowestPrice are set before proceeding
       if (highest7 === -Infinity || lowest7 === Infinity) {
         throw new Error('Failed to fetch highest and lowest prices for 7 days');
       }
@@ -222,7 +226,6 @@ const CryptoAnalysis = () => {
       const prices = sixtyDayData.map((day) => day.close);
       const volumes = sixtyDayData.map((day) => day.volumefrom);
 
-      // Calculate MACD
       const macdResult = macd({
         values: prices,
         fastPeriod: 12,
@@ -232,182 +235,55 @@ const CryptoAnalysis = () => {
         SimpleMASignal: false,
       });
 
-      // Calculate RSI
       const rsiResult = rsi({
         values: prices,
         period: 14,
       });
 
-      // Calculate OBV
       const obvResult = obv({
         close: prices,
         volume: volumes,
       });
 
-      // Calculate Bollinger Bands
       const bbResult = bollingerbands({
         period: 20,
         values: prices,
         stdDev: 2,
       });
 
-      // Calculate CVD
       const cvdResult = calculateCVD(prices, volumes);
 
-      // Calculate SMA
       const sma20 = sma({ period: 20, values: prices });
       const sma50 = sma({ period: 50, values: prices });
 
-      // Determine market trend based on SMA
       const marketTrend = sma20[sma20.length - 1] > sma50[sma50.length - 1] ? 'SMA showing a potential for trend reversal' : 'SMA predicting a continuation of the current market trend';
 
-      // Get current price and changes
       const currentPrice = coinData.USD || 0;
 
-      // Calculate percentage change over the past 24 hours
       const lastDayPrice = prices[prices.length - 1];
       const previousDayPrice = prices[prices.length - 2];
       const percentChange24h = ((lastDayPrice - previousDayPrice) / previousDayPrice) * 100;
 
-      // Calculate percentage change from the weekly lowest price
       const percentChangeFromLow = ((currentPrice - lowest7) / lowest7) * 100;
 
-      // Determine wording for pump or decrease
       const priceMovementWording = percentChangeFromLow > 0 ? 'pump' : 'decrease';
 
-      // Calculate percentage drop from the 7-day high
       const percentDropFromHigh = ((highest7 - currentPrice) / highest7) * 100;
 
-      // Determine capital flow trend
       const capitalFlowTrend = cvdResult[cvdResult.length - 1] - cvdResult[cvdResult.length - 8];
       const capitalFlowSentiment = capitalFlowTrend > 0 ? 'bullish' : 'bearish';
 
-      // Calculate Fibonacci levels
       const fibLevels7 = calculateFibonacciLevels(highest7, lowest7);
       const fibLevels60 = calculateFibonacciLevels(highest60, lowest60);
 
-      // Calculate Ichimoku levels
       const ichimoku60 = calculateIchimoku(sixtyDayData);
+      const btcIchimoku = calculateIchimoku(btcData);
 
-      const summaryVariations = [
-        `${coin.toUpperCase()} has seen its price ${percentChange24h > 0 ? 'rise' : 'fall'} by ${percentChange24h.toFixed(2)}% over the past 24 hours, currently sitting at $${roundNumber(
-          currentPrice
-        )}. This follows a ${roundNumber(percentChangeFromLow)}% ${priceMovementWording} from its 7-day low of $${roundNumber(
-          lowest7
-        )}. Despite the price ${
-          percentChange24h > 0 ? 'uptrend' : 'downtrend'
-        }, there has been a significant ${capitalFlowTrend > 0 ? 'increase' : 'decrease'} in capital flow into ${
-          coin.toUpperCase()
-        }, suggesting a ${capitalFlowSentiment} sentiment in the market.`,
-        `Over the last 24 hours, ${coin.toUpperCase()} has seen its price ${
-          percentChange24h > 0 ? 'rise' : 'fall'
-        } by ${percentChange24h.toFixed(2)}%, with the current price at $${roundNumber(
-          currentPrice
-        )}. This follows a ${roundNumber(percentChangeFromLow)}% ${priceMovementWording} from its 7-day low of $${roundNumber(
-          lowest7
-        )}. In addition to this ${
-          percentChange24h > 0 ? 'positive' : 'negative'
-        } price movement, the capital flow into ${coin.toUpperCase()} has ${
-          capitalFlowTrend > 0 ? 'risen' : 'dropped'
-        }, indicating a ${capitalFlowSentiment} market sentiment.`,
-        `In the past 24 hours, ${coin.toUpperCase()}'s price has ${
-          percentChange24h > 0 ? 'climbed' : 'declined'
-        } by ${percentChange24h.toFixed(2)}%, now standing at $${roundNumber(
-          currentPrice
-        )}. This follows a ${roundNumber(percentChangeFromLow)}% ${priceMovementWording} from its 7-day low of $${roundNumber(
-          lowest7
-        )}. Moreover, the capital flow into ${coin.toUpperCase()} has shown a ${
-          capitalFlowTrend > 0 ? 'notable increase' : 'significant decrease'
-        }, pointing to a ${capitalFlowSentiment} sentiment among investors.`,
-        `Over the past 24 hours, ${coin.toUpperCase()} has ${
-          percentChange24h > 0 ? 'gained' : 'lost'
-        } ${percentChange24h.toFixed(2)}% in value, currently priced at $${roundNumber(
-          currentPrice
-        )}. This follows a ${
-          roundNumber(percentChangeFromLow)
-        }% ${priceMovementWording} from its 7-day low of $${roundNumber(lowest7)}. Capital flow into ${
-          coin.toUpperCase()
-        } has ${capitalFlowTrend > 0 ? 'increased' : 'decreased'}, signaling a ${capitalFlowSentiment} sentiment in the market.`,
-        `The value of ${coin.toUpperCase()} has ${
-          percentChange24h > 0 ? 'grown' : 'shrunk'
-        } by ${percentChange24h.toFixed(2)}% over the last 24 hours, with the current price at $${roundNumber(
-          currentPrice
-        )}. Following a ${roundNumber(percentChangeFromLow)}% ${priceMovementWording} from its 7-day low of $${roundNumber(
-          lowest7
-        )}, there has been a ${capitalFlowTrend > 0 ? 'notable increase' : 'significant decrease'} in capital flow into ${
-          coin.toUpperCase()
-        }, suggesting a ${capitalFlowSentiment} sentiment among investors.`,
-        `In the past 24 hours, ${coin.toUpperCase()} has seen its price ${
-          percentChange24h > 0 ? 'appreciate' : 'depreciate'
-        } by ${percentChange24h.toFixed(2)}%, now standing at $${roundNumber(
-          currentPrice
-        )}. This follows a ${roundNumber(percentChangeFromLow)}% ${priceMovementWording} from its 7-day low of $${roundNumber(
-          lowest7
-        )}. The capital flow into ${coin.toUpperCase()} has ${
-          capitalFlowTrend > 0 ? 'risen' : 'fallen'
-        }, indicating a ${capitalFlowSentiment} sentiment in the market.`,
-        // Add 24 more variations...
-      ];
+      const summaryTemplate = getRandomElements(summaryVariations, 1)[0];
+      const technicalsTemplate = getRandomElements(technicalsVariations, 1)[0];
 
-      // Technicals variations
-      const technicalsVariations = [
-        `The MACD indicates a ${
-          macdResult[macdResult.length - 1]?.histogram > 0 ? 'cautiously optimistic' : 'bearish'
-        } outlook with a ${
-          macdResult[macdResult.length - 1]?.histogram > 0 ? 'recent bullish crossover' : 'recent bearish crossover'
-        }, while the RSI suggests ${
-          rsiResult[rsiResult.length - 1] > 50 ? 'bullish sentiment' : 'bearish sentiment'
-        } with the ${marketTrend}. The OBV shows ${
-          obvResult[obvResult.length - 1] > 0 ? 'sustained buying pressure' : 'sustained selling pressure'
-        }, and the ${
-          bbResult[bbResult.length - 1]?.pb < 0 ? 'contracting' : 'expanding'
-        } Bollinger Bands point to ${
-          bbResult[bbResult.length - 1]?.pb < 0 ? 'decreased volatility and potential oversold conditions.' : 'increased volatility and overbought condition.'
-        }.`,
-        `MACD analysis points to a ${
-          macdResult[macdResult.length - 1]?.histogram > 0 ? 'positive' : 'negative'
-        } trend, featuring a ${
-          macdResult[macdResult.length - 1]?.histogram > 0 ? 'bullish crossover' : 'bearish crossover'
-        }. RSI values indicate a ${
-          rsiResult[rsiResult.length - 1] > 50 ? 'bullish' : 'bearish'
-        } market sentiment, with the ${marketTrend}. OBV data shows ${
-          obvResult[obvResult.length - 1] > 0 ? 'buying pressure' : 'selling pressure'
-        }, and the ${
-          bbResult[bbResult.length - 1]?.pb < 0 ? 'narrowing' : 'widening'
-        } Bollinger Bands suggest ${
-          bbResult[bbResult.length - 1]?.pb < 0 ? 'lower volatility and potential oversold conditions.' : 'higher volatility and overbought condition.'
-        }.`,
-        `The latest MACD readings hint at a ${
-          macdResult[macdResult.length - 1]?.histogram > 0 ? 'cautiously optimistic' : 'bearish'
-        } sentiment, evidenced by a ${
-          macdResult[macdResult.length - 1]?.histogram > 0 ? 'bullish crossover' : 'bearish crossover'
-        }. Meanwhile, the RSI suggests ${
-          rsiResult[rsiResult.length - 1] > 50 ? 'positive' : 'negative'
-        } sentiment, with the ${marketTrend}. The OBV data reflects ${
-          obvResult[obvResult.length - 1] > 0 ? 'ongoing buying pressure' : 'ongoing selling pressure'
-        }, and ${
-          bbResult[bbResult.length - 1]?.pb < 0 ? 'contracting' : 'expanding'
-        } Bollinger Bands point to ${
-          bbResult[bbResult.length - 1]?.pb < 0 ? 'decreased volatility and a confirmed oversold conditions' : 'increased volatility and a confirmed overbought condition.'
-        }.`,
-        `MACD readings indicate a ${
-          macdResult[macdResult.length - 1]?.histogram > 0 ? 'bullish' : 'bearish'
-        } sentiment, with a ${
-          macdResult[macdResult.length - 1]?.histogram > 0 ? 'recent bullish crossover' : 'recent bearish crossover'
-        }. RSI values suggest ${
-          rsiResult[rsiResult.length - 1] > 50 ? 'positive' : 'negative'
-        } sentiment with the ${marketTrend}. OBV data shows ${
-          obvResult[obvResult.length - 1] > 0 ? 'sustained buying pressure' : 'sustained selling pressure'
-        }, and ${
-          bbResult[bbResult.length - 1]?.pb < 0 ? 'contracting' : 'expanding'
-        } Bollinger Bands indicate ${
-          bbResult[bbResult.length - 1]?.pb < 0 ? 'reduced volatility and a confirmed oversold conditions.' : 'increased volatility and a confirmed overbought condition.'
-        }.`,
-        // Add 26 more variations...
-      ];
-
-      const summary = getRandomElement(summaryVariations);
-      const technicals = getRandomElement(technicalsVariations);
+      const summary = eval('`' + summaryTemplate + '`');
+      const technicals = eval('`' + technicalsTemplate + '`');
 
       const fibonacciLevels7 = `7-Day Fibonacci Levels:
         0% - ${roundNumber(fibLevels7['0.0% (High)'])}
@@ -435,13 +311,74 @@ const CryptoAnalysis = () => {
         Senkou Span B - ${roundNumber(ichimoku60['Senkou Span B'])}`
         : 'Not enough data for 60-Day Ichimoku Levels';
 
-      const news = [
-        'Hong Kong Virtual Asset ETFs Record Trading Volume',
-        'Over 30% Of Bitcoin Supply Remains Unmoved In Wallets',
-        'Ethereum ETP Could Be More Successful Than Anticipated',
+      const btcKijunSen = btcIchimoku ? btcIchimoku['Kijun-sen'] : 0;
+
+      const fearGreedIndex = `Current Fear & Greed Index is ${fearGreedData.value_classification} (${fearGreedData.value}%)`;
+
+      const allLevels = [
+        ...Object.values(fibLevels7),
+        ...Object.values(fibLevels60),
+        ...(ichimoku60 ? Object.values(ichimoku60) : [])
       ];
 
-      const fearGreedIndex = `Current Fear & Greed Index: ${fearGreedData.value} (${fearGreedData.value_classification})`;
+      const buyLevels = allLevels.filter(level => level < currentPrice).sort((a, b) => b - a).slice(0, 5);
+      const sellLevels = allLevels.filter(level => level > currentPrice).sort((a, b) => a - b).slice(0, 5);
+
+      // Recommendation logic
+      const btcPrice = btcData[btcData.length - 1].close;
+      const btcPercentageDifference = Math.abs((btcPrice - btcKijunSen) / btcKijunSen);
+      let recommendationText = '';
+
+      console.log(`BTC Percentage Difference: ${btcPercentageDifference}`);
+      console.log(`BTC Kijun-sen: ${btcKijunSen}`);
+      console.log(`${coinSymbol} Kijun-sen: ${ichimoku60 ? ichimoku60['Kijun-sen'] : 'N/A'}`);
+      console.log(`Current Price: ${currentPrice}`);
+      console.log(`OBV Last Value: ${obvResult[obvResult.length - 1]}`);
+
+      const condition1Met = btcPercentageDifference <= 0.2;
+      const condition2Met = ichimoku60 && ichimoku60['Kijun-sen'] >= currentPrice;
+      const condition3Met = obvResult[obvResult.length - 1] > 0;
+
+      console.log(`Condition 1 Met: ${condition1Met}`);
+      console.log(`Condition 2 Met: ${condition2Met}`);
+      console.log(`Condition 3 Met: ${condition3Met}`);
+
+      let additionalText = '';
+
+      if (!condition1Met) {
+        additionalText += ` The current uncertainty in Bitcoin's price movement could affect other 
+        altcoins negatively.`;
+      }
+      if (!condition2Met) {
+        additionalText += ` The above price movement is also not supported by sufficient volume.`;
+      }
+      if (!condition3Met) {
+        additionalText += ` Furthermore, Ichimoku indicates a downwards movement that is likely to occur soon. 
+        It is advisable to wait for more stability and clearer signals before making a purchase.`;
+      }
+
+      if (condition1Met && condition2Met && condition3Met) {
+        recommendationText = `Buy ${coin.toUpperCase()} at level 1 or 2. Be sure to set your sell order at the specified Sell levels`;
+        console.log('Condition met for Buy');
+      } else if (condition1Met && (condition2Met || condition3Met)) {
+        recommendationText = `Buy ${coin.toUpperCase()} at level 2 or 3 as a little pullback is expected soon before the uptrend. You can use DCA and be sure to set your
+         sell order as specified below`;
+        console.log('Condition met for Cautiously Buy');
+      } else {
+        recommendationText = `Buy ${coin.toUpperCase()} at level 3 to 5 as a downtrend is imminent before pump. Be sure to put a stoploss e.g If you bought at level 3, 
+        stoploss will be at level 4.`;
+        console.log('Condition met for Wait Before You Buy');
+      }
+
+      const recommendationRationale = {
+        'Recommendation: Buy at level 1 to 2': `
+        Technical analysis below indicates that ${coin.toUpperCase()} is ready for the next leg up. Look to buy at buy level 1 or 2.`,
+        'Recommendation: Buy at lower levels e.g level 2 to 3': `The MACD and other indicators below shows bullish momentum for ${coin.toUpperCase()}, but a good 
+        distributed volume is crucial for further movements. Buy at level 2 to 4 using DCA.`,
+        'Recommendation: Buy at the lowest level e.g level 3 to 5.': `Technically, ${coin.toUpperCase()} looks a bit OK, but the it is yet to have a clear direction
+         and the volume is a bit manipulated as seen on the OBV data below. Buy levels are from level 3 to 5, also set stoploss e.g if 
+         you buy at level 3, set stoploss at level 4 and so on.`,
+      };
 
       setAnalysis({
         priceChange24h: percentChange24h.toFixed(2),
@@ -450,9 +387,17 @@ const CryptoAnalysis = () => {
         fibonacciLevels7,
         fibonacciLevels60,
         ichimokuLevels60,
-        news,
+        news: selectedNews,
         fearGreedIndex,
+        buyLevels,
+        sellLevels,
+        currentPrice,
+        recommendationText,
+        recommendationRationale: recommendationRationale[recommendationText],
       });
+
+      // Notify the parent component to hide the introduction
+      onFetchAnalysis();
     } catch (error) {
       console.error('Error fetching data:', error.message);
       setError(error.message);
@@ -461,12 +406,18 @@ const CryptoAnalysis = () => {
   };
 
   return (
-    <div className="crypto-analysis">
+    <div className={`crypto-analysis ${
+        theme === "dark"
+          ? "bg-[#19191E] text-[#fff]"
+          : "bg-[#fff] text-[#19191E]"
+      }`}
+    >
+      {message && <p className="message">{message}</p>} {/* Conditionally render the message */}
       <input 
         type="text" 
         value={coin} 
         onChange={handleInputChange} 
-        placeholder="Enter crypto coin (e.g., bitcoin)" 
+        placeholder="Enter crypto coin (e.g., bitcoin or btc)" 
         className="crypto-input"
       />
       <button onClick={fetchAnalysis} className="crypto-button">
@@ -479,21 +430,44 @@ const CryptoAnalysis = () => {
 
       {analysis && (
         <div className="analysis-results">
-          <p>🔔  {analysis.summary}</p>
-          <p>📈 Technicals: {analysis.technicals}</p>
-          <p>🔶 7-Day Fibonacci Levels:</p>
-          <p>{analysis.fibonacciLevels7}</p>
-          <p>🔶 60-Day Fibonacci Levels:</p>
-          <p>{analysis.fibonacciLevels60}</p>
-          <p>🔶 60-Day Ichimoku Levels:</p>
-          <p>{analysis.ichimokuLevels60}</p>
-          <p>🔶 {analysis.fearGreedIndex}</p>
-          <p>📰 News:</p>
+          <p>{analysis.summary}</p> 
+          <p>✨ {analysis.fearGreedIndex}</p> <br />
+          
+          <p><strong>Recommendation: </strong>{analysis.recommendationText}</p>
+          
+          <table className="levels-table">
+            <thead>
+              <tr>
+                <th>Buy Levels</th>
+                <th>Sell Levels</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  {analysis.buyLevels.map((level, index) => (
+                    <div key={index}>{index + 1}. {roundNumber(level)}</div>
+                  ))}
+                </td>
+                <td>
+                  {analysis.sellLevels.map((level, index) => (
+                    <div key={index}>{index + 1}. {roundNumber(level)}</div>
+                  ))}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <p><br />📊 <strong>Technicals:</strong> {analysis.technicals}</p>
+          
+          <p className="news-header"><br />📰 <strong>News:</strong></p>
           {analysis.news.map((item, index) => (
-            <p key={index}>🔸 {item}</p>
+            <p key={index} className="news-item">
+              📢 <Link to={`/blog/${item.id}`} className="crypto-news-title">{item.title}</Link>
+            </p>
           ))}
           <p className="disclaimer">
-            Disclaimer: Digital asset prices can be volatile. The value of your investment may go down or up and you may not get back the amount invested. Not financial advice. For more information, see our Terms of Use and Risk Warning.
+            Disclaimer: Always conduct your own research and consider your risk tolerance before making investment decisions. Cryptocurrency markets are highly volatile, and it is crucial to stay informed and make well-considered choices.
           </p>
         </div>
       )}

@@ -1,0 +1,152 @@
+/* Container for crypto analysis */
+.crypto-analysis {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  margin: 0 auto; /* Center the container */
+  width: calc(100% - 40px); /* Ensure it is responsive and maintains margin on the sides */
+  max-width: 1200px; /* Set a maximum width for larger screens */
+  padding-bottom: 120px; /* Add enough padding to accommodate the navigation button */
+  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
+/* Input field styling */
+.crypto-input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+/* Button styling */
+.crypto-button {
+  padding: 10px 20px;
+  margin-bottom: 20px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.crypto-button:hover {
+  background-color: #45a049;
+}
+
+/* Table styling */
+.levels-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.levels-table th, .levels-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+.levels-table th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  text-align: center;
+  background-color: #9000FF;
+  color: white;
+}
+
+.levels-table td {
+  background-color: #0D0C0A;
+  text-align: center;
+}
+
+.levels-table tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+.levels-table tr:hover {
+  background-color: #ddd;
+}
+
+/* Disclaimer text styling */
+.disclaimer {
+  font-size: 12px;
+  color: white;
+}
+
+/* News link styling */
+.news-link {
+  /*color: #626CFE;
+  margin-left: 15px;*/
+}
+
+/* News header styling */
+.news-header {
+  text-align: center;
+  font-size: 20px;
+}
+
+/* News item styling */
+.news-item {
+  display: flex;
+  align-items: center;
+}
+
+/* Crypto news title styling */
+.crypto-news-title {
+  color: #626CFE; /* Specific color for CryptoAnalysis news titles */
+  margin-left: 15px;
+}
+
+/* Responsive styling for smaller screens */
+@media only screen and (max-width: 600px) {
+  .crypto-analysis {
+    padding: 10px; /* Reduce padding for smaller screens */
+    margin: 0 10px; /* Reduce margin for smaller screens */
+    width: calc(100% - 20px); /* Adjust width for smaller screens */
+  }
+
+  .crypto-button {
+    font-size: 14px;
+    padding: 8px 16px;
+  }
+
+  .levels-table th, .levels-table td {
+    padding: 6px;
+    font-size: 12px;
+  }
+
+  .news-header {
+    font-size: 18px;
+  }
+
+  .news-item {
+    font-size: 14px;
+  }
+
+  .disclaimer {
+    font-size: 10px;
+  }
+}
+
+/* New CSS to ensure the analysis results fill the screen edges */
+.analysis-results {
+  width: 100vw; /* Use full viewport width */
+  margin: 0; /* Remove default margin */
+  padding: 0 20px; /* Add padding to the left and right */
+  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+  border: none; /* Ensure no borders */
+}
+
+/* Ensure table inside analysis-results also fills width and has no borders */
+.analysis-results .levels-table {
+  border: none; /* Remove table border */
+  width: 100%; /* Ensure table takes full width */
+}
+
+.analysis-results .levels-table th, 
+.analysis-results .levels-table td {
+  border: none; /* Remove cell borders */
+  padding: 8px; /* Adjust padding if needed */
+}
+
+.message {
+  color: red;
+  background-color: lightyellow;
+  font-weight: bold;
+}

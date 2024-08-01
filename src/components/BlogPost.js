@@ -1,10 +1,13 @@
 import React, { useEffect, useRef } from 'react';
-import { useParams, Link, useLocation } from 'react-router-dom';
+import { useThemeContext } from "../context/ThemeContext.js";
+import { useParams, Link, useLocation } from 'react-router-dom'; // Ensure Link is imported
 import { useQuery } from '@tanstack/react-query';
-import { news } from '../data/news.js'; // Ensure this path matches where your news data is stored
+import { news } from '../data/news.js';
+import title from '../assets/title.png';
 import './BlogPost.css';
 import parse from 'html-react-parser';
 import DOMPurify from 'dompurify';
+import { useTreasureContext } from "../context/treasureContext.js"; // Ensure this is the correct path
 
 const PUBLIC_URL = process.env.REACT_APP_PUBLIC_URL;
 
@@ -22,9 +25,9 @@ const parseContent = (content) => {
     '<li>': '<li>', '</li>': '</li>',
   };
 
-  content = content.replace(/<f(\d+)>/g, '<span style="font-size: $1px;">').replace(/<\/f>/g, '</span>');
-  content = content.replace(/<c#([0-9A-Fa-f]{6})>/g, '<span style="color: #$1;">').replace(/<\/c>/g, '</span>');
-  content = content.replace(/<bc#([0-9A-Fa-f]{6})>/g, '<span style="background-color: #$1;">').replace(/<\/bc>/g, '</span>');
+  content = content.replace(/<link="([^"]*)">/g, (match, p1) => {
+    return `<a href="${p1}" class="custom-link">`;
+  }).replace(/<\/link>/g, '</a>');
 
   for (const [key, value] of Object.entries(replacements)) {
     content = content.split(key).join(value);
@@ -38,9 +41,13 @@ const fetchNews = async () => {
 };
 
 const BlogPost = () => {
+  const { theme } = useThemeContext();
   const { id } = useParams();
   const { pathname } = useLocation();
   const previousPathname = useRef(pathname);
+  const { addTreasurePoint } = useTreasureContext();
+  const pointAdded = useRef(false);
+  const timerRef = useRef(null);
 
   const { data: newsData, error, isLoading } = useQuery({
     queryKey: ['news'],
@@ -54,6 +61,32 @@ const BlogPost = () => {
       previousPathname.current = pathname;
     }
   }, [pathname]);
+
+  useEffect(() => {
+    const currentTime = new Date().getTime();
+    sessionStorage.setItem('startTime', currentTime);
+    console.log('Start time stored in session storage:', currentTime);
+
+    const checkTimeOnPage = () => {
+      if (!pointAdded.current) {
+        const startTime = sessionStorage.getItem('startTime');
+        const currentTime = new Date().getTime();
+        const timeSpent = (currentTime - startTime) / 1000;
+        console.log('Time spent on page:', timeSpent, 'seconds');
+        if (timeSpent >= 60) {
+          addTreasurePoint();
+          pointAdded.current = true;
+        }
+      }
+    };
+
+    timerRef.current = setTimeout(checkTimeOnPage, 60000);
+
+    return () => {
+      clearTimeout(timerRef.current);
+      checkTimeOnPage();
+    };
+  }, [addTreasurePoint]);
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -76,21 +109,37 @@ const BlogPost = () => {
   const otherBlogs = newsData.filter(otherBlog => otherBlog.id !== id);
 
   return (
-    <div className="blog-post-container">
-      <h1 className="blog-post-title">{blog.title}</h1>
-      <img src={`${PUBLIC_URL}${blog.image}`} alt={blog.title} className="blog-post-image" />
-      <div className="blog-post-intro">{parse(sanitizedIntro)}</div>
-      <div className="blog-post-content">{parse(sanitizedContent)}</div>
-      <img src={`${PUBLIC_URL}${blog.image2}`} alt={blog.title} className="blog-post-image2" />
-      <div className="blog-post-content-and-conclusion">{parse(sanitizedConclusion)}</div>
-      <div className="blog-post-meta">
-        <span>{blog.time}</span>
-        <span>{blog.views} views</span>
+    <div
+      className={`blog-post-container ${
+        theme === "dark"
+          ? "bg-[#19191E] text-[#fff]"
+          : "bg-[#fff] text-[#19191E]"
+      }`}
+    >
+      <div className="title-container">
+        <img src={title} alt="Title" className="title-image" />
+        <h1 className="blog-post-title">{blog.title}</h1>
       </div>
-      <div className="blog-post-interactions">
-        <button className="blog-post-button">Like</button>
-        <button className="blog-post-button">Comment</button>
-      </div>
+      <br />
+      <div className={`flex-container ${
+        theme === "dark"
+          ? "bg-[#19191E] text-[#fff]"
+          : "bg-[#fff] text-[#19191E]"
+      }`}>
+        <img src={`${PUBLIC_URL}${blog.image}`} alt={blog.title} className="blog-post-image" />
+        <div className="blog-post-intro">{parse(sanitizedIntro)}</div>
+        <div className="blog-post-content">{parse(sanitizedContent)}</div>
+        <img src={`${PUBLIC_URL}${blog.image2}`} alt={blog.title} className="blog-post-image2" />
+        <div className="blog-post-content-and-conclusion">{parse(sanitizedConclusion)}</div>
+        <div className="blog-post-meta">
+          <span>{blog.time}</span>
+          <span>{blog.views} views</span>
+        </div>
+        <div className="blog-post-interactions">
+          <button className="blog-post-button">Like</button>
+          <button className="blog-post-button">Comment</button>
+        </div>
+      
 
       <div className="recommendation-header">
         <h2>🔥 More News and Recommendations for You 🔥</h2>
@@ -111,9 +160,9 @@ const BlogPost = () => {
             }} className="recommendation-title-link">
               <h3 className="recommendation-title">{otherBlog.title}</h3>
             </Link>
-            <div className="recommendation-intro">{parse(DOMPurify.sanitize(parseContent(otherBlog.intro)))}</div>
           </div>
         ))}
+      </div>
       </div>
     </div>
   );

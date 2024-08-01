@@ -1,8 +1,8 @@
 import utility from '../assets/image1.jpg'
 import tokenMetric from '../assets/image2.jpg'
-import myTonWallet from '../assets/image3.jpg'
-import FootballFest from '../assets/image4.jpg'
-import Fantons from '../assets/news5.jpg'
+import myTonWallet from '../assets/image3.png'
+import FootballFest from '../assets/image4.png'
+import Fantons from '../assets/news5.png'
 
 
 

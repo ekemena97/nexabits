@@ -1,7 +1,7 @@
-// src/context/TaskContext.js
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useTapContext } from "./TapContext.js";
 import { realTasks } from "../data/index.js";
+import { getStorageItem, setStorageItem } from '../components/storageHelpers.js';
 
 const TaskContext = createContext();
 
@@ -11,11 +11,31 @@ export const TaskProvider = ({ children }) => {
   const [timers, setTimers] = useState({});
 
   useEffect(() => {
-    const savedCompletedTasks = JSON.parse(localStorage.getItem("completedTasks")) || {};
-    const savedTimers = JSON.parse(localStorage.getItem("timers")) || {};
+    const loadCompletedTasks = async () => {
+      try {
+        const savedCompletedTasks = await getStorageItem("completedTasks");
+        console.log('Loaded completed tasks:', savedCompletedTasks); // Add this line
+        if (savedCompletedTasks) {
+          setCompletedTasks(savedCompletedTasks);
+        }
+      } catch (error) {
+        console.error("Error loading completedTasks from Cloud Storage:", error);
+      }
+    };
 
-    setCompletedTasks(savedCompletedTasks);
-    setTimers(savedTimers);
+    // Load timers from local storage
+    const savedTimers = localStorage.getItem("timers");
+    console.log('Saved timers:', savedTimers); // Add this line
+    if (savedTimers) {
+      try {
+        setTimers(JSON.parse(savedTimers));
+      } catch (error) {
+        console.error("Error parsing timers from local storage:", error);
+        setTimers({});
+      }
+    }
+
+    loadCompletedTasks();
   }, []);
 
   useEffect(() => {
@@ -31,7 +51,7 @@ export const TaskProvider = ({ children }) => {
 
           setCompletedTasks((prev) => {
             const newCompletedTasks = { ...prev, [key]: true };
-            localStorage.setItem("completedTasks", JSON.stringify(newCompletedTasks));
+            setStorageItem("completedTasks", newCompletedTasks); // Save to Cloud Storage
             return newCompletedTasks;
           });
 
@@ -40,7 +60,7 @@ export const TaskProvider = ({ children }) => {
       });
 
       setTimers(updatedTimers);
-      localStorage.setItem("timers", JSON.stringify(updatedTimers));
+      localStorage.setItem("timers", JSON.stringify(updatedTimers)); // Save timers to local storage
     }, 1000);
 
     return () => clearInterval(interval);
@@ -54,13 +74,13 @@ export const TaskProvider = ({ children }) => {
     };
 
     setTimers(newTimers);
-    localStorage.setItem("timers", JSON.stringify(newTimers));
+    localStorage.setItem("timers", JSON.stringify(newTimers)); // Save timers to local storage
   };
 
   const markTaskAsCompleted = (taskIndex) => {
     setCompletedTasks((prev) => {
       const newCompletedTasks = { ...prev, [taskIndex]: true };
-      localStorage.setItem("completedTasks", JSON.stringify(newCompletedTasks));
+      setStorageItem("completedTasks", newCompletedTasks); // Save to Cloud Storage
       return newCompletedTasks;
     });
   };
@@ -71,7 +91,7 @@ export const TaskProvider = ({ children }) => {
         completedTasks,
         timers,
         startTaskTimer,
-        markTaskAsCompleted, // Provide the markTaskAsCompleted function
+        markTaskAsCompleted,
       }}
     >
       {children}

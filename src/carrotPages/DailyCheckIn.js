@@ -3,30 +3,30 @@ import './DailyCheckIn.css';
 import { FaCoins, FaCheckCircle } from 'react-icons/fa';
 
 const rewards = [
-  { day: 1, amount: '500' },
-  { day: 2, amount: '1K' },
-  { day: 3, amount: '2.5K' },
-  { day: 4, amount: '5K' },
-  { day: 5, amount: '15K' },
-  { day: 6, amount: '25K' },
-  { day: 7, amount: '100K' },
-  { day: 8, amount: '500K' },
-  { day: 9, amount: '1M' },
-  { day: 10, amount: '5M' },
+  { day: 1, amount: '50' },
+  { day: 2, amount: '100' },
+  { day: 3, amount: '300' },
+  { day: 4, amount: '700' },
+  { day: 5, amount: '1K' },
+  { day: 6, amount: '5K' },
+  { day: 7, amount: '15K' },
+  { day: 8, amount: '30K' },
+  { day: 9, amount: '50K' },
+  { day: 10, amount: '100K' },
 ];
 
 const getNextDay = (currentDay) => (currentDay % 10) + 1;
 
 const DailyCheckIn = ({ onClose, onClaimReward }) => {
-  const [claimedDays, setClaimedDays] = useState(JSON.parse(localStorage.getItem('claimedDays')) || []);
-  const [currentDay, setCurrentDay] = useState(parseInt(localStorage.getItem('currentDay')) || 1);
+  const [claimedDays, setClaimedDays] = useState(JSON.parse(localStorage.getItem('claimedRewardDays')) || []);
+  const [currentDay, setCurrentDay] = useState(parseInt(localStorage.getItem('currentRewardDay')) || 1);
   const [canClaim, setCanClaim] = useState(true);
   const [timer, setTimer] = useState(0);
   const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
-    const endTime = localStorage.getItem('endTime');
-    const resetEndTime = localStorage.getItem('resetEndTime');
+    const endTime = localStorage.getItem('rewardEndTime');
+    const resetEndTime = localStorage.getItem('resetRewardEndTime');
     
     if (endTime) {
       const remainingTime = new Date(endTime) - new Date();
@@ -66,14 +66,14 @@ const DailyCheckIn = ({ onClose, onClaimReward }) => {
     const nextDay = getNextDay(currentDay);
     setCurrentDay(nextDay);
     setCanClaim(true);
-    localStorage.setItem('currentDay', nextDay);
-    localStorage.removeItem('endTime');
+    localStorage.setItem('currentRewardDay', nextDay);
+    localStorage.removeItem('rewardEndTime');
     if (nextDay === 1) {
       setClaimedDays([]);
-      localStorage.removeItem('claimedDays');
+      localStorage.removeItem('claimedRewardDays');
     }
     const resetEndTime = new Date(new Date().getTime() + 24 * 60 * 60 * 1000);
-    localStorage.setItem('resetEndTime', resetEndTime);
+    localStorage.setItem('resetRewardEndTime', resetEndTime);
     startResetTimer(24 * 60 * 60 * 1000);
   };
 
@@ -93,19 +93,19 @@ const DailyCheckIn = ({ onClose, onClaimReward }) => {
     setCurrentDay(1);
     setClaimedDays([]);
     setCanClaim(true);
-    localStorage.setItem('currentDay', 1);
-    localStorage.removeItem('claimedDays');
-    localStorage.removeItem('resetEndTime');
+    localStorage.setItem('currentRewardDay', 1);
+    localStorage.removeItem('claimedRewardDays');
+    localStorage.removeItem('resetRewardEndTime');
   };
 
   const handleClaim = () => {
     if (canClaim) {
       const newClaimedDays = [...claimedDays, currentDay];
       setClaimedDays(newClaimedDays);
-      localStorage.setItem('claimedDays', JSON.stringify(newClaimedDays));
+      localStorage.setItem('claimedRewardDays', JSON.stringify(newClaimedDays));
 
       const endTime = new Date(new Date().getTime() + 12 * 60 * 60 * 1000);
-      localStorage.setItem('endTime', endTime);
+      localStorage.setItem('rewardEndTime', endTime);
 
       setCanClaim(false);
       startClaimTimer(12 * 60 * 60 * 1000);
@@ -123,7 +123,7 @@ const DailyCheckIn = ({ onClose, onClaimReward }) => {
         onClose();
       }, 1000); // Display success message for 2 seconds
 
-      localStorage.removeItem('resetEndTime');
+      localStorage.removeItem('resetRewardEndTime');
     }
   };
 
@@ -141,8 +141,8 @@ const DailyCheckIn = ({ onClose, onClaimReward }) => {
   };
 
   useEffect(() => {
-    localStorage.setItem('claimedDays', JSON.stringify(claimedDays));
-    localStorage.setItem('currentDay', currentDay);
+    localStorage.setItem('claimedRewardDays', JSON.stringify(claimedDays));
+    localStorage.setItem('currentRewardDay', currentDay);
   }, [claimedDays, currentDay]);
 
   const formatTime = (milliseconds) => {

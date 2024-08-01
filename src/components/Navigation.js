@@ -3,7 +3,7 @@ import { NavLink } from "react-router-dom";
 import { useThemeContext } from "../context/ThemeContext.js";
 import crypto from "../assets/coin.png";
 import referral from "../assets/referral.png";
-import boost from "../assets/boost.png";
+import boost from "../assets/chatbot.png";
 import earn from "../assets/earn.png";
 import news from "../assets/news.png";
 
@@ -70,21 +70,7 @@ const Navigation = () => {
         <p className="sm:text-base text-sm" style={{ marginTop: '-15px' }}>Tap</p> {/* Move text upwards */}
       </NavLink>
 
-      <NavLink
-        to="/boost"
-        className={({ isActive }) => {
-          return `flex-grow flex-basis-0 text-base text-center font-poppins 
-          ${
-            isActive
-              ? "border-t-4 border-[#A97A0F]" // Thicker gold border at the top when active
-              : "text-gray-100 transition duration-300 ease-in active:text-gray-300"
-          }
-          cursor-pointer rounded capitalize font-semibold flex flex-col justify-center items-center h-full p-2`;
-        }}
-      >
-        <img src={boost} className="sm:w-12 w-8" alt="Boost" style={{ transform: 'translateY(-15px)' }} /> {/* Move image upwards */}
-        <p className="sm:text-base text-sm" style={{ marginTop: '-15px' }}>Boost</p> {/* Move text upwards */}
-      </NavLink>
+
 
       <NavLink
         to="/news"
@@ -100,6 +86,22 @@ const Navigation = () => {
       >
         <img src={news} className="sm:w-12 w-8" alt="News" style={{ transform: 'translateY(-15px)' }} /> {/* Move image upwards */}
         <p className="sm:text-base text-sm" style={{ marginTop: '-15px' }}>News</p> {/* Move text upwards */}
+      </NavLink>
+
+            <NavLink
+        to="/ai"
+        className={({ isActive }) => {
+          return `flex-grow flex-basis-0 text-base text-center font-poppins 
+          ${
+            isActive
+              ? "border-t-4 border-[#A97A0F]" // Thicker gold border at the top when active
+              : "text-gray-100 transition duration-300 ease-in active:text-gray-300"
+          }
+          cursor-pointer rounded capitalize font-semibold flex flex-col justify-center items-center h-full p-2`;
+        }}
+      >
+        <img src={boost} className="sm:w-12 w-8" alt="Boost" style={{ transform: 'translateY(-15px)' }} /> {/* Move image upwards */}
+        <p className="sm:text-base text-sm" style={{ marginTop: '-15px' }}>AI</p> {/* Move text upwards */}
       </NavLink>
     </nav>
   );

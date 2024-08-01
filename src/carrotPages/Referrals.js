@@ -1,14 +1,26 @@
 import React, { useState, useEffect } from "react";
 import { useThemeContext } from "../context/ThemeContext.js";
-import { useTelegramUser } from "../context/TelegramContext.js"; // Add .js extension
+import { 
+  useTelegramUser, 
+  useTelegramStartappParam as useTelegramReferrerId, 
+  useTelegramFirstName, 
+  useTelegramUsername, 
+  useTelegramIsBot, 
+  useTelegramIsPremium 
+} from "../context/TelegramContext.js"; // Import all the hooks
 import { FaGift, FaCopy, FaThumbsUp } from "react-icons/fa";
-import { FiRefreshCw } from "react-icons/fi";
 import { GoPersonAdd } from "react-icons/go";
 import crypto from "../assets/crypto.png";
 
 const Referrals = () => {
   const { theme } = useThemeContext();
   const userId = useTelegramUser(); // Get the userId from the context
+  const referrerId = useTelegramReferrerId(); // Get the referrerId from the context
+  const firstName = useTelegramFirstName(); // Get the firstName from the context
+  const username = useTelegramUsername(); // Get the username from the context
+  const isBot = useTelegramIsBot(); // Get the isBot from the context
+  const isPremium = useTelegramIsPremium(); // Get the isPremium from the context
+
   const [copySuccess, setCopySuccess] = useState(false);
   const [referredUsers, setReferredUsers] = useState([]);
   const [successfulReferrals, setSuccessfulReferrals] = useState(0);
@@ -16,7 +28,8 @@ const Referrals = () => {
 
   useEffect(() => {
     if (userId) {
-      setReferralLink(`https://t.me/TapLengendBot?start=${userId}`);
+      console.log('userId in Referrals:', userId); // Log userId to the console
+      setReferralLink(`https://t.me/TapLengendBot/start?startapp=${userId}`);
       
       // Fetch referral data from the server
       fetch(`${process.env.REACT_APP_API_URL}/checkref?userId=${userId}`)
@@ -30,6 +43,12 @@ const Referrals = () => {
         });
     }
   }, [userId]);
+
+  useEffect(() => {
+    if (referrerId) {
+      console.log('referrerId in Referrals:', referrerId); // Log referrerId to the console
+    }
+  }, [referrerId]);
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(referralLink).then(() => {
@@ -97,11 +116,33 @@ const Referrals = () => {
               <div className="text-gray-100 text-sm flex flex-row gap-2 sm:items-center items-start">
                 <img src={crypto} className="sm:w-6 w-4 hidden sm:flex" />
                 <div>
-                  <span className="text-[#EBD14C]">+5,000</span> for you and
-                  your friend
+                  <span className="text-[#EBD14C]">+500</span> for you and
+                  your friend.
                 </div>
               </div>
             </div>
+
+          </div>
+
+          <div
+            className={`${
+              theme === "dark"
+                ? "bg-[#232323] border border-gray-200"
+                : "bg-[#fff] border border-[#F1F2F2]"
+            } flex flex-row sm:gap-4 gap-1 items-center px-6 sm:w-[80%] w-full py-3 rounded-md cursor-pointer transition-all duration-150 ease-in hover:bg-gray-300`}
+          >
+            <FaGift className="text-gray-100 sm:text-5xl text-4xl" />
+            <div className="flex flex-col gap-1">
+              <div className="text-gray-100 text-sm">Invite Telegram Premium friend</div>
+              <div className="text-gray-100 text-sm flex flex-row gap-2 sm:items-center items-start">
+                <img src={crypto} className="sm:w-6 w-4 hidden sm:flex" />
+                <div>
+                  <span className="text-[#EBD14C]">+10,000</span> for you and
+                  your friend.
+                </div>
+              </div>
+            </div>
+            
           </div>
 
           <div className="relative w-full flex flex-col items-center">
@@ -118,41 +159,39 @@ const Referrals = () => {
             >
               Tap here to copy your Unique link
             </div>
-          </div>
 
-          <div className="flex flex-row items-center sm:w-[90%] w-[90%] mt-2"> {/* Adjusted width */}
+            <div className="flex flex-row items-center sm:w-[90%] w-[90%] mt-2">
+              <div
+                className={`${
+                  theme === "dark"
+                    ? "bg-[#232323] border border-gray-200"
+                    : "bg-[#fff] border border-[#F1F2F2]"
+                } flex flex-row sm:gap-4 gap-1 items-center px-6 py-3 rounded-md cursor-pointer transition-all duration-150 ease-in hover:bg-gray-300 text-gray-100 sm:w-full w-full`}
+                onClick={handleCopyLink}
+              >
+                <h1 className="text-xs">{referralLink}</h1>
+              </div>
+              <FaCopy className="cursor-pointer" onClick={handleCopyLink} />
+            </div>
+
             <div
-              className={`${
-                theme === "dark"
-                  ? "bg-[#232323] border border-gray-200"
-                  : "bg-[#fff] border border-[#F1F2F2]"
-              } flex flex-row sm:gap-4 gap-1 items-center px-6 py-3 rounded-md cursor-pointer transition-all duration-150 ease-in hover:bg-gray-300 text-gray-100 sm:w-full w-full`}
-              onClick={handleCopyLink}
+              className="flex flex-row items-center justify-center gap-2 bg-[#5A5FFF] sm:text-xl text-base font-semibold text-[#fff] cursor-pointer py-4 px-8 rounded-md sm:w-[80%] w-full mt-2"
+              onClick={handleShareLink}
             >
-              <h1 className="text-xs">{referralLink}</h1> {/* Reduce the font size */}
+              <div>Share to your friends</div>
+              <GoPersonAdd />
             </div>
-            <FaCopy className="cursor-pointer" onClick={handleCopyLink} />
-          </div>
 
-          <div
-            className="flex flex-row items-center justify-center gap-2 bg-[#5A5FFF] sm:text-xl text-base font-semibold text-[#fff] cursor-pointer py-4 px-8 rounded-md sm:w-[80%] w-full mt-2"
-            onClick={handleShareLink}
-          >
-            <div>Share to your friends</div>
-            <GoPersonAdd />
-          </div>
-
-          <div className="sm:w-[80%] w-full py-3">
-            <div className="text-center">
-              Total Referrals: {referredUsers.length}
+            <div className="sm:w-[80%] w-full py-3">
+              <div className="text-center">
+                Total Referrals: {referredUsers.length}
+              </div>
+              <div className="text-center">
+                Successful Referrals: {successfulReferrals}
+              </div>
             </div>
-            <div className="text-center">
-              Successful Referrals: {successfulReferrals}
-            </div>
-          </div>
 
-          <div className="sm:w-[80%] w-full py-3">
-          
+            
           </div>
         </div>
       </div>

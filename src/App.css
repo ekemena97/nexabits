@@ -146,27 +146,32 @@ html, body #root {
   transform: rotate(-53.13deg);
 }
 
-@keyframes moveUpFadeOut {
+@keyframes coinCluster {
   0% {
-    transform: translateY(0);
+    transform: scale(0) translateY(0);
     opacity: 1;
   }
+  50% {
+    transform: scale(1.5) translateY(-50px);
+    opacity: 0.75;
+  }
   100% {
-    transform: translateY(-50px);
+    transform: scale(1) translateY(-100px);
     opacity: 0;
   }
 }
 
 .coin-animation {
   position: absolute;
-  animation: moveUpFadeOut 1s forwards;
-  font-size: 1.5rem;
-  color: #2ebd85;
+  animation: coinCluster 1s forwards;
+  font-size: 0.8rem;
+  color: gold; /* Set coin color to gold */
   left: 50%;
-  top: 150%; /* Adjusted to be closer to the icon */
+  top: 50%;
   transform: translate(-50%, -50%);
   pointer-events: none;
 }
+
 
 .text-gold-500 {
   color: rgb(236,214,82);
@@ -252,3 +257,11 @@ html, body #root {
 .text-gold {
   color: gold;
 }
+
+/* logo.css */
+.logo-container {
+  position: relative;
+}
+
+
+

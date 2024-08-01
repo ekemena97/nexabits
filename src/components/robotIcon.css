@@ -1,0 +1,57 @@
+.robot-gif {
+  position: fixed;
+  top: 17.5%; /* Adjusted to move up a bit */
+  left: 50%; /* Center horizontally */
+  transform: translate(-50%, -50%); /* Center the element */
+  cursor: pointer;
+  font-size: 1rem;
+  z-index: 1000;
+  transition: transform 0.2s;
+  width: 60px;
+  height: 60px;
+}
+
+.notification-text {
+  position: fixed;
+  top: 10%; /* Adjust as needed */
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.6rem; /* Adjust as needed to fit screen */
+  color: #E2DFD2; /* Adjust as needed */
+  z-index: 1002;
+  white-space: nowrap; /* Prevent text from wrapping */
+  overflow: hidden;
+  padding: 3px 5px; /* Padding to prevent text from touching the border, adjusted size */
+  border: 1px solid #ccab3a; /* Blue ring */
+  border-radius: 25px; /* Rounded corners to create a ring effect, adjusted size */
+
+  
+}
+
+.notification-text::after {
+  content: '|'; /* Cursor effect */
+  animation: blink-caret 1s step-end infinite; /* Cursor blink animation */
+  margin-left: 2px;
+  color: red; /* Red cursor */
+}
+
+.red-dot {
+  position: fixed;
+  top: 14.4%; /* Align to the top of the robot icon */
+  right: 55%; /* Align to the right of the robot icon */
+  transform: translate(50%, -50%); /* Adjust to ensure it touches the robot icon */
+  width: 10px; /* Adjust the size as needed */
+  height: 10px; /* Adjust the size as needed */
+  background-color: red;
+  border-radius: 50%;
+  z-index: 1003;
+}
+
+@keyframes blink-caret {
+  from, to { opacity: 0; }
+  50% { opacity: 1; } /* Adjust cursor blink */
+}
+
+.content {
+  transition: margin-top 0.2s;
+}

@@ -6,6 +6,7 @@ import { HiHandRaised } from "react-icons/hi2";
 import { MdBatteryChargingFull, MdElectricBolt } from "react-icons/md";
 import { FaRobot } from "react-icons/fa";
 import crypto from "../assets/crypto.png";
+import { setStorageItem, getStorageItem } from '../components/storageHelpers.js';
 
 const levelRequirements = [
   { level: 2, cost: 1000, pointsPerTap: 2 },
@@ -52,30 +53,15 @@ const Boost = () => {
     setEnergyLimit,
     refillRate,
     setRefillRate,
-    updateStateAndLocalStorage,
+    updateStateAndStorage,
   } = useTapContext();
 
-  const [currentLevel, setCurrentLevel] = useState(() => {
-    const savedLevel = JSON.parse(localStorage.getItem("currentLevel"));
-    return savedLevel || 1;
-  });
-
-  const [nextLevelRequirement, setNextLevelRequirement] = useState(levelRequirements[0]);
-
-  const [energyLevel, setEnergyLevel] = useState(() => {
-    const savedEnergyLevel = JSON.parse(localStorage.getItem("energyLevel"));
-    return savedEnergyLevel || 1;
-  });
-
-  const [nextEnergyLevelRequirement, setNextEnergyLevelRequirement] = useState(energyLevelRequirements[0]);
-
-  const [rechargeSpeedLevel, setRechargeSpeedLevel] = useState(() => {
-    const savedRechargeSpeedLevel = JSON.parse(localStorage.getItem("rechargeSpeedLevel"));
-    return savedRechargeSpeedLevel || 1;
-  });
-
-  const [nextRechargeSpeedRequirement, setNextRechargeSpeedRequirement] = useState(rechargeSpeedRequirements[0]);
-
+  const [currentLevel, setCurrentLevel] = useState(null);
+  const [nextLevelRequirement, setNextLevelRequirement] = useState(null);
+  const [energyLevel, setEnergyLevel] = useState(null);
+  const [nextEnergyLevelRequirement, setNextEnergyLevelRequirement] = useState(null);
+  const [rechargeSpeedLevel, setRechargeSpeedLevel] = useState(null);
+  const [nextRechargeSpeedRequirement, setNextRechargeSpeedRequirement] = useState(null);
   const [showAnimation, setShowAnimation] = useState(false);
 
   const prevValues = useRef({
@@ -84,71 +70,105 @@ const Boost = () => {
     refillRate
   });
 
-  useEffect(() => {
-    if (currentLevel > 1 && currentLevel <= levelRequirements.length) {
-      setNextLevelRequirement(levelRequirements[currentLevel - 1]);
-    } else if (currentLevel > levelRequirements.length) {
-      setNextLevelRequirement(null);
+  const loadData = async () => {
+    const savedCurrentLevel = await getStorageItem("currentLevel");
+    const savedEnergyLevel = await getStorageItem("energyLevel");
+    const savedRechargeSpeedLevel = await getStorageItem("rechargeSpeedLevel");
+
+    if (savedCurrentLevel !== null) {
+      setCurrentLevel(savedCurrentLevel);
+      setNextLevelRequirement(savedCurrentLevel > 1 && savedCurrentLevel <= levelRequirements.length ? levelRequirements[savedCurrentLevel - 1] : null);
+    } else {
+      setCurrentLevel(1);
+      setNextLevelRequirement(levelRequirements[0]);
     }
-    localStorage.setItem("currentLevel", JSON.stringify(currentLevel));
+
+    if (savedEnergyLevel !== null) {
+      setEnergyLevel(savedEnergyLevel);
+      setNextEnergyLevelRequirement(savedEnergyLevel > 1 && savedEnergyLevel <= energyLevelRequirements.length ? energyLevelRequirements[savedEnergyLevel - 1] : null);
+    } else {
+      setEnergyLevel(1);
+      setNextEnergyLevelRequirement(energyLevelRequirements[0]);
+    }
+
+    if (savedRechargeSpeedLevel !== null) {
+      setRechargeSpeedLevel(savedRechargeSpeedLevel);
+      setNextRechargeSpeedRequirement(savedRechargeSpeedLevel > 1 && savedRechargeSpeedLevel <= rechargeSpeedRequirements.length ? rechargeSpeedRequirements[savedRechargeSpeedLevel - 1] : null);
+    } else {
+      setRechargeSpeedLevel(1);
+      setNextRechargeSpeedRequirement(rechargeSpeedRequirements[0]);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  useEffect(() => {
+    if (currentLevel !== null) {
+      setStorageItem("currentLevel", currentLevel); // Save to Cloud Storage
+    }
   }, [currentLevel]);
 
   useEffect(() => {
-    if (energyLevel > 1 && energyLevel <= energyLevelRequirements.length) {
-      setNextEnergyLevelRequirement(energyLevelRequirements[energyLevel - 1]);
-    } else if (energyLevel > energyLevelRequirements.length) {
-      setNextEnergyLevelRequirement(null);
+    if (energyLevel !== null) {
+      setStorageItem("energyLevel", energyLevel); // Save to Cloud Storage
     }
-    localStorage.setItem("energyLevel", JSON.stringify(energyLevel));
   }, [energyLevel]);
 
   useEffect(() => {
-    if (rechargeSpeedLevel > 1 && rechargeSpeedLevel <= rechargeSpeedRequirements.length) {
-      setNextRechargeSpeedRequirement(rechargeSpeedRequirements[rechargeSpeedLevel - 1]);
-    } else if (rechargeSpeedLevel > rechargeSpeedRequirements.length) {
-      setNextRechargeSpeedRequirement(null);
+    if (rechargeSpeedLevel !== null) {
+      setStorageItem("rechargeSpeedLevel", rechargeSpeedLevel); // Save to Cloud Storage
     }
-    localStorage.setItem("rechargeSpeedLevel", JSON.stringify(rechargeSpeedLevel));
   }, [rechargeSpeedLevel]);
 
   useEffect(() => {
     const prev = prevValues.current;
+    const updateStateAndStorageAsync = async (key, value, setState) => {
+      await updateStateAndStorage(key, value, setState);
+    };
     if (prev.coinsPerTap !== coinsPerTap) {
-      updateStateAndLocalStorage('coinsPerTap', coinsPerTap, setCoinsPerTap);
+      updateStateAndStorageAsync('coinsPerTap', coinsPerTap, setCoinsPerTap);
     }
     if (prev.energyLimit !== energyLimit) {
-      updateStateAndLocalStorage('energyLimit', energyLimit, setEnergyLimit);
+      updateStateAndStorageAsync('energyLimit', energyLimit, setEnergyLimit);
     }
     if (prev.refillRate !== refillRate) {
-      updateStateAndLocalStorage('refillRate', refillRate, setRefillRate);
+      updateStateAndStorageAsync('refillRate', refillRate, setRefillRate);
     }
     prevValues.current = { coinsPerTap, energyLimit, refillRate };
-  }, [coinsPerTap, energyLimit, refillRate, updateStateAndLocalStorage, setCoinsPerTap, setEnergyLimit, setRefillRate]);
+  }, [coinsPerTap, energyLimit, refillRate, updateStateAndStorage, setCoinsPerTap, setEnergyLimit, setRefillRate]);
 
-  const handleMultiTapClick = () => {
+  const handleMultiTapClick = async () => {
     if (count >= nextLevelRequirement.cost) {
       decrementCount(nextLevelRequirement.cost);
       setCoinsPerTap(nextLevelRequirement.pointsPerTap);
-      setCurrentLevel(currentLevel + 1);
+      const newLevel = currentLevel + 1;
+      setCurrentLevel(newLevel);
+      await setStorageItem("currentLevel", newLevel);
       showCelebration();
     }
   };
 
-  const handleEnergyUpgradeClick = () => {
+  const handleEnergyUpgradeClick = async () => {
     if (count >= nextEnergyLevelRequirement.cost) {
       decrementCount(nextEnergyLevelRequirement.cost);
-      setEnergyLevel(energyLevel + 1);
+      const newEnergyLevel = energyLevel + 1;
+      setEnergyLevel(newEnergyLevel);
+      await setStorageItem("energyLevel", newEnergyLevel);
       setEnergyLimit(nextEnergyLevelRequirement.energyLimit);
       setRefillRate(refillRate * 2); // Double the refill rate
       showCelebration();
     }
   };
 
-  const handleRechargeSpeedClick = () => {
+  const handleRechargeSpeedClick = async () => {
     if (count >= nextRechargeSpeedRequirement.cost) {
       decrementCount(nextRechargeSpeedRequirement.cost);
+      const newRechargeSpeedLevel = rechargeSpeedLevel + 1;
+      setRechargeSpeedLevel(newRechargeSpeedLevel);
+      await setStorageItem("rechargeSpeedLevel", newRechargeSpeedLevel);
       setRefillRate(refillRate / nextRechargeSpeedRequirement.refillRateMultiplier);
-      setRechargeSpeedLevel(rechargeSpeedLevel + 1);
       showCelebration();
     }
   };
@@ -163,6 +183,11 @@ const Boost = () => {
   const isMultiTapActive = count >= nextLevelRequirement?.cost;
   const isEnergyUpgradeActive = count >= nextEnergyLevelRequirement?.cost;
   const isRechargeSpeedActive = count >= nextRechargeSpeedRequirement?.cost;
+
+  if (currentLevel === null || energyLevel === null || rechargeSpeedLevel === null) {
+    // Show loading state or placeholder while data is being fetched
+    return <div>Loading...</div>;
+  }
 
   return (
     <section
@@ -305,10 +330,10 @@ const Boost = () => {
                 <div className="flex flex-row items-center gap-2">
                   <FaRobot className="text-gray-100 sm:text-4xl text-3xl" />
                   <div className="flex flex-col gap-1">
-                    <div className="text-gray-100 text-sm">Tap Bot</div>
+                    <div className="text-gray-100 text-sm">Trading Bot AI</div>
                     <div className="text-gray-100 text-sm flex flex-row gap-2 items-center">
                       <img src={crypto} className="sm:w-6 w-4" />
-                      <div>10,000</div> | <div>Coming Soon</div>
+                      <div>💎10,000</div> | <div>Coming Soon</div>
                     </div>
                   </div>
                 </div>

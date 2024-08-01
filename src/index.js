@@ -1,9 +1,8 @@
-// src/index.js
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import App from './App.js';
 import './index.css';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Home from './pages/Home.js';
 import Crypto from './pages/Crypto.js';
 import Trending from './pages/Trending.js';
@@ -16,9 +15,6 @@ import Task from './carrotPages/Task.js';
 import Tap from './carrotPages/Tap.js';
 import BlogPost from './components/BlogPost.js';  // Ensure correct import path
 import AiAnalysis from './carrotPages/AiAnalysis.js'; // Import the AiAnalysis component
-
-import { TapProvider } from './context/TapContext.js';
-import TelegramContext from './context/TelegramContext.js';
 
 const router = createBrowserRouter([
   {
@@ -94,10 +90,6 @@ const router = createBrowserRouter([
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <TelegramContext>
-      <TapProvider>
-        <RouterProvider router={router} />
-      </TapProvider>
-    </TelegramContext>
+    <RouterProvider router={router} />
   </React.StrictMode>
 );

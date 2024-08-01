@@ -1,14 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, memo } from "react";
 import { useThemeContext } from "../context/ThemeContext.js";
 import { TbMilitaryRank } from "react-icons/tb";
 import { IoIosArrowForward } from "react-icons/io";
 import crypto from "../assets/crypto.png";
-import fallbackImage from "../assets/fallback.png";
-import logo3 from "../assets/logo3.png"; // Import the new logo
+import logo3 from "../assets/logo3.png";
+import treasure from "../assets/treasure.png"; // Import the treasure icon
 import { useTapContext } from "../context/TapContext.js";
 import { useTelegramUser } from "../context/TelegramContext.js";
 import { Link } from "react-router-dom";
 import DailyCheckIn from "./DailyCheckIn.js";
+import RobotIcon from "../components/RobotIcon.js";
+import "../components/robotIcon.css";
+import { useTreasureContext } from '../context/treasureContext.js'; // Import the custom hook
+import useForceUpdate from '../components/useForceUpdate.js'; // Custom hook to force updates
 
 const GiftIcon = ({ onClick }) => {
   const [visible, setVisible] = useState(true);
@@ -78,7 +82,7 @@ const GiftIcon = ({ onClick }) => {
 
 const Tap = () => {
   const { theme } = useThemeContext();
-  const userId = useTelegramUser(); // Use the context to get userId
+  const userId = useTelegramUser();
   const {
     count,
     incrementTap,
@@ -90,11 +94,15 @@ const Tap = () => {
     refillRate,
   } = useTapContext();
 
+  const { treasurePoints } = useTreasureContext(); // Get the treasurePoints from the context
+  const forceUpdate = useForceUpdate(); // Custom hook to force updates
+
   const [animate, setAnimate] = useState(false);
   const [isTappable, setIsTappable] = useState(true);
   const [coinAnimations, setCoinAnimations] = useState([]);
   const [showGiftIcon, setShowGiftIcon] = useState(true);
   const [showDailyCheckIn, setShowDailyCheckIn] = useState(false);
+  const [treasureCount, setTreasureCount] = useState(0); // State for treasure count
 
   useEffect(() => {
     if (energy <= 0) {
@@ -130,10 +138,14 @@ const Tap = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setEnergy((prevEnergy) => {
-        const newEnergy =
-          prevEnergy < energyLimit ? prevEnergy + 1 : energyLimit;
-        localStorage.setItem("energy", JSON.stringify(newEnergy));
-        localStorage.setItem("lastUpdateTime", Date.now());
+        if (prevEnergy >= energyLimit) {
+          clearInterval(interval);
+          return prevEnergy;
+        }
+        const newEnergy = prevEnergy + 1;
+        localStorage.setItem('energy', JSON.stringify(newEnergy));
+        localStorage.setItem('lastUpdateTime', Date.now().toString());
+        console.log(`Updated energy to: ${newEnergy}`);
         return newEnergy;
       });
     }, (refillRate * 1000) / energyLimit);
@@ -177,6 +189,16 @@ const Tap = () => {
     }
   }, []);
 
+  useEffect(() => {
+    console.log(`Current coinsPerTap in Tap.js: ${coinsPerTap}`);
+    console.log(`Current energyLimit in Tap.js: ${energyLimit}`);
+  }, [coinsPerTap, energyLimit]);
+
+  // Force update Tap.js whenever coinsPerTap or energyLimit change
+  useEffect(() => {
+    forceUpdate();
+  }, [coinsPerTap, energyLimit]);
+
   const handleClick = () => {
     if (isTappable) {
       setAnimate(!animate);
@@ -187,7 +209,7 @@ const Tap = () => {
         setCoinAnimations((prev) =>
           prev.filter((coin) => coin.id !== newCoin.id)
         );
-      }, 1000);
+      }, 1000); // Adjusted to match the animation duration
     }
   };
 
@@ -202,7 +224,7 @@ const Tap = () => {
     if (count >= 100000000) return "Immortal";
     if (count >= 50000000) return "GrandMaster";
     if (count >= 20000000) return "Champion";
-    if ( count >= 12000000) return "Conqueror";
+    if (count >= 12000000) return "Conqueror";
     if (count >= 5000000) return "Titan";
     if (count >= 1000000) return "Supreme";
     if (count >= 200000) return "Guru";
@@ -236,51 +258,69 @@ const Tap = () => {
             onClaimReward={handleRewardClaim}
           />
         )}
-        <div className="flex flex-col items-center sm:p-0 p-3">
-          <div className="flex flex-col h-full sm:w-[80%] w-full items-center py-6 justify-items-center sm:space-y-20 space-y-16">
-            <div className="flex flex-col gap-1 items-center relative">
-              <div className="flex flex-row gap-1 items-center">
-                <img src={logo3} className="sm:w-14 w-9 rounded-full object-cover" alt="Logo" /> {/* Update the src to logo3 */}
-                <div
-                  className={`${
-                    theme === "dark" ? "text-[#fff]" : "text-[#19191E]"
-                  } sm:text-5xl text-2xl font-semibold`}
-                >
-                  {formatCount(count)}
-                </div>
+        <div className="relative h-full w-full">
+          <div className="fixed top-2 right-8 flex flex-col gap-1 items-center">
+            <div className="flex flex-row gap-0 items-center">
+              <img src={logo3} className="sm:w-10 w-10 rounded-full object-cover" alt="Logo" style={{ marginRight: '0' }} />
+              <div className={`${theme === "dark" ? "text-[#fff]" : "text-[#19191E]"} sm:text-3xl text-1xl font-semibold`} style={{ marginLeft: '0' }}>
+                {formatCount(count)}
               </div>
-
-              <Link
-                to={`/boost`}
-                className="cursor-pointer sm:text-base text-sm flex flex-row gap-1 items-center text-gray-100 hover:gray-300"
-                style={{ marginLeft: '1rem' }} // Add left margin
-              >
-                <span className="text-xl">
-                  <TbMilitaryRank />
-                </span>
-                <span style={{ color: "#96DED1" }}>{getRankText()}</span>
-                <IoIosArrowForward />
-              </Link>
-
-              {coinAnimations.map((coin) => (
-                <div key={coin.id} className="coin-animation">
-                  +{coin.value}
-                </div>
-              ))}
             </div>
 
+            {coinAnimations.slice(0, 3).map((coin, index) => (
+              <div
+                key={coin.id}
+                className="coin-animation"
+                style={{
+                position: 'absolute',
+                transform: `translate(${Math.random() * 25 - 8}px, ${Math.random() * 25 - 8}px)`,
+                animationDelay: `${index * 0.1}s`,
+                color: 'gold',
+                fontSize: '0.8rem',
+                }}
+              >
+                +{coin.value}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="fixed flex items-center space-x-1" style={{ top: '157px', left: '210px' }}> {/* Adjusted the position of the treasure icon */}
+          <img src={treasure} className="w-3 h-3" alt="Treasure" />
+          <div className={`${theme === "dark" ? "text-[#fff]" : "text-[#19191E]"} font-semibold`} style={{ fontSize: '15px' }}>
+            {treasurePoints} {/* Display treasurePoints from the context */}
+          </div>
+
+        </div>
+
+        <div className="flex flex-col items-center sm:p-0 p-3">
+          <div className="flex flex-col h-full sm:w-[80%] w-full items-center py-6 justify-items-center sm:space-y-20 space-y-16">
             <div
               onClick={handleClick}
               className={`text-sm flex flex-col items-center gap-1 ${
                 isTappable ? "cursor-pointer" : "cursor-not-allowed"
               } mt-10`}
+              style={{ marginTop: '30%' }}
             >
+            <Link
+              to={`/ai`}
+              className="cursor-pointer sm:text-base text-sm flex flex-row gap-1 items-center text-gray-100 hover:gray-300"
+              style={{ marginTop: '-3.5rem' }}
+            >
+              <span className="text-xl">
+                {/* <TbMilitaryRank /> */}
+              </span>
+              <span style={{ color: "#96DED1", marginLeft: "-45px" }}>{getRankText()}</span>
+              {/* <IoIosArrowForward /> */}
+            </Link>
+
               <img
                 src={crypto}
                 alt=""
                 className={`sm:w-52 sm:h-52 w-48 h-48 transition-transform duration-500 ${
                   animate ? "transform scale-110" : "transform scale-100"
                 }`}
+                style={{ marginTop: '3rem' }}
               />
               <p className="text-sm text-gray-100">Tap coin, Earn $Squad</p>
               <br></br>
@@ -309,9 +349,10 @@ const Tap = () => {
             </div>
           </div>
         </div>
+        <RobotIcon />
       </div>
     </section>
   );
 };
 
-export default Tap;
+export default memo(Tap);

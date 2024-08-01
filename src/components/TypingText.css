@@ -1,0 +1,95 @@
+/* Importing Roboto Mono font */
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400&display=swap');
+
+/* Font Faces */
+@font-face {
+  font-family: 'SF TransRobotic';
+  src: url('../assets/sf-transrobotics.condensed.ttf') format('truetype'); /* Adjust the path if necessary */
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Blanka';
+  src: url('../assets/Blanka.otf') format('truetype'); /* Adjust the path if necessary */
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'DisposableDroidBB';
+  src: url('../assets/DisposableDroidBB.ttf') format('truetype'); /* Adjust the path if necessary */
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Elianto-Regular';
+  src: url('../assets/Elianto-Regular.ttf') format('truetype'); /* Adjust the path if necessary */
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* Typing Text Wrapper */
+.typing-text-wrapper {
+  position: fixed; /* Fixed position to stay at the top */
+  top: 70px; /* Adjust the value to come down more */
+  left: 10px; /* Adjust the value to move left more */
+  display: flex; /* Flexbox for centering */
+  justify-content: flex-start; /* Align to the left */
+  z-index: 1000; /* Ensure it's on top of other elements */
+}
+
+/* Chat Bubble */
+.chat-bubble {
+  max-width: 90%; /* Use a relative max-width for responsiveness */
+  padding: 10px 15px;
+  margin: 0; /* Remove all margins */
+  background-color: #f1f0f0;
+  border-radius: 50px;
+  position: relative;
+  font-family: 'Elianto-Regular', monospace;
+  font-size: 3vw; /* Use viewport width units for font size */
+  color: #333;
+  white-space: nowrap; /* Prevent text wrapping */
+  display: inline-block; /* Maintain initial shape and size */
+  
+}
+
+.chat-bubble::after {
+  content: '';
+  position: absolute;
+  top: -10px; /* Adjusted to make the pointed side higher */
+  right: -5px;
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 30px solid #f1f0f0; /* Increased height to make the tail pointed side higher */
+  transform: rotate(60deg);
+}
+
+/* Media Queries for Responsiveness */
+@media (max-width: 768px) {
+  .typing-text-wrapper {
+    top: 110px; /* Adjust as needed for smaller screens */
+    left: 5px; /* Adjust as needed for smaller screens */
+  }
+
+  .chat-bubble {
+    font-size: 5vw; /* Adjust font size for smaller screens */
+    padding: 8px 12px; /* Adjust padding for smaller screens */
+  }
+}
+
+@media (max-width: 480px) {
+  .typing-text-wrapper {
+    top: 110px; /* Adjust as needed for very small screens */
+    left: 5px; /* Adjust as needed for very small screens */
+  }
+
+  .chat-bubble {
+    font-size: 4vw; /* Adjust font size for very small screens */
+    padding: 8px; /* Adjust padding for very small screens */
+  }
+}

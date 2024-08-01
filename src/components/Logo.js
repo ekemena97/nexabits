@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, memo } from "react";
 import { Link } from "react-router-dom";
-import { CiLight } from "react-icons/ci";
-import { MdOutlineNightlightRound } from "react-icons/md";
+// import { CiLight } from "react-icons/ci";
+// import { MdOutlineNightlightRound } from "react-icons/md";
 import { useThemeContext } from "../context/ThemeContext.js";
 import { useTelegramUser } from "../context/TelegramContext.js";
 import fallbackImage from '../assets/fallback.png';
@@ -26,10 +26,10 @@ const Logo = () => {
     fetchTelegramData();
   }, [userId]);
 
-  const toggleTheme = (e) => {
-    e.preventDefault();
-    setTheme(theme === "dark" ? "light" : "dark");
-  };
+  // const toggleTheme = (e) => {
+  //   e.preventDefault();
+  //   setTheme(theme === "dark" ? "light" : "dark");
+  // };
 
   return (
     <Link
@@ -41,19 +41,20 @@ const Logo = () => {
         <img
           src={profilePicture}
           alt="Profile"
-          className="w-12 h-12 rounded-full"
-          style={{ border: '2px solid #2ebd85' }} // Added inline style for the golden ring border
+          className="w-9 h-9 rounded-full"
+          style={{ border: '1px solid #2ebd85' }} // Added inline style for the golden ring border
         />
         <span
           className={`uppercase font-bold ${
             theme === "dark" ? "text-[#E9B454]" : "text-[#010C0C]"
           }`}
+          style={{ fontSize: '0.82rem' }} // Inline style to reduce the font size
         >
           {userName}
         </span>
       </div>
 
-      <div
+      {/* <div
         onClick={(e) => toggleTheme(e)}
         className="bg-[#1B2B2A] p-2 rounded border border-gray-200"
       >
@@ -68,9 +69,9 @@ const Logo = () => {
             className="transition duration-300 ease-in text-2xl font-semibold bg-indigo-500 text-white"
           />
         )}
-      </div>
+      </div> */}
     </Link>
   );
 };
 
-export default Logo;
+export default memo(Logo);
