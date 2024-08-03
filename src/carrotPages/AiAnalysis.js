@@ -40,8 +40,8 @@ const AiAnalysis = () => {
       <div className="ai-intro">
         {showIntro && (
           <p>Hey there! I'm your AI expert, ready to guide you on your crypto journey with insightful market analysis and tips.</p>
-        )}
-        <p>Leveraging billions of data points from CoinMarketCap and CoinGecko, fine-tuned with OpenAI datasets for precise insights.</p>
+        )} 
+        <p>✨Leveraging billions of data points from CoinMarketCap and CoinGecko, fine-tuned with OpenAI datasets for precise insights.</p>
       </div>
       <CryptoAnalysis onFetchAnalysis={handleFetchAnalysis} />
     </div>

@@ -7,6 +7,7 @@ body {
   /*color: #333; */
   height: 100vh; /* Ensure the body takes full viewport height */
   overflow-y: auto; /* Allow vertical scrolling */
+  
 }
 
 /* Container for AI content */
@@ -26,10 +27,9 @@ body {
 /* Title styling */
 .ai-title {
   font-size: 1.5rem; /* Increase font size */
-  margin-top: 0; /* Remove top margin */
-  margin-top: -20px; /* Bring title closer to the GIF */
+  margin-top: -10px; /* Bring title closer to the GIF */
   margin-bottom: 5px; /* Reduce bottom margin */
-  /*color: #333; */
+  color: #d6b957;
   width: 100%; /* Ensure the title takes the full width of the container */
   text-align: center; /* Center the title text */
   line-height: 1.3; /* Adjust line height */
@@ -39,14 +39,24 @@ body {
 /* Intro text styling */
 .ai-intro {
   font-size: 1rem; /* Increase font size */
-  /*color: #555; /* Softer text color */
-  width: 95%; /* Ensure the intro container takes full width */
+  width: auto; /* Ensure the intro container takes full width */
+  max-width: 96%;
   box-sizing: border-box; /* Ensure padding is included in element's total width */
-  margin: 5px 0; /* Reduce vertical margin */
-  text-align: left; /* Center-align intro text */
-  margin-top: -10px; /* Bring title closer to the GIF */
-  margin-left: 25px;
+  margin: 5px auto; /* Reduce vertical margin */
+  text-align: left; /* Left-align intro text */
+  margin-top: 5%; /* Bring title closer to the GIF */
+  /*margin-left: 10px;*/
+  /*margin-right: 0px; */
+  border: solid #444; /* Set border style and color */
+  border-width: 1px 0 0 0; /* Top, right, bottom (none), left */
+  padding: 10px; /* Add some padding for better spacing */
+  background-color: #19191E; /* Dark background to match dark mode */
+  color: #eee; /* Light text color for better contrast */
+  border-radius: 8px 8px 0 0; /* Rounded corners only on the top */
+  /*box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* Subtle shadow for a floating effect */
 }
+
+
 
 /* Paragraph styling within intro */
 .ai-intro p {
@@ -77,21 +87,21 @@ body {
 
 /* Input field styling */
 .crypto-input {
-  width: 70%;
+  width: 76%;
   padding: 12px;
   margin-top: 5px; /* Add top margin */
   margin-bottom: 10px; /* Increase bottom margin */
-  /*border: 1px solid #ddd; */
   border-radius: 15px;
   font-size: 1rem;
   color: #333;
   line-height: 1;
   box-sizing: border-box;
   background: #fff;
-  /*box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.1), -4px -4px 8px rgba(255, 255, 255, 0.7); /* Neumorphism effect */
+  box-shadow: 0 0 0 3px #6471fe; /* Create the ring effect with the specified color */
   transition: all 0.3s ease;
   outline: none; /* Remove default outline */
 }
+
 
 .crypto-input:focus {
   border-color: #6471fe;
@@ -133,6 +143,7 @@ body {
   text-align: center; /* Center-align button text */
   box-sizing: border-box; /* Ensure padding and border are included in the width */
   transition: all 0.3s ease;
+  margin-top: 10px;
 }
 
 .crypto-button:hover {
@@ -175,7 +186,7 @@ body {
   max-width: 100px; /* Adjust the max width to reduce the size */
   margin: 0 auto;
   position: relative;
-  top: -10px; /* Move the GIF upwards */
+  top: 3%; /* Move the GIF upwards */
 }
 
 @media (max-width: 600px) {

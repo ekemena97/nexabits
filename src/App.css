@@ -265,3 +265,11 @@ html, body #root {
 
 
 
+nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000; // Keep on top of other content
+  transition: bottom 0.3s; // Smooth transition for movement
+}

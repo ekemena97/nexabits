@@ -285,42 +285,40 @@ const Tap = () => {
           </div>
         </div>
 
-        <div className="fixed flex items-center space-x-1" style={{ top: '157px', left: '210px' }}> {/* Adjusted the position of the treasure icon */}
-          <img src={treasure} className="w-3 h-3" alt="Treasure" />
-          <div className={`${theme === "dark" ? "text-[#fff]" : "text-[#19191E]"} font-semibold`} style={{ fontSize: '15px' }}>
-            {treasurePoints} {/* Display treasurePoints from the context */}
-          </div>
-
-        </div>
-
         <div className="flex flex-col items-center sm:p-0 p-3">
           <div className="flex flex-col h-full sm:w-[80%] w-full items-center py-6 justify-items-center sm:space-y-20 space-y-16">
+            <div className="small-robot-icon-container" style={{ marginTop: '-2%' }}>
+              <RobotIcon className="small-robot-icon" />
+              <div className="red-dot"></div>
+            </div>
+            <div className="flex flex-col items-center mt-1" style={{ marginTop: '2%' }}>
+              <Link
+                to={`/ai`}
+                className="cursor-pointer sm:text-base text-sm flex flex-col gap-1 items-center text-gray-100 hover:gray-300"
+              >
+                <span style={{ color: "#96DED1", display: "flex", alignItems: "center" }}>
+                  {getRankText()}
+                  <img src={treasure} className="w-3 h-3 ml-2" alt="Treasure" />
+                  <span className={`${theme === "dark" ? "text-[#fff]" : "text-[#19191E]"} font-semibold ml-1`} style={{ fontSize: '15px' }}>
+                    {treasurePoints}
+                  </span>
+                </span>
+              </Link>
+            </div>
             <div
               onClick={handleClick}
               className={`text-sm flex flex-col items-center gap-1 ${
                 isTappable ? "cursor-pointer" : "cursor-not-allowed"
-              } mt-10`}
-              style={{ marginTop: '30%' }}
+              } mt-6`}
+              style={{ marginTop: '2rem' }}
             >
-            <Link
-              to={`/ai`}
-              className="cursor-pointer sm:text-base text-sm flex flex-row gap-1 items-center text-gray-100 hover:gray-300"
-              style={{ marginTop: '-3.5rem' }}
-            >
-              <span className="text-xl">
-                {/* <TbMilitaryRank /> */}
-              </span>
-              <span style={{ color: "#96DED1", marginLeft: "-45px" }}>{getRankText()}</span>
-              {/* <IoIosArrowForward /> */}
-            </Link>
-
               <img
                 src={crypto}
                 alt=""
                 className={`sm:w-52 sm:h-52 w-48 h-48 transition-transform duration-500 ${
                   animate ? "transform scale-110" : "transform scale-100"
                 }`}
-                style={{ marginTop: '3rem' }}
+                style={{ marginTop: '-2%' }}
               />
               <p className="text-sm text-gray-100">Tap coin, Earn $Squad</p>
               <br></br>
@@ -328,7 +326,7 @@ const Tap = () => {
 
             <div
               className="w-full flex flex-col items-center mb-16"
-              style={{ marginTop: "-0.02%" }}
+              style={{ marginTop: "-0.1%" }}
             >
               <div className="flex flex-col items-center justify-center w-[80%] mb-4">
                 <div className="w-full bg-[#D2B48C] rounded-full h-6 overflow-hidden mb-2">
@@ -349,7 +347,6 @@ const Tap = () => {
             </div>
           </div>
         </div>
-        <RobotIcon />
       </div>
     </section>
   );

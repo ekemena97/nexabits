@@ -1,13 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import { useThemeContext } from "../context/ThemeContext.js";
-import { useParams, Link, useLocation } from 'react-router-dom'; // Ensure Link is imported
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { news } from '../data/news.js';
 import title from '../assets/title.png';
 import './BlogPost.css';
 import parse from 'html-react-parser';
 import DOMPurify from 'dompurify';
-import { useTreasureContext } from "../context/treasureContext.js"; // Ensure this is the correct path
+import { useTreasureContext } from "../context/treasureContext.js";
 
 const PUBLIC_URL = process.env.REACT_APP_PUBLIC_URL;
 
@@ -15,7 +15,7 @@ const parseContent = (content) => {
   const replacements = {
     '<b>': '<strong>', '</b>': '</strong>',
     '/n': '<br />',
-    '/t': '&nbsp;',  // Non-breaking space
+    '/t': '&nbsp;',
     '<pre>': '<pre class="custom-preformatted">', '</pre>': '</pre>',
     '<ce>': '<div style="text-align: center;">', '</ce>': '</div>',
     '<u>': '<u>', '</u>': '</u>',
@@ -25,12 +25,24 @@ const parseContent = (content) => {
     '<li>': '<li>', '</li>': '</li>',
   };
 
-  content = content.replace(/<link="([^"]*)">/g, (match, p1) => {
-    return `<a href="${p1}" class="custom-link">`;
-  }).replace(/<\/link>/g, '</a>');
+  const linkRegex = /<link="([^"]*)">([^<]*)<\/link>/g;
+  let links = [];
+  let match;
+  
+  while ((match = linkRegex.exec(content)) !== null) {
+    links.push({ match: match[0], url: match[1], text: match[2] });
+  }
+
+  for (const link of links) {
+    content = content.replace(link.match, `@@LINK@@${links.indexOf(link)}@@`);
+  }
 
   for (const [key, value] of Object.entries(replacements)) {
     content = content.split(key).join(value);
+  }
+
+  for (const link of links) {
+    content = content.replace(`@@LINK@@${links.indexOf(link)}@@`, `<a href="${link.url}" class="custom-link" data-open-new-tab>${link.text}</a>`);
   }
 
   return content;
@@ -88,6 +100,13 @@ const BlogPost = () => {
     };
   }, [addTreasurePoint]);
 
+  useEffect(() => {
+    // Dynamically add target="_blank" to all links with data-open-new-tab attribute
+    document.querySelectorAll('a[data-open-new-tab]').forEach(link => {
+      link.setAttribute('target', '_blank');
+    });
+  }, [newsData]);
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -109,60 +128,63 @@ const BlogPost = () => {
   const otherBlogs = newsData.filter(otherBlog => otherBlog.id !== id);
 
   return (
-    <div
-      className={`blog-post-container ${
-        theme === "dark"
-          ? "bg-[#19191E] text-[#fff]"
-          : "bg-[#fff] text-[#19191E]"
-      }`}
-    >
-      <div className="title-container">
-        <img src={title} alt="Title" className="title-image" />
-        <h1 className="blog-post-title">{blog.title}</h1>
-      </div>
-      <br />
-      <div className={`flex-container ${
-        theme === "dark"
-          ? "bg-[#19191E] text-[#fff]"
-          : "bg-[#fff] text-[#19191E]"
-      }`}>
-        <img src={`${PUBLIC_URL}${blog.image}`} alt={blog.title} className="blog-post-image" />
-        <div className="blog-post-intro">{parse(sanitizedIntro)}</div>
-        <div className="blog-post-content">{parse(sanitizedContent)}</div>
-        <img src={`${PUBLIC_URL}${blog.image2}`} alt={blog.title} className="blog-post-image2" />
-        <div className="blog-post-content-and-conclusion">{parse(sanitizedConclusion)}</div>
-        <div className="blog-post-meta">
-          <span>{blog.time}</span>
-          <span>{blog.views} views</span>
-        </div>
-        <div className="blog-post-interactions">
-          <button className="blog-post-button">Like</button>
-          <button className="blog-post-button">Comment</button>
-        </div>
-      
-
-      <div className="recommendation-header">
-        <h2>🔥 More News and Recommendations for You 🔥</h2>
-      </div>
-
-      <div className="recommendations">
-        {otherBlogs.map((otherBlog) => (
-          <div key={otherBlog.id} className="recommendation">
-            <Link to={`/blog/${otherBlog.id}`} onClick={() => {
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-              console.log(`Scrolled to top for blog id: ${otherBlog.id}`);
-            }}>
-              <img src={`${PUBLIC_URL}${otherBlog.image}`} alt={otherBlog.title} className="recommendation-image" />
-            </Link>
-            <Link to={`/blog/${otherBlog.id}`} onClick={() => {
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-              console.log(`Scrolled to top for blog id: ${otherBlog.id}`);
-            }} className="recommendation-title-link">
-              <h3 className="recommendation-title">{otherBlog.title}</h3>
-            </Link>
+    <div className="main-app-container">
+      <div className="main-content-container">
+        <div
+          className={`blog-post-container ${
+            theme === "dark"
+              ? "bg-[#19191E] text-[#fff]"
+              : "bg-[#fff] text-[#19191E]"
+          }`}
+        >
+          <div className="title-container">
+            {/*<img src={title} alt="Title" className="title-image" /> */}
+            <h1 className="blog-post-title">{blog.title}</h1>
           </div>
-        ))}
-      </div>
+          <br />
+          <div className={`flex-container ${
+            theme === "dark"
+              ? "bg-[#19191E] text-[#fff]"
+              : "bg-[#fff] text-[#19191E]"
+          }`}>
+            <img src={`${PUBLIC_URL}${blog.image}`} alt={blog.title} className="blog-post-image" />
+            <div className="blog-post-intro">{parse(sanitizedIntro)}</div>
+            <div className="blog-post-content">{parse(sanitizedContent)}</div>
+            <img src={`${PUBLIC_URL}${blog.image2}`} alt={blog.title} className="blog-post-image2" />
+            <div className="blog-post-content-and-conclusion">{parse(sanitizedConclusion)}</div>
+            <div className="blog-post-meta">
+              <span>{blog.time}</span>
+              <span>{blog.views} views</span>
+            </div>
+            <div className="blog-post-interactions">
+              <button className="blog-post-button">Like</button>
+              <button className="blog-post-button">Comment</button>
+            </div>
+
+            <div className="recommendation-header">
+              <h2>🔥 More News and Recommendations for You 🔥</h2>
+            </div>
+
+            <div className="recommendations">
+              {otherBlogs.map((otherBlog) => (
+                <div key={otherBlog.id} className="recommendation">
+                  <Link to={`/blog/${otherBlog.id}`} onClick={() => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    console.log(`Scrolled to top for blog id: ${otherBlog.id}`);
+                  }}>
+                    <img src={`${PUBLIC_URL}${otherBlog.image}`} alt={otherBlog.title} className="recommendation-image" />
+                  </Link>
+                  <Link to={`/blog/${otherBlog.id}`} onClick={() => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    console.log(`Scrolled to top for blog id: ${otherBlog.id}`);
+                  }} className="recommendation-title-link">
+                    <h3 className="recommendation-title">{otherBlog.title}</h3>
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

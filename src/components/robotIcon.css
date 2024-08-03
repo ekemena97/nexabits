@@ -1,12 +1,56 @@
+.small-robot-icon-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.small-robot-icon {
+  width: 30px; /* Smaller size for very small screens */
+  height: 30px;
+}
+
+@media (min-width: 360px) { /* Small screens */
+  .small-robot-icon {
+    width: 35px;
+    height: 35px;
+  }
+}
+
+@media (min-width: 480px) { /* Slightly larger small screens */
+  .small-robot-icon {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (min-width: 640px) { /* Medium screens */
+  .small-robot-icon {
+    width: 50px;
+    height: 50px;
+  }
+}
+
+@media (min-width: 768px) { /* Large screens */
+  .small-robot-icon {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+.red-dot {
+  position: absolute;
+  top: 6%; /* Adjust this value to position the red dot correctly */
+  right: 75%; /* Adjust this value to position the red dot correctly */
+  transform: translate(50%, -50%);
+  width: 10px;
+  height: 10px;
+  background-color: red;
+  border-radius: 50%;
+  z-index: 1003;
+}
+
 .robot-gif {
-  position: fixed;
-  top: 17.5%; /* Adjusted to move up a bit */
-  left: 50%; /* Center horizontally */
-  transform: translate(-50%, -50%); /* Center the element */
-  cursor: pointer;
-  font-size: 1rem;
-  z-index: 1000;
-  transition: transform 0.2s;
   width: 60px;
   height: 60px;
 }
@@ -24,8 +68,6 @@
   padding: 3px 5px; /* Padding to prevent text from touching the border, adjusted size */
   border: 1px solid #ccab3a; /* Blue ring */
   border-radius: 25px; /* Rounded corners to create a ring effect, adjusted size */
-
-  
 }
 
 .notification-text::after {
@@ -33,18 +75,6 @@
   animation: blink-caret 1s step-end infinite; /* Cursor blink animation */
   margin-left: 2px;
   color: red; /* Red cursor */
-}
-
-.red-dot {
-  position: fixed;
-  top: 14.4%; /* Align to the top of the robot icon */
-  right: 55%; /* Align to the right of the robot icon */
-  transform: translate(50%, -50%); /* Adjust to ensure it touches the robot icon */
-  width: 10px; /* Adjust the size as needed */
-  height: 10px; /* Adjust the size as needed */
-  background-color: red;
-  border-radius: 50%;
-  z-index: 1003;
 }
 
 @keyframes blink-caret {

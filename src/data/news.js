@@ -267,7 +267,7 @@ export const news = [
     content: `
       <b>Here's how you can get your free DOGS airdrop:</b> /n /n
 
-      1. Click the <link="https://www.t.me/dogshouse_bot/join?startapp=qLPLtwg3RBChTNjludFAqg">Link: Open the app on Telegram</link>. /n
+      1. Click the <link="https://t.me/dogshouse_bot/join?startapp=qLPLtwg3RBChTNjludFAqg">Link: Open the app on Telegram</link>. /n
       2. Wait for Analysis: Your profile will be analyzed. /n
       3. Receive DOGS Tokens: After the analysis, you’ll receive DOGS tokens. The older your account, the more tokens you’ll get. /n
       4. Invite Friends: Open the Friends tab and invite your friends to earn additional tokens.
