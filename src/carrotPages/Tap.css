@@ -1,0 +1,11 @@
+.border-container {
+  border: 2px solid #D2B48C; /* Light gold border */
+  background-color: #FAF3DD; /* Light gold background */
+  padding: 8px; /* Minimal padding */
+  border-radius: 8px; /* Rounded corners */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 auto; /* Center the container */
+  width: fit-content; /* Width based on content */
+}

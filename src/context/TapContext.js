@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { debounce } from 'lodash';
 import useEnergyUpdater from '../components/useEnergyUpdater.js';
 import { getStorageItem, setStorageItem } from '../components/storageHelpers.js';
@@ -8,46 +8,81 @@ const TapContext = createContext();
 export const useTapContext = () => useContext(TapContext);
 
 export const TapProvider = ({ children }) => {
-  const [count, setCount] = useState(50);
+  const [count, setCount] = useState(5000);
   const [coinsPerTap, setCoinsPerTap] = useState(1);
   const [energyLimit, setEnergyLimit] = useState(500);
   const [refillRate, setRefillRate] = useState(2400);
+  const [energy, setEnergy] = useState(500);
+  const hasInitialized = useRef(false);
+
+  const validateValue = (value, defaultValue) => {
+    // Add any specific validation logic if needed
+    return value !== null && value !== undefined && value !== 'undefined' ? value : defaultValue;
+  };
+
+  const fetchStoredValue = async (key, defaultValue) => {
+    let attempts = 0;
+    const maxAttempts = 3;
+    const backoffDelay = 500; // milliseconds
+
+    while (attempts < maxAttempts) {
+      try {
+        const value = await getStorageItem(key);
+        const validatedValue = validateValue(value, defaultValue);
+        if (validatedValue !== defaultValue || attempts === maxAttempts - 1) {
+          return validatedValue;
+        }
+      } catch (error) {
+        console.error(`Error fetching storage item "${key}":`, error);
+      }
+      attempts += 1;
+      await new Promise(resolve => setTimeout(resolve, backoffDelay * attempts));
+    }
+
+    return defaultValue;
+  };
 
   const initializeState = useCallback(async () => {
-    const storedCount = await getStorageItem('count');
-    const storedCoinsPerTap = await getStorageItem('coinsPerTap');
-    const storedEnergyLimit = await getStorageItem('energyLimit');
-    const storedRefillRate = await getStorageItem('refillRate');
+    if (hasInitialized.current) return;
 
-    if (storedCount !== null) setCount(storedCount);
-    if (storedCoinsPerTap !== null) setCoinsPerTap(storedCoinsPerTap);
-    if (storedEnergyLimit !== null) setEnergyLimit(storedEnergyLimit);
-    if (storedRefillRate !== null) setRefillRate(storedRefillRate);
+    const initialCount = await fetchStoredValue('count', 5000);
+    const initialCoinsPerTap = await fetchStoredValue('coinsPerTap', 1);
+    const initialEnergyLimit = await fetchStoredValue('energyLimit', 500);
+    const initialRefillRate = await fetchStoredValue('refillRate', 2400);
+    const initialEnergy = calculateInitialEnergy(initialEnergyLimit, initialRefillRate);
+
+    setCount(initialCount);
+    setCoinsPerTap(initialCoinsPerTap);
+    setEnergyLimit(initialEnergyLimit);
+    setRefillRate(initialRefillRate);
+    setEnergy(initialEnergy);
+
+    hasInitialized.current = true;
   }, []);
 
-  useEffect(() => {
-    initializeState();
-  }, [initializeState]);
-
-  const calculateInitialEnergy = useCallback(() => {
+  const calculateInitialEnergy = (energyLimit, refillRate) => {
     let storedEnergy;
     try {
-      storedEnergy = JSON.parse(localStorage.getItem('energy'));
-      if (storedEnergy === null || storedEnergy === undefined) {
-        storedEnergy = 500;
+      const energyFromStorage = localStorage.getItem('energy');
+      if (energyFromStorage === null || energyFromStorage === undefined || energyFromStorage === 'undefined') {
+        storedEnergy = energyLimit/2;
+      } else {
+        storedEnergy = JSON.parse(energyFromStorage);
       }
     } catch (error) {
       console.error("Error parsing energy from local storage:", error);
-      storedEnergy = 500;
+      storedEnergy = energyLimit;
     }
 
     const lastUpdateTime = parseInt(localStorage.getItem('lastUpdateTime'), 10) || Date.now();
     const elapsedSeconds = Math.floor((Date.now() - lastUpdateTime) / 1000);
     const energyGain = Math.floor(elapsedSeconds / refillRate);
     return Math.min(storedEnergy + energyGain, energyLimit);
-  }, [refillRate, energyLimit]);
+  };
 
-  const [energy, setEnergy] = useState(calculateInitialEnergy);
+  useEffect(() => {
+    initializeState();
+  }, [initializeState]);
 
   useEnergyUpdater(setEnergy, energyLimit, refillRate);
 
@@ -68,12 +103,14 @@ export const TapProvider = ({ children }) => {
   const debouncedSaveCount = useCallback(
     debounce((value) => {
       setStorageItem('count', value);
-    }, 2000),
+    }, 1000),
     []
   );
 
   useEffect(() => {
-    debouncedSaveCount(count);
+    if (hasInitialized.current) {
+      debouncedSaveCount(count);
+    }
     return debouncedSaveCount.cancel;
   }, [count, debouncedSaveCount]);
 
@@ -86,6 +123,7 @@ export const TapProvider = ({ children }) => {
     setEnergy((prevEnergy) => {
       const newEnergy = Math.max(prevEnergy - 1, 0);
       console.log('New Energy:', newEnergy);
+      updateStateAndStorage('energy', newEnergy, setEnergy);
       return newEnergy;
     });
   };

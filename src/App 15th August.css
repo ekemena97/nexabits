@@ -1,0 +1,293 @@
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+}
+
+.app-container {
+  height: 100%;
+  overflow: auto;
+}
+
+.App {
+  text-align: center;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #1c2025; /*#282c34;*/
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.App-header, .App-footer {
+  flex-shrink: 0;
+}
+
+.App-main {
+  flex: 1;
+  overflow-y: auto; /* Allows scrolling if content overflows */
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7); /* Enhances text visibility */
+  color: white;
+  
+}
+
+.bg-image {
+  background-image: url('./assets/bg-main.png'); /* Ensure the path is correct */
+  background-size: cover;
+  background-position: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+}
+
+html, body #root {
+  overscroll-behavior: none;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.gradient-06 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  /* left: 20%; */
+  top: 5%;
+
+  /* background: rgba(45, 72, 152, 0.75); */
+  filter: blur(175px);
+  transform: rotate(-180.2deg);
+}
+
+.gradient-03 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  /* left: 20%; */
+  top: 5%;
+
+  background: rgba(232, 202, 2, 0.35);
+  filter: blur(175px);
+  transform: rotate(-180.2deg);
+}
+
+.gradient-04 {
+  position: absolute;
+  width: 304px;
+  height: 100vh;
+  /* left: 30%; */
+  top: 10%;
+
+  background: rgba(45, 72, 152, 0.75);
+  filter: blur(200px);
+  transform: rotate(-53.13deg);
+}
+
+.gradient-05 {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+.glassmorphism {
+  background: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.gradient-08 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  /* left: 20%; */
+  /* right: 65%; */
+
+  background: rgba(232, 202, 2, 0.35);
+  filter: blur(45px);
+  transform: rotate(-235.2deg);
+  opacity: 0.5;
+}
+
+.gradient-049 {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  /* left: 30%; */
+  top: 10%;
+
+  background: rgba(45, 72, 152, 0.75);
+  filter: blur(200px);
+  transform: rotate(-53.13deg);
+}
+
+@keyframes coinCluster {
+  0% {
+    transform: scale(0) translateY(0);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.5) translateY(-50px);
+    opacity: 0.75;
+  }
+  100% {
+    transform: scale(1) translateY(-100px);
+    opacity: 0;
+  }
+}
+
+.coin-animation {
+  position: absolute;
+  animation: coinCluster 1s forwards;
+  font-size: 0.8rem;
+  color: gold; /* Set coin color to gold */
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 9999; /* Ensure it's above other elements */
+}
+
+
+
+.text-gold-500 {
+  color: rgb(236,214,82);
+}
+
+.text-blue-500 {
+  color: rgb(101,114,255);
+}
+
+@keyframes celebrationMove {
+  0% {
+    transform: translateY(100%);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+}
+
+.celebration-animation {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  animation: moveUp 3s ease-out forwards;
+  z-index: 1000;
+}
+
+@keyframes moveUp {
+  0% {
+    bottom: 0;
+    opacity: 1;
+  }
+  100% {
+    bottom: 100%;
+    opacity: 0;
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  50% {
+    transform: translateX(5px);
+  }
+  75% {
+    transform: translateX(-5px);
+  }
+}
+
+.animate-shake {
+  animation: shake 0.5s;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.ring-animation {
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  width: 100px;
+  height: 100px;
+  border: 5px solid rgb(101, 113, 254);
+  border-radius: 50%;
+  animation: rotate 5s linear infinite, blink 1s infinite;
+}
+
+.text-gold {
+  color: gold;
+}
+
+/* logo.css */
+.logo-container {
+  position: relative;
+}
+
+
+
+nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000; 
+  transition: bottom 0.3s;
+}

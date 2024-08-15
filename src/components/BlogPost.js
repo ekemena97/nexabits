@@ -2,6 +2,8 @@ import React, { useEffect, useRef } from 'react';
 import { useThemeContext } from "../context/ThemeContext.js";
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import backgroundImage from '../assets/bg-main.png'; // Replace with the correct path
+
 import { news } from '../data/news.js';
 import title from '../assets/title.png';
 import './BlogPost.css';
@@ -104,6 +106,7 @@ const BlogPost = () => {
     // Dynamically add target="_blank" to all links with data-open-new-tab attribute
     document.querySelectorAll('a[data-open-new-tab]').forEach(link => {
       link.setAttribute('target', '_blank');
+      link.setAttribute('rel', 'noopener noreferrer');
     });
   }, [newsData]);
 
@@ -128,7 +131,18 @@ const BlogPost = () => {
   const otherBlogs = newsData.filter(otherBlog => otherBlog.id !== id);
 
   return (
-    <div className="main-app-container">
+    <div
+      className="main-app-container"
+      style={{
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        minHeight: '100vh',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center'
+      }}
+    >
       <div className="main-content-container">
         <div
           className={`blog-post-container ${

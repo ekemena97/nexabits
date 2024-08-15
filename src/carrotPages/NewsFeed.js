@@ -11,6 +11,7 @@ import image1 from '../assets/image1.png';
 import image2 from '../assets/image2.png';
 import image3 from '../assets/image3.png';
 import image4 from '../assets/image4.png';
+import image5 from '../assets/image5.png';
 
 const Carousel = lazy(() => import('react-responsive-carousel').then(module => ({ default: module.Carousel })));
 
@@ -70,6 +71,9 @@ const NewsFeed = () => {
             </div>
             <div>
               <img className="carousel-image" src={image2} alt="Banner 2" />
+            </div>
+            <div>
+              <img className="carousel-image" src={image5} alt="Banner 5" />
             </div>
             <div>
               <img className="carousel-image" src={image3} alt="Banner 3" />

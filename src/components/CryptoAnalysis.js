@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import {
   macd,
@@ -94,7 +94,12 @@ const CryptoAnalysis = ({ onFetchAnalysis }) => {
   const [error, setError] = useState(null);
   const [selectedNews, setSelectedNews] = useState([]);
   const { theme } = useThemeContext();
-  const [message, setMessage] = useState(''); // New state variable for the message
+  const [message, setMessage] = useState('');
+  const [inputFocused, setInputFocused] = useState(false);
+
+  // Refs for input and button
+  const inputRef = useRef(null);
+  const buttonRef = useRef(null);
 
   useEffect(() => {
     setCoinList(coinListData);
@@ -106,9 +111,18 @@ const CryptoAnalysis = ({ onFetchAnalysis }) => {
       const timer = setTimeout(() => {
         setMessage('');
       }, 5000);
-      return () => clearTimeout(timer); // Cleanup the timer on unmount or if message changes
+      return () => clearTimeout(timer);
     }
   }, [message]);
+
+  // Scroll to input and button when input is focused
+  const handleFocus = () => {
+    if (!inputFocused) {
+      inputRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      buttonRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setInputFocused(true);
+    }
+  };
 
   const handleInputChange = (e) => {
     const input = e.target.value.toLowerCase();
@@ -141,13 +155,14 @@ const CryptoAnalysis = ({ onFetchAnalysis }) => {
 
   const fetchAnalysis = async () => {
     if (!coinSymbol) {
-      setMessage('Coins will come in the future. Check other coins'); // Set the message
+      setMessage('Coins will come in the future. Check other coins');
       return;
     }
 
     setLoading(true);
     setError(null);
-    setMessage(''); // Clear the message
+    setMessage('');
+    setInputFocused(false);
 
     try {
       const [sevenDayResponse, sixtyDayResponse, coinDataResponse, fearGreedResponse, btcDataResponse] = await Promise.all([
@@ -335,7 +350,7 @@ const CryptoAnalysis = ({ onFetchAnalysis }) => {
       console.log(`Current Price: ${currentPrice}`);
       console.log(`OBV Last Value: ${obvResult[obvResult.length - 1]}`);
 
-      const condition1Met = btcPercentageDifference <= 0.2;
+      const condition1Met = btcPercentageDifference <= 0.015;
       const condition2Met = ichimoku60 && ichimoku60['Kijun-sen'] >= currentPrice;
       const condition3Met = obvResult[obvResult.length - 1] > 0;
 
@@ -358,14 +373,14 @@ const CryptoAnalysis = ({ onFetchAnalysis }) => {
       }
 
       if (condition1Met && condition2Met && condition3Met) {
-        recommendationText = `Buy ${coin.toUpperCase()} at level 1 or 2. Be sure to set your sell order at the specified Sell levels`;
+        recommendationText = `Target Level 1 or 2. Be sure to set your sell order at the specified Sell levels below`;
         console.log('Condition met for Buy');
       } else if (condition1Met && (condition2Met || condition3Met)) {
-        recommendationText = `Buy ${coin.toUpperCase()} at level 2 or 3 as a little pullback is expected soon before the uptrend. You can use DCA and be sure to set your
+        recommendationText = `Expect a minor pull back. Target Level 2 or 3. You can use DCA and be sure to set your
          sell order as specified below`;
         console.log('Condition met for Cautiously Buy');
       } else {
-        recommendationText = `Buy ${coin.toUpperCase()} at level 3 to 5 as a downtrend is imminent before pump. Be sure to put a stoploss e.g If you bought at level 3, 
+        recommendationText = `Major downtrend soonest. Target level 3 to 5. Be sure to put a stoploss e.g If you bought at level 3, 
         stoploss will be at level 4.`;
         console.log('Condition met for Wait Before You Buy');
       }
@@ -406,71 +421,82 @@ const CryptoAnalysis = ({ onFetchAnalysis }) => {
   };
 
   return (
-    <div className={`crypto-analysis ${
-        theme === "dark"
-          ? "bg-[#19191E] text-[#fff]"
-          : "bg-[#fff] text-[#19191E]"
-      }`}
-    >
-      {message && <p className="message">{message}</p>} {/* Conditionally render the message */}
-      <input 
-        type="text" 
-        value={coin} 
-        onChange={handleInputChange} 
-        placeholder="Enter crypto coin (e.g., bitcoin or btc)" 
-        className="crypto-input"
-      />
-      <button onClick={fetchAnalysis} className="crypto-button">
-        Get Analysis
-      </button>
+    <div className="analysis-main-container">
+      <div className={`crypto-analysis ${
+          theme === "dark"
+            ? "bg-[#19191E] text-[#fff]"
+            : "bg-[#fff] text-[#19191E]"
+        }`}
+      >
+        {message && <p className="message">{message}</p>} {/* Conditionally render the message */}
+        <input 
+          type="text" 
+          value={coin} 
+          onChange={handleInputChange} 
+          onFocus={handleFocus} // Add onFocus event
+          placeholder="Enter crypto coin (e.g., bitcoin or btc)" 
+          className="crypto-input scroll-margin"
+          ref={inputRef} // Attach ref to the input
+        />
+        <button 
+          onClick={() => {
+            fetchAnalysis();
+            setInputFocused(false); // Reset the input focus state when button is clicked
+          }}
+          className="crypto-button scroll-margin"
+          ref={buttonRef} // Attach ref to the button
+        >
+          Get Analysis
+        </button>
 
-      {loading && <p>Loading...</p>}
+        {loading && <p>Loading...</p>}
 
-      {error && <p>Error: {error}</p>}
+        {error && <p>Error: {error}</p>}
 
-      {analysis && (
-        <div className="analysis-results">
-          <p>{analysis.summary}</p> 
-          <p>✨ {analysis.fearGreedIndex}</p> <br />
-          
-          <p><strong>Recommendation: </strong>{analysis.recommendationText}</p>
-          
-          <table className="levels-table">
-            <thead>
-              <tr>
-                <th>Buy Levels</th>
-                <th>Sell Levels</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>
-                  {analysis.buyLevels.map((level, index) => (
-                    <div key={index}>{index + 1}. {roundNumber(level)}</div>
-                  ))}
-                </td>
-                <td>
-                  {analysis.sellLevels.map((level, index) => (
-                    <div key={index}>{index + 1}. {roundNumber(level)}</div>
-                  ))}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          
-          <p><br />📊 <strong>Technicals:</strong> {analysis.technicals}</p>
-          
-          <p className="news-header"><br />📰 <strong>News:</strong></p>
-          {analysis.news.map((item, index) => (
-            <p key={index} className="news-item">
-              📢 <Link to={`/blog/${item.id}`} className="crypto-news-title">{item.title}</Link>
+        {analysis && (
+          <div className="analysis-results">
+            <p>{analysis.summary}</p> 
+            <p>✨ {analysis.fearGreedIndex}</p> <br />
+            
+            {/*<p><strong>Recommendation: </strong>{analysis.recommendationText}</p>*/}
+            
+            <table className="levels-table">
+              <thead>
+                <tr>
+                  <th>Buy Levels</th>
+                  <th>Sell Levels</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    {analysis.buyLevels.map((level, index) => (
+                      <div key={index}>{index + 1}. {roundNumber(level)}</div>
+                    ))}
+                  </td>
+                  <td>
+                    {analysis.sellLevels.map((level, index) => (
+                      <div key={index}>{index + 1}. {roundNumber(level)}</div>
+                    ))}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            
+            <p><br />📊 <strong>Technicals:</strong> {analysis.technicals}</p>
+            
+            <p className="news-header"><br />📰 <strong>News:</strong></p>
+            {analysis.news.map((item, index) => (
+              <p key={index} className="news-item">
+                📢 <Link to={`/blog/${item.id}`} className="crypto-news-title">{item.title}</Link>
+              </p>
+            ))}
+            <p className="disclaimer">
+              Disclaimer: Always conduct your own research and consider your risk tolerance before making investment decisions. Cryptocurrency markets are highly volatile, and it is crucial to stay informed and make well-considered choices.
             </p>
-          ))}
-          <p className="disclaimer">
-            Disclaimer: Always conduct your own research and consider your risk tolerance before making investment decisions. Cryptocurrency markets are highly volatile, and it is crucial to stay informed and make well-considered choices.
-          </p>
-        </div>
-      )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

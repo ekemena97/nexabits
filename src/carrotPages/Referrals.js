@@ -1,52 +1,42 @@
 import React, { useState, useEffect } from "react";
 import { useThemeContext } from "../context/ThemeContext.js";
-import { 
-  useTelegramUser, 
-  useTelegramStartappParam as useTelegramReferrerId, 
-  useTelegramFirstName, 
-  useTelegramUsername, 
-  useTelegramIsBot, 
-  useTelegramIsPremium 
-} from "../context/TelegramContext.js"; // Import all the hooks
-import { FaGift, FaCopy, FaThumbsUp } from "react-icons/fa";
+import {
+  useTelegramUser,
+  useTelegramStartappParam as useTelegramReferrerId,
+  useTelegramFirstName,
+  useTelegramUsername,
+  useTelegramIsBot,
+  useTelegramIsPremium,
+} from "../context/TelegramContext.js";
+import { useReferralContext } from "../context/ReferralContext.js";
+import { FaGift, FaCopy, FaThumbsUp, FaTrophy, FaChevronRight } from "react-icons/fa"; // Import the FaTrophy icon
 import { GoPersonAdd } from "react-icons/go";
+import { Link } from "react-router-dom"; // Import Link for navigation
 import crypto from "../assets/crypto.png";
 
 const Referrals = () => {
   const { theme } = useThemeContext();
-  const userId = useTelegramUser(); // Get the userId from the context
-  const referrerId = useTelegramReferrerId(); // Get the referrerId from the context
-  const firstName = useTelegramFirstName(); // Get the firstName from the context
-  const username = useTelegramUsername(); // Get the username from the context
-  const isBot = useTelegramIsBot(); // Get the isBot from the context
-  const isPremium = useTelegramIsPremium(); // Get the isPremium from the context
+  const userId = useTelegramUser();
+  const referrerId = useTelegramReferrerId();
+  const firstName = useTelegramFirstName();
+  const username = useTelegramUsername();
+  const isBot = useTelegramIsBot();
+  const isPremium = useTelegramIsPremium();
 
   const [copySuccess, setCopySuccess] = useState(false);
-  const [referredUsers, setReferredUsers] = useState([]);
-  const [successfulReferrals, setSuccessfulReferrals] = useState(0);
   const [referralLink, setReferralLink] = useState('');
+  const { totalReferrals, successfulReferrals, ordinaryReferredUsers, premiumReferredUsers } = useReferralContext();
 
   useEffect(() => {
     if (userId) {
-      console.log('userId in Referrals:', userId); // Log userId to the console
-      setReferralLink(`https://t.me/TapLengendBot/start?startapp=${userId}`);
-      
-      // Fetch referral data from the server
-      fetch(`${process.env.REACT_APP_API_URL}/checkref?userId=${userId}`)
-        .then(response => response.json())
-        .then(data => {
-          setReferredUsers(data.referredUsers);
-          setSuccessfulReferrals(data.successfulReferrals);
-        })
-        .catch(error => {
-          console.error('Error fetching referral data:', error);
-        });
+      console.log('userId in Referrals:', userId);
+      setReferralLink(`https://t.me/NexaBit_Tap_bot/start?startapp=${userId}`);
     }
   }, [userId]);
 
   useEffect(() => {
     if (referrerId) {
-      console.log('referrerId in Referrals:', referrerId); // Log referrerId to the console
+      console.log('referrerId in Referrals:', referrerId);
     }
   }, [referrerId]);
 
@@ -79,6 +69,23 @@ const Referrals = () => {
       <h1 className="sm:text-2xl text-xl my-3 text-center font-semibold text-gray-100">
         Referrals
       </h1>
+
+      {/* Contest Button */}
+      <Link
+        to={`/leaderboard`}
+        className="absolute flex items-center gap-2 p-2 text-white rounded-md text-lg font-bold cursor-pointer transition-transform duration-150 ease-in hover:bg-[#4A4FFF] hover:scale-105"
+        style={{ top: '-2.9rem', right: '-0.3rem', zIndex: 1500 }}
+      >
+        <span className="inline-flex items-center gap-1" style={{ borderBottom: '2px solid purple' }}>
+          <FaTrophy className="text-2xl" style={{ color: 'gold' }} /> Contest
+          <FaChevronRight className="ml-0 text-lg" style={{ fontSize: '0.6rem' }} />
+        </span>
+        <span className="absolute text-xs text-yellow-300 animate-pulse" style={{ top: '2.5rem', right: '1rem' }}>
+          Join Now!🔥
+        </span>
+      </Link>
+
+
 
       <div
         className={`w-full min-h-[70vh] sm:pb-12 pb-0 rounded overflow-y-scroll scrollbar-hide ${
@@ -116,12 +123,11 @@ const Referrals = () => {
               <div className="text-gray-100 text-sm flex flex-row gap-2 sm:items-center items-start">
                 <img src={crypto} className="sm:w-6 w-4 hidden sm:flex" />
                 <div>
-                  <span className="text-[#EBD14C]">+500</span> for you and
+                  <span className="text-[#EBD14C]">+5,000</span> for you and
                   your friend.
                 </div>
               </div>
             </div>
-
           </div>
 
           <div
@@ -142,7 +148,6 @@ const Referrals = () => {
                 </div>
               </div>
             </div>
-            
           </div>
 
           <div className="relative w-full flex flex-col items-center">
@@ -184,14 +189,15 @@ const Referrals = () => {
 
             <div className="sm:w-[80%] w-full py-3">
               <div className="text-center">
-                Total Referrals: {referredUsers.length}
+                Friends: {totalReferrals}
+              </div>
+              <div className="text-center">
+                Premium Friends: {premiumReferredUsers}
               </div>
               <div className="text-center">
                 Successful Referrals: {successfulReferrals}
               </div>
             </div>
-
-            
           </div>
         </div>
       </div>

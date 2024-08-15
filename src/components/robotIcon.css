@@ -57,7 +57,7 @@
 
 .notification-text {
   position: fixed;
-  top: 10%; /* Adjust as needed */
+  top: 12%; /* Adjust as needed */
   left: 50%;
   transform: translate(-50%, -50%);
   font-size: 0.6rem; /* Adjust as needed to fit screen */

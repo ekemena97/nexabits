@@ -1,0 +1,81 @@
+.campaigns-container {
+    text-align: center;
+    padding: 10px;
+    color: #fff; /* White text color */
+    font-family: Arial, sans-serif;
+}
+
+h1 {
+    margin-bottom: 10px; /* Reduced space below the heading */
+    font-size: 1.2rem; /* Further reduced font size */
+}
+
+.campaigns {
+    display: flex;
+    justify-content: center;
+    gap: 12px; /* Reduced gap between the campaign blocks */
+    /* Remove flex-wrap to prevent wrapping */
+}
+
+.campaign {
+    flex: 1; /* Allow the campaign blocks to resize proportionally */
+    display: flex;
+    align-items: center;
+    background-color: #333; /* Dark background for the campaign */
+    padding: 6px 10px; /* Reduced padding */
+    border-radius: 50px;
+    font-size: 0.9rem; /* Reduced font size */
+    position: relative; /* For positioning the glow */
+    box-shadow: 0 0 10px rgba(0, 204, 255, 0.5); /* Neon blue glow */
+    background: linear-gradient(135deg, #7c77f0 0%, #88a2bf 100%); /* Gradient background */
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth hover transition */
+}
+
+
+.campaign:hover {
+    transform: scale(1.05); /* Slightly enlarge on hover */
+    box-shadow: 0 0 20px rgba(0, 204, 255, 0.8); /* Intensify glow on hover */
+}
+
+.emojila {
+    margin-right: 6px; /* Further reduced margin */
+    font-size: 1rem; /* Further reduced emoji size */
+}
+
+.counting {
+    background-color: white; /* Background for the number */
+    color: black; /* Black text color */
+    padding: 2px 5px; /* Further adjusted padding */
+    border-radius: 50%; /* Ensures the border is circular */
+    margin-left: 6px;
+    min-width: 18px; /* Adjusted min width */
+    height: 18px; /* Set height equal to min-width to create a circle */
+    text-align: center;
+    font-size: 1.3rem; /* Further reduced font size */
+    line-height: 18px; /* Centers the text vertically */
+}
+
+/* Media query for smaller screens */
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1rem; /* Even smaller font size for the heading */
+        margin-bottom: 5px; /* Reduced space below the heading */
+    }
+
+    .campaign {
+        padding: 2px 5px; /* Further reduced padding for small screens */
+        font-size: 0.8rem; /* Further reduced font size */
+    }
+
+    .counting {
+        padding: 1px 4px; /* Further reduced padding for the count */
+        min-width: 16px; /* Further adjusted min width for the count */
+        height: 16px; /* Set height equal to min-width to create a circle */
+        font-size: 1rem; /* Further reduced font size */
+        line-height: 16px; /* Centers the text vertically */
+    }
+
+    .emojila {
+        font-size: 0.9rem; /* Smaller emoji size */
+    }
+}

@@ -1,0 +1,304 @@
+/* Top load indicator */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 5px;
+  background-color: #6a1b9a; /* Deep purple color */
+  z-index: 1000;
+  transition: width 0.25s ease-out;
+}
+
+/* Leaderboard Container */
+.leaderboard {
+  font-family: Arial, sans-serif;
+  background-color: #2c2c2c; /* Lightened dark background */
+  color: #f0f0f0; /* Light grey text color */
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+.leaderboard h1 {
+  font-size: 26px;
+  text-align: center;
+  margin-bottom: 20px;
+  color: #F08080; /* Gold color for the heading */
+}
+
+.leaderboard h2, .leaderboard h3, .leaderboard h4 {
+  text-align: center;
+  margin: 20px 0;
+  color: #e3cd56; /* Gold color for the subheadings */
+}
+
+.leaderboard p, .leaderboard ul {
+  margin: 10px 20px;
+  line-height: 1.6;
+}
+
+.leaderboard ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.leaderboard ul li {
+  margin: 5px 0;
+  font-size: 16px;
+  color: #ffe6f7; /* Very light pink, close to white for list items */
+}
+
+.leaderboard-container {
+  display: flex;
+  justify-content: space-around; /* Adjust to place tables side by side */
+  padding: 10px 15px; /* Adjust padding to bring the table closer to screen edges */
+  overflow-x: auto; /* Enable horizontal scrolling */
+  background-color: #2c2c2c; /* Consistent lightened dark background */
+}
+
+.category {
+  flex: 1;
+  margin: 10px;
+}
+
+.leaderboard-table {
+  border-collapse: collapse;
+  width: 100%;
+  max-width: 600px; /* Adjusted width for side by side tables */
+  border-radius: 10px;
+  overflow: hidden;
+  background-color: #383838; /* Light grey background for the table */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); /* Softer shadow */
+  margin: 0 10px; /* Small margin to avoid touching the screen edges */
+}
+
+th, td {
+  border: 1px solid #666; /* Medium grey border for table cells */
+  padding: 12px;
+  text-align: left;
+  font-size: 15px;
+  color: #f0f0f0; /* Light text color for better contrast */
+}
+
+th {
+  background-color: #bcadcc; /* Deep purple background for table headers */
+  background-image: linear-gradient(45deg, #c895fc, #8ebfa8); /* Slight gradient for depth */
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: white; /* Gold color for table headers */
+}
+
+tbody tr:nth-child(odd) {
+  background-color: #494949; /* Lighter grey for alternating rows */
+}
+
+tbody tr:nth-child(even) {
+  background-color: #3e3e3e; /* Slightly darker grey for contrast */
+}
+
+tbody tr:hover {
+  background-color: #5c5c5c; /* Lighter grey hover effect */
+}
+
+.medal {
+  width: 25px;
+  height: 25px;
+  vertical-align: middle;
+  margin-right: 10px; /* Space between medal and text */
+}
+
+td:first-child {
+  color: #ffe6f7; /* Gold color for the rank numbers */
+  font-weight: bold;
+}
+
+td:nth-child(2) {
+  color: #ffe6f7; /* Very light pink, close to white for the names */
+}
+
+td:nth-child(3) {
+  color: #e6f2ff; /* Very light blue, close to white for the referrals */
+}
+
+/* Adding a gradient border to the table */
+.leaderboard-table {
+  border: 3px solid;
+  border-image: linear-gradient(to right, #ff66cc, #6699ff, #cc66ff, #ffd700) 1;
+}
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7); /* Dark semi-transparent background */
+  z-index: 1001; /* Ensure it sits above other content */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: linear-gradient(135deg, #2e2e2e, #3e3e3e); /* Subtle gradient background for elegance */
+  padding: 40px; /* Increased padding for a more spacious feel */
+  border-radius: 15px; /* Softer rounded corners */
+  width: 92%; /* Increased width */
+  max-width: 900px; /* Increased max-width */
+  max-height: 85%; /* Slightly taller for more content */
+  overflow-y: auto; /* Enable scrolling for long content */
+  color: #f0f0f0; /* Light grey text color for readability */
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4); /* Enhanced shadow for a more distinct look */
+  border: 2px solid #ffd700; /* Gold border to add a luxurious touch */
+}
+
+.modal-content h3 {
+  font-size: 32px; /* Larger font for headings */
+  margin-bottom: 20px;
+  text-align: center;
+  color: #ffd700; /* Gold color for headings */
+  text-transform: uppercase; /* Uppercase headings for emphasis */
+  letter-spacing: 2px; /* Increased spacing for a more refined look */
+  border-bottom: 2px solid #555; /* Divider under heading */
+  padding-bottom: 15px;
+}
+
+.modal-content p, .modal-content ul {
+  font-size: 20px; /* Larger font size for body text */
+  line-height: 1.8; /* Increased line height for readability */
+  margin-bottom: 25px;
+  color: #e0e0e0; /* Light grey text color for easy reading */
+}
+
+.modal-content ul {
+  list-style-type: disc;
+  padding-left: 25px; /* More space for list indentation */
+}
+
+.modal-content ul li {
+  margin-bottom: 15px;
+}
+
+.modal-content ul li strong {
+  color: #ffd700; /* Highlight important parts in gold */
+}
+
+.modal-content hr {
+  border: 0;
+  height: 1px;
+  background: #555; /* Subtle divider to break content sections */
+  margin: 30px 0;
+}
+
+.close-details-button {
+  display: block;
+  margin: 40px auto 0 auto; /* More space above the button */
+  padding: 15px 35px; /* Larger padding for a more prominent button */
+  font-size: 20px; /* Larger button font size */
+  color: #fff;
+  background-color: #ff5722; /* Bright orange for attention */
+  border: none;
+  border-radius: 10px; /* Softer button edges */
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.close-details-button:hover {
+  background-color: #e64a19; /* Slightly darker orange on hover */
+  transform: scale(1.05); /* Slight zoom effect on hover */
+}
+
+/* Responsive Styles */
+@media screen and (max-width: 600px) {
+  .modal-content {
+    padding: 20px; /* Adjust padding for smaller screens */
+  }
+
+  .modal-content h3 {
+    font-size: 26px; /* Smaller font for headings on small screens */
+  }
+
+  .modal-content p, .modal-content ul {
+    font-size: 16px; /* Smaller font size for body text on small screens */
+  }
+
+  .close-details-button {
+    font-size: 16px; /* Smaller button font size on small screens */
+    padding: 10px 25px; /* Adjusted button padding */
+  }
+}
+
+.modal-close-icon {
+  position: absolute;
+  top: 20px; /* Position it 20px from the top */
+  right: 20px; /* Position it 20px from the right */
+  font-size: 24px; /* Size of the icon */
+  color: #ffd700; /* Gold color for visibility */
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.modal-close-icon:hover {
+  color: #ff5722; /* Change color on hover */
+}
+
+
+
+/* Responsive Styles */
+@media screen and (max-width: 600px) {
+  .leaderboard h1 {
+    font-size: 20px;
+  }
+
+  th, td {
+    font-size: 13px;
+    padding: 8px;
+  }
+
+  .leaderboard-table {
+    width: 100%;
+    margin: 0;
+  }
+
+  .leaderboard-container {
+    flex-direction: column; /* Stack tables vertically on small screens */
+  }
+}
+
+.details-button {
+  display: block;
+  margin: 20px auto;
+  padding: 15px 30px;
+  font-size: 15px;
+  font-weight: bold;
+  color: #fff;
+  background: linear-gradient(135deg, #a76fe3 0%, #7788ed 100%);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.3s ease;
+}
+
+.details-button:hover {
+  background-color: #e64a19;
+}
+
+.close-details-button {
+  display: block;
+  margin: 20px auto;
+  padding: 10px 20px;
+  font-size: 16px;
+  color: #fff;
+  background-color: #ff5722;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.close-details-button:hover {
+  background-color: #e64a19;
+}

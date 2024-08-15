@@ -3,11 +3,11 @@ import news2 from '../assets/news2.png';
 import news3 from '../assets/news3.png';
 import news4 from '../assets/news4.png';
 import news5 from '../assets/news5.png';
-import news1_1 from '../assets/news1_1.jpg';
-import news2_1 from '../assets/news2_1.jpg';
-import news3_1 from '../assets/news3_1.jpg';
+import news1_1 from '../assets/news1_1.png';
+import news2_1 from '../assets/news2_1.png';
+import news3_1 from '../assets/news3_1.png';
 import news4_1 from '../assets/news4_1.png';
-import news5_1 from '../assets/news5_1.jpg';
+import news5_1 from '../assets/news5_1.png';
 
 // Function to generate unique random views
 const generateRandomViews = () => {
@@ -18,13 +18,23 @@ const generateRandomViews = () => {
   return Array.from(viewsSet);
 };
 
+// Function to format hours into a human-readable time string
+const formatTime = (hours) => {
+  if (hours < 24) {
+    return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+  } else {
+    const days = Math.floor(hours / 24);
+    return `${days} day${days !== 1 ? 's' : ''} ago`;
+  }
+};
+
 // Function to generate unique random times in ascending order
 const generateRandomTimes = () => {
   const timesSet = new Set();
   while (timesSet.size < 5) {
-    timesSet.add(Math.floor(Math.random() * 48 + 1));
+    timesSet.add(Math.floor(Math.random() * 240 + 1)); // Generates a random number between 1 and 240
   }
-  return Array.from(timesSet).sort((a, b) => a - b).map(hours => `${hours} hours ago`);
+  return Array.from(timesSet).sort((a, b) => a - b).map(hours => formatTime(hours));
 };
 
 const views = generateRandomViews();

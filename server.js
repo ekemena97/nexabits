@@ -6,7 +6,8 @@ import { Firestore } from '@google-cloud/firestore';
 import dotenv from 'dotenv';
 import fetch from 'node-fetch';
 import keepAlive from './keepAlive.js'; // Import the keep-alive function
-import { getStorageItem, setStorageItem } from '../components/storageHelpers.js';
+import { getStorageItem, setStorageItem } from './storageHelpers.js';
+import crypto from 'crypto'; // Importing the crypto module
 
 
 dotenv.config();
@@ -20,6 +21,7 @@ const collectionName = process.env.FIRESTORE_COLLECTION || 'TapUsers';
 
 const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN;
 const bot = new Telegraf(TELEGRAM_TOKEN);
+const validPasscode = process.env.passcode;
 
 const server = app.listen(process.env.PORT || 8080, () => {
   console.log(`Server running on port ${server.address().port}`);
@@ -28,7 +30,43 @@ const server = app.listen(process.env.PORT || 8080, () => {
   keepAlive();
 });
 
-const generateReferralLink = (userId) => `https://t.me/TapLengendBot/start?startapp=${userId}`;
+// verify telegram data before operations for safety
+
+const verifyTelegramWebAppData = (telegramInitData) => {
+  console.log('Received Telegram Init Data:', telegramInitData);
+
+  const encoded = decodeURIComponent(telegramInitData);
+  console.log('Decoded Data:', encoded);
+
+  const secret = crypto.createHmac("sha256", "WebAppData").update(TELEGRAM_TOKEN);
+  console.log('Secret Key:', secret);
+
+  const arr = encoded.split("&");
+  console.log('Split Data Array:', arr);
+
+  const hashIndex = arr.findIndex((str) => str.startsWith("hash="));
+  const hash = arr.splice(hashIndex)[0].split("=")[1];
+  console.log('Extracted Hash:', hash);
+
+  arr.sort((a, b) => a.localeCompare(b));
+  console.log('Sorted Data Array:', arr);
+
+  const dataCheckString = arr.join("\n");
+  console.log('Data Check String:', dataCheckString);
+
+  const _hash = crypto
+    .createHmac("sha256", secret.digest())
+    .update(dataCheckString)
+    .digest("hex");
+  console.log('Generated Hash:', _hash);
+
+  const isVerified = _hash === hash;
+  console.log('Verification Result:', isVerified);
+
+  return isVerified;
+};
+
+const generateReferralLink = (userId) => `https://t.me/NexaBit_Tap_bot/start?startapp=${userId}`;
 
 const removeUndefinedValues = (obj) => Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined && v !== null));
 
@@ -82,7 +120,7 @@ const saveReferral = async (referral) => {
   }
   try {
     const referredUser = await getUserById(referral.userId);
-    const incrementAmount = referredUser.isPremium ? 10000 : 500;
+    const incrementAmount = referredUser.isPremium ? 10000 : 5000;
 
     const referrerDoc = firestore.collection('Referrals').doc(referral.referrerId);
     await referrerDoc.set({
@@ -184,16 +222,11 @@ const handleStartCommand = async (ctx) => {
 
   // Send the welcome message to the user with inline buttons immediately
   await ctx.replyWithHTML(
-    `Hey ${userInfo.firstName}, Welcome to Nexabit.\nAn L1 that leverages the taps to train AI,\n
-    bringing gamification and reward distribution to your fingertip.\n
-    We launched our mini app to enable you to farm as many count as possible now.\n
-    These count will be exchanged for the $NEXT token when we launch in Q4.\n
-    Got friends? Bring them in, the more, the merrier.\n
-    Click on <b>Open App</b> to begin.`,
+    `Hey ${userInfo.firstName}, welcome to Nexabit 🎉!\nNexabit is an L3 AI protocol powered by Arkham Intelligence and OpenAI.\n\nIt aggregates trading data from whales, big banks and corporations; and then uses this data and AI to identify potential buy and sell levels, thereby helping users to trade more profitably. \n\nOur mini app is live! Farm $NEXAI tokens now. By farming, you train our AI to be able to be more intelligent in spotting great trade opportunities and Airdrops. \n\nWith 60% of the supply going to our community, future rewards are immense. \nInvite your friends and amplify the excitement! Click on Open App to start now`,
     {
       reply_markup: {
         inline_keyboard: [
-          [{ text: '🚀 Open App', url: 'https://t.me/TapLengendBot/start' }],
+          [{ text: '🚀 Open App', url: 'https://t.me/NexaBit_Tap_bot/start' }],
           [{ text: '🌐 Join community', url: 'https://t.me/nexabitHQ' }]
         ]
       }
@@ -297,26 +330,54 @@ app.put('/user/:id', async (req, res) => {
 app.get('/checkref', async (req, res) => {
   const userId = req.query.userId ? req.query.userId.toString() : ''; // Ensure userId is a string
   console.log('GET /checkref request received for userId:', userId);
+  
   try {
     const user = await getUserById(userId);
     if (user) {
       // Fetch referred users
       const referralDoc = await firestore.collection('Referrals').doc(userId).get();
       const referredUsers = referralDoc.exists ? referralDoc.data().referredUsers : [];
-      
-      // Fetch successful referrals
-      const successfulReferrals = [];
+
+      // Fetch successful referrals and isPremium status
+      const referredUsersDetails = [];
+      let successfulReferralsCount = 0;
+      let premiumReferredUsersCount = 0;
+      let ordinaryReferredUsersCount = 0;
+
       for (const referredUserId of referredUsers) {
         const referredUserDoc = await firestore.collection(collectionName).doc(referredUserId.toString()).get(); // Ensure referredUserId is a string
-        if (referredUserDoc.exists && referredUserDoc.data().count >= 1000) {
-          successfulReferrals.push(referredUserId);
+        if (referredUserDoc.exists) {
+          const userData = referredUserDoc.data();
+          const isSuccess = userData.count >= 10000;
+          const isPremium = userData.isPremium || false;
+
+          if (isSuccess) {
+            successfulReferralsCount++;
+          }
+
+          if (isPremium) {
+            premiumReferredUsersCount++;
+          } else {
+            ordinaryReferredUsersCount++;
+          }
+
+          referredUsersDetails.push({
+            id: referredUserId,
+            success: isSuccess,
+            isPremium
+          });
         }
       }
-      
+
+      const totalReferrals = referredUsers.length;
+
       res.send({ 
         referralLink: user.referralLink, 
-        referredUsers: referredUsers.map(id => ({ id, success: successfulReferrals.includes(id) })), 
-        successfulReferrals: successfulReferrals.length
+        referredUsersDetails, 
+        totalReferrals,
+        successfulReferralsCount,
+        premiumReferredUsersCount,
+        ordinaryReferredUsersCount
       });
       console.log('Checkref response sent for userId:', userId);
     } else {
@@ -328,6 +389,7 @@ app.get('/checkref', async (req, res) => {
     res.status(500).send('Internal Server Error');
   }
 });
+
 
 app.get('/keep-alive', (req, res) => {
   res.sendStatus(200); // Respond with 200 OK status
@@ -439,6 +501,105 @@ app.use((req, res, next) => {
   });
   next();
 });
+
+// New route to send messages to all users
+app.post('/api/send-message', async (req, res) => {
+  const { message } = req.body;
+
+  if (!message || !message.trim()) {
+    return res.status(400).json({ message: 'Message cannot be empty' });
+  }
+
+  try {
+    const usersSnapshot = await firestore.collection(collectionName).get();
+    const users = usersSnapshot.docs.map(doc => doc.data());
+    const batchSize = 30; // Adjust based on Telegram's rate limits
+    const delay = 1000; // Delay between batches in milliseconds
+
+    for (let i = 0; i < users.length; i += batchSize) {
+      const batch = users.slice(i, i + batchSize);
+
+      await Promise.all(
+        batch.map(user => {
+          return bot.telegram.sendMessage(user.id, message).catch(err => console.error(`Failed to send message to ${user.id}:`, err));
+        })
+      );
+
+      if (i + batchSize < users.length) {
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+
+    res.status(200).json({ message: 'Messages sent successfully' });
+  } catch (error) {
+    console.error('Error sending messages:', error);
+    res.status(500).json({ message: 'Error sending messages' });
+  }
+});
+
+
+
+app.post('/api/trigger-start', async (req, res) => {
+  try {
+    const usersSnapshot = await firestore.collection(collectionName).get();
+    const users = usersSnapshot.docs.map(doc => doc.data());
+    const batchSize = 30; // Adjust based on Telegram's rate limits
+    const delay = 1000; // Delay between batches in milliseconds
+
+    for (let i = 0; i < users.length; i += batchSize) {
+      const batch = users.slice(i, i + batchSize);
+
+      await Promise.all(
+        batch.map(user => {
+          const ctx = {
+            from: {
+              id: user.id,
+              username: user.username,
+              is_bot: user.isBot,
+              is_premium: user.isPremium,
+              first_name: user.firstName
+            },
+            startPayload: null,
+            replyWithHTML: (message, options) => bot.telegram.sendMessage(user.id, message, options)
+          };
+
+          return handleStartCommand(ctx).catch(err => console.error(`Failed to send start command to ${user.id}:`, err));
+        })
+      );
+
+      if (i + batchSize < users.length) {
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+
+    res.status(200).json({ message: 'Start command triggered for all users' });
+  } catch (error) {
+    console.error('Error triggering start command:', error);
+    res.status(500).json({ message: 'Error triggering start command' });
+  }
+});
+
+//Telegram data verification endpoint
+
+app.post('/verify-telegram-data', (req, res) => {
+  const { telegramInitData } = req.body;
+  console.log('Request Body:', req.body);
+
+  const verified = verifyTelegramWebAppData(telegramInitData);
+  console.log('Verification Status:', verified);
+
+  res.json({ verified });
+});
+
+app.post('/api/validate-passcode', (req, res) => {
+  const { passcode } = req.body;
+  if (passcode === validPasscode) {
+    res.json({ success: true });
+  } else {
+    res.json({ success: false });
+  }
+});
+
 
 
 export default app;

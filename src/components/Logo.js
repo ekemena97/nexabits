@@ -1,43 +1,75 @@
-import React, { useEffect, useState, memo } from "react";
+import React, { useEffect, useState, useRef, memo } from "react";
 import { Link } from "react-router-dom";
-// import { CiLight } from "react-icons/ci";
-// import { MdOutlineNightlightRound } from "react-icons/md";
 import { useThemeContext } from "../context/ThemeContext.js";
 import { useTelegramUser } from "../context/TelegramContext.js";
 import fallbackImage from '../assets/fallback.png';
+import profilePic2 from '../assets/profile.jpg';
 import { getTelegramProfilePicture, getTelegramUserInfo } from "../components/telegramUtils.js"; // Import the required functions
 
 const Logo = () => {
-  const { theme, setTheme } = useThemeContext();
+  const { theme } = useThemeContext();
   const userId = useTelegramUser();
-  const [profilePicture, setProfilePicture] = useState(null);
+  const [profilePicture, setProfilePicture] = useState(fallbackImage);
   const [userName, setUserName] = useState("Anonymous");
+  const prevProfilePicture = useRef(null);
+  const isMounted = useRef(false);
+  const telegramProfilePic = useRef(null);
 
   useEffect(() => {
+    isMounted.current = true;
+
     const fetchTelegramData = async () => {
       if (userId) {
         const profilePic = await getTelegramProfilePicture(userId);
         const userName = await getTelegramUserInfo(userId);
-        setProfilePicture(profilePic || fallbackImage);
-        setUserName(userName || "Anonymous");
+
+        if (isMounted.current) {
+          if (profilePic) {
+            telegramProfilePic.current = profilePic;
+            setProfilePicture(profilePic);
+            prevProfilePicture.current = profilePic;
+          }
+
+          setUserName(userName || "Anonymous");
+        }
       }
     };
 
     fetchTelegramData();
+
+    return () => {
+      isMounted.current = false;
+    };
   }, [userId]);
 
-  // const toggleTheme = (e) => {
-  //   e.preventDefault();
-  //   setTheme(theme === "dark" ? "light" : "dark");
-  // };
+  useEffect(() => {
+    let timerId;
+
+    const updateProfilePicture = () => {
+      if (isMounted.current) {
+        setProfilePicture(telegramProfilePic.current || fallbackImage);
+        timerId = setTimeout(() => {
+          setProfilePicture(profilePic2);
+          timerId = setTimeout(() => {
+            setProfilePicture(fallbackImage);
+            timerId = setTimeout(() => {
+              setProfilePicture(telegramProfilePic.current || fallbackImage);
+              updateProfilePicture(); // Restart the cycle
+            }, 180000); // 3 minute for fallbackImage
+          }, 60000); // 1 minutes for profilePic2
+        }, 30000); // 30 seconds for telegram profile picture
+      }
+    };
+
+    updateProfilePicture();
+
+    return () => {
+      if (timerId) clearTimeout(timerId);
+    };
+  }, []);
 
   return (
-    <Link
-      to="/"
-      className="
-        absolute sm:top-[1.5rem] top-[0.5rem] left-[1.5rem] [text-decoration:none] text-lg text-[#E9B454] sm:w-[95%] w-[85%] justify-between flex items-center mb-4 z-10"
-    >
-      <div className="flex flex-row gap-2 items-center">
+      <div className="flex flex-col gap-3 items-center">
         <img
           src={profilePicture}
           alt="Profile"
@@ -45,32 +77,15 @@ const Logo = () => {
           style={{ border: '1px solid #2ebd85' }} // Added inline style for the golden ring border
         />
         <span
-          className={`uppercase font-bold ${
+          className={`font-bold ${
             theme === "dark" ? "text-[#E9B454]" : "text-[#010C0C]"
           }`}
-          style={{ fontSize: '0.82rem' }} // Inline style to reduce the font size
+          style={{ fontSize: '0.4rem', marginTop: '-0.7rem' }} // Inline style to reduce the font size
         >
           {userName}
         </span>
       </div>
-
-      {/* <div
-        onClick={(e) => toggleTheme(e)}
-        className="bg-[#1B2B2A] p-2 rounded border border-gray-200"
-      >
-        {theme === "dark" ? (
-          <CiLight
-            onClick={(e) => toggleTheme(e)}
-            className="transition duration-300 ease-in text-2xl font-semibold"
-          />
-        ) : (
-          <MdOutlineNightlightRound
-            onClick={(e) => toggleTheme(e)}
-            className="transition duration-300 ease-in text-2xl font-semibold bg-indigo-500 text-white"
-          />
-        )}
-      </div> */}
-    </Link>
+    
   );
 };
 

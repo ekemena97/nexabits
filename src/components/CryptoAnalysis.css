@@ -5,7 +5,7 @@
   margin: 0 auto; /* Center the container */
   width: calc(100% - 40px); /* Ensure it is responsive and maintains margin on the sides */
   max-width: 1200px; /* Set a maximum width for larger screens */
-  padding-bottom: 120px; /* Add enough padding to accommodate the navigation button */
+   /* Add enough padding to accommodate the navigation button */
   box-sizing: border-box; /* Include padding and border in the element's total width and height */
 }
 
@@ -46,7 +46,7 @@
   padding-top: 12px;
   padding-bottom: 12px;
   text-align: center;
-  background-color: #9000FF;
+  background-color: #624CE2;
   color: white;
 }
 
@@ -150,3 +150,4 @@
   background-color: lightyellow;
   font-weight: bold;
 }
+

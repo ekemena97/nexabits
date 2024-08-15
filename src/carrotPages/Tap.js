@@ -1,10 +1,10 @@
 import React, { useState, useEffect, memo } from "react";
 import { useThemeContext } from "../context/ThemeContext.js";
-import { TbMilitaryRank } from "react-icons/tb";
-import { IoIosArrowForward } from "react-icons/io";
+import { FaTrophy, FaChevronRight } from 'react-icons/fa';
 import crypto from "../assets/crypto.png";
 import logo3 from "../assets/logo3.png";
 import treasure from "../assets/treasure.png"; // Import the treasure icon
+import Logo from "../components/Logo.js";
 import { useTapContext } from "../context/TapContext.js";
 import { useTelegramUser } from "../context/TelegramContext.js";
 import { Link } from "react-router-dom";
@@ -13,6 +13,10 @@ import RobotIcon from "../components/RobotIcon.js";
 import "../components/robotIcon.css";
 import { useTreasureContext } from '../context/treasureContext.js'; // Import the custom hook
 import useForceUpdate from '../components/useForceUpdate.js'; // Custom hook to force updates
+import Campaigns from "../components/Campaigns.js";
+import notification from "../assets/notification.gif"; // Replace 'myGif.gif' with the actual name of your GIF file
+
+import "./Tap.css";
 
 const GiftIcon = ({ onClick }) => {
   const [visible, setVisible] = useState(true);
@@ -83,6 +87,55 @@ const GiftIcon = ({ onClick }) => {
 const Tap = () => {
   const { theme } = useThemeContext();
   const userId = useTelegramUser();
+  const [refreshState, setRefreshState] = useState(false);
+  const [notificationVisible, setNotificationVisible] = useState(false); // State for visibility of notification gif and Top 60 text
+
+  // Function to force a re-render
+  const handleCheckIn = () => {
+    setRefreshState(prev => !prev);
+  };
+
+  useEffect(() => {
+    const toggleVisibility = () => {
+      setNotificationVisible((prevVisible) => !prevVisible);
+    };
+
+    // Initial delay to make it visible after 30 seconds
+    const initialTimeout = setTimeout(() => {
+      setNotificationVisible(true);
+
+      // After 30 seconds, start the cycle of 30 seconds visible and 1 minute invisible
+      const cycleInterval = setInterval(toggleVisibility, 90 * 1000); // 1 minute 30 seconds
+
+      // Clean up interval when component unmounts
+      return () => clearInterval(cycleInterval);
+    }, 30 * 1000); // 30 seconds
+
+    // Clean up timeout when component unmounts
+    return () => clearTimeout(initialTimeout);
+  }, []);
+
+  // useEffect to listen for specific localStorage key changes
+  useEffect(() => {
+    const handleStorageChange = (event) => {
+      if (event.key === "dailyOpenCount" || event.key === "consecutiveOpenCount") {
+        setRefreshState(prev => !prev);  // Trigger re-render only when the specific keys change
+      }
+    };
+
+    // Listen for the 'storage' event
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    // Whenever refreshState changes, Tap.js will re-fetch or re-render values
+    console.log("Tap.js is re-rendering due to state change.");
+  }, [refreshState]);
+
   const {
     count,
     incrementTap,
@@ -102,7 +155,6 @@ const Tap = () => {
   const [coinAnimations, setCoinAnimations] = useState([]);
   const [showGiftIcon, setShowGiftIcon] = useState(true);
   const [showDailyCheckIn, setShowDailyCheckIn] = useState(false);
-  const [treasureCount, setTreasureCount] = useState(0); // State for treasure count
 
   useEffect(() => {
     if (energy <= 0) {
@@ -221,18 +273,18 @@ const Tap = () => {
   };
 
   const getRankText = () => {
-    if (count >= 100000000) return "Immortal";
-    if (count >= 50000000) return "GrandMaster";
-    if (count >= 20000000) return "Champion";
-    if (count >= 12000000) return "Conqueror";
-    if (count >= 5000000) return "Titan";
-    if (count >= 1000000) return "Supreme";
-    if (count >= 200000) return "Guru";
-    if (count >= 50000) return "Catalyst";
-    if (count >= 10000) return "Trailblazer";
-    if (count >= 2000) return "PathFinder";
-    if (count >= 100) return "Navigator";
-    return "Explorer";
+    if (count >= 1000000000) return "NeuronAce";
+    if (count >= 500000000) return "AlgoLorX ";
+    if (count >= 200000000) return "QuantumX";
+    if (count >= 120000000) return "TensorTX";
+    if (count >= 50000000) return "LogicLoX";
+    if (count >= 10000000) return "PixelPX";
+    if (count >= 2000000) return "DataDuX";
+    if (count >= 500000) return "MechaMstX ";
+    if (count >= 100000) return "CodeCqX";
+    if (count >= 20000) return "QuantX";
+    if (count >= 10000) return "ByteLX";
+    return "SynthX";
   };
 
   const handleRewardClaim = (rewardAmount) => {
@@ -256,55 +308,94 @@ const Tap = () => {
           <DailyCheckIn
             onClose={() => setShowDailyCheckIn(false)}
             onClaimReward={handleRewardClaim}
+            onCheckIn={handleCheckIn}
           />
         )}
-        <div className="relative h-full w-full">
-          <div className="fixed top-2 right-8 flex flex-col gap-1 items-center">
-            <div className="flex flex-row gap-0 items-center">
-              <img src={logo3} className="sm:w-10 w-10 rounded-full object-cover" alt="Logo" style={{ marginRight: '0' }} />
-              <div className={`${theme === "dark" ? "text-[#fff]" : "text-[#19191E]"} sm:text-3xl text-1xl font-semibold`} style={{ marginLeft: '0' }}>
+
+        <div className="relative  w-full">
+          <div className="fixed top-0 -mt-1 right-3 flex flex-row justify-between items-center w-full px-4 lg:px-8">
+            {/* Logo */}
+            <div className="flex items-center mr-2 sm:mr-1 lg:mr-4 ml-4 sm:ml-2 lg:ml-8 mt-2 sm:mt-1 lg:mt-3">
+              <Logo className="w-6 h-6" />
+            </div>
+
+            {/* Treasure and Points */}
+            <div className="flex items-center mr-2 sm:mr-1 lg:mr-4 mt-2 sm:mt-1 lg:mt-3 ml-0.5 sm:ml-0.25 lg:ml-1">
+              <img src={treasure} className="w-4 h-4 mr-1 sm:mr-0.5 lg:mr-1.5" alt="Treasure" />
+              <span className={`${theme === "dark" ? "text-white" : "text-[#19191E]"} font-semibold text-xs sm:text-sm lg:text-base xl:text-lg 2xl:text-xl whitespace-nowrap`}>
+                {treasurePoints}
+              </span>
+            </div>
+
+            {/* Campaigns */}
+            <div className="mr-0.5 sm:mr-0.25 lg:mr-1 mt-1 sm:mt-0.5 lg:mt-2">
+              <Campaigns refreshState={refreshState} />
+            </div>
+
+            {/* Logo3 and Count */}
+            <div className="flex items-center mr-1 sm:mr-0.5 lg:mr-2">
+              <img src={logo3} className="w-6 sm:w-5 lg:w-7 object-cover mr-2 sm:mr-1 lg:mr-3 mt-1 sm:mt-0.5 lg:mt-2" alt="Logo" />
+              <div className={`${theme === "dark" ? "text-white" : "text-[#19191E]"} text-sm sm:text-base lg:text-lg xl:text-xl 2xl:text-2xl font-semibold whitespace-nowrap`}>
+
                 {formatCount(count)}
               </div>
             </div>
+          </div>
+        </div>
 
-            {coinAnimations.slice(0, 3).map((coin, index) => (
-              <div
-                key={coin.id}
-                className="coin-animation"
-                style={{
+
+        {coinAnimations.slice(0, 4).map((coin, index) => (
+            <div
+              key={coin.id}
+              className="coin-animation"
+              style={{
                 position: 'absolute',
                 transform: `translate(${Math.random() * 25 - 8}px, ${Math.random() * 25 - 8}px)`,
                 animationDelay: `${index * 0.1}s`,
                 color: 'gold',
-                fontSize: '0.8rem',
-                }}
-              >
-                +{coin.value}
-              </div>
-            ))}
-          </div>
-        </div>
-
+                fontSize: '0.6rem',
+                marginLeft: '8.7rem',
+                marginTop: '-17.5rem',
+              }}
+            >
+              +{coin.value}
+            </div>
+          ))}
+      
+      
         <div className="flex flex-col items-center sm:p-0 p-3">
           <div className="flex flex-col h-full sm:w-[80%] w-full items-center py-6 justify-items-center sm:space-y-20 space-y-16">
             <div className="small-robot-icon-container" style={{ marginTop: '-2%' }}>
               <RobotIcon className="small-robot-icon" />
               <div className="red-dot"></div>
             </div>
-            <div className="flex flex-col items-center mt-1" style={{ marginTop: '2%' }}>
-              <Link
-                to={`/ai`}
-                className="cursor-pointer sm:text-base text-sm flex flex-col gap-1 items-center text-gray-100 hover:gray-300"
-              >
-                <span style={{ color: "#96DED1", display: "flex", alignItems: "center" }}>
+
+            <div className="flex items-center justify-center mt-1" style={{ marginTop: '2%', marginLeft: '2rem', position: 'relative' }}>
+              <Link to="/leaderboard" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', position: 'relative' }}>
+                <span className="text-xs sm:text-sm lg:text-base xl:text-lg 2xl:text-xl" style={{ color: "#96DED1", marginRight: '0.5rem', lineHeight: '1.2' }}>
                   {getRankText()}
-                  <img src={treasure} className="w-3 h-3 ml-2" alt="Treasure" />
-                  <span className={`${theme === "dark" ? "text-[#fff]" : "text-[#19191E]"} font-semibold ml-1`} style={{ fontSize: '15px' }}>
-                    {treasurePoints}
-                  </span>
                 </span>
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center', marginLeft: '0.6rem', }}>
+                  <FaTrophy style={{ color: 'gold', marginRight: '2px', fontSize: '12px', verticalAlign: 'middle' }} />
+                  {/* Notification gif and Top 60 text visibility toggled here */}
+                  {notificationVisible && (
+                    <>
+                      <div style={{ position: 'absolute', top: '-25px', left: '50%', transform: 'translateX(-50%)' }}>
+                        <img 
+                          src={notification} 
+                          alt="GIF that notifies users" 
+                          className="notification-gif-class" 
+                          style={{ width: '25px', height: '25px', display: 'block' }} 
+                        />
+                      </div>
+                      <span className="text-xs sm:text-sm lg:text-base xl:text-lg 2xl:text-xl" style={{ verticalAlign: 'middle' }}>Top 60</span>
+                    </>
+                  )}
+                  <FaChevronRight style={{ marginLeft: '1px', fontSize: '10px', verticalAlign: 'middle' }} />
+                </div>
               </Link>
             </div>
+
             <div
               onClick={handleClick}
               className={`text-sm flex flex-col items-center gap-1 ${
@@ -320,7 +411,7 @@ const Tap = () => {
                 }`}
                 style={{ marginTop: '-2%' }}
               />
-              <p className="text-sm text-gray-100">Tap coin, Earn $Squad</p>
+              <p className="text-xs sm:text-sm lg:text-base xl:text-lg 2xl:text-xl text-gray-100">Tap coin, Earn $NEXAI</p>
               <br></br>
             </div>
 
@@ -337,7 +428,7 @@ const Tap = () => {
                     }}
                   ></div>
                 </div>
-                <div className="flex items-center text-sm text-gray-100">
+                <div className="flex items-center text-xs sm:text-sm lg:text-base xl:text-lg 2xl:text-xl text-gray-100">
                   <span className="text-2xl mx-2">🔥</span> Energy Level{" "}
                   <span className="ml-2 font-bold text-white">
                     {energy}/{energyLimit}

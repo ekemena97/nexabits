@@ -1,19 +1,5 @@
 import { useEffect, useCallback } from 'react';
-
-const getStorageItem = (key) => {
-  return new Promise((resolve, reject) => {
-    window.Telegram.WebApp.CloudStorage.getItem(key, (err, value) => {
-      if (err || !value) {
-        return reject(new Error(`Data not stored for key: ${key}`));
-      }
-      resolve(value);
-    });
-  });
-};
-
-const setStorageItem = (key, value) => {
-  window.Telegram.WebApp.CloudStorage.setItem(key, JSON.stringify(value));
-};
+import { getStorageItem, setStorageItem } from '../components/storageHelpers.js';
 
 const useEnergyUpdater = (setEnergy, energyLimit, refillRate) => {
   const calculateEnergyGain = useCallback(async () => {
@@ -22,15 +8,15 @@ const useEnergyUpdater = (setEnergy, energyLimit, refillRate) => {
     const elapsedSeconds = Math.floor((currentTime - lastUpdateTime) / 1000);
     const energyGain = Math.floor(elapsedSeconds / refillRate);
 
-    return { energyGain, elapsedSeconds, currentTime };
+    return { energyGain, currentTime };
   }, [refillRate]);
 
   const applyEnergyGain = useCallback(async () => {
-    const { energyGain, elapsedSeconds, currentTime } = await calculateEnergyGain();
+    const { energyGain, currentTime } = await calculateEnergyGain();
     setEnergy(prevEnergy => {
       const newEnergy = Math.min(prevEnergy + energyGain, energyLimit);
       setStorageItem('lastUpdateTime', currentTime.toString());
-      console.log(`Applying energy gain: ${energyGain}, new energy: ${newEnergy}`);
+      setStorageItem('energy', newEnergy); // Store energy in storage
       return newEnergy;
     });
   }, [calculateEnergyGain, energyLimit, setEnergy]);
@@ -71,15 +57,11 @@ const useEnergyUpdater = (setEnergy, energyLimit, refillRate) => {
       const telegram = window.Telegram.WebApp;
 
       telegram.onEvent('web_app_close', handleWebAppClose);
-      document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') {
-          handleWebAppOpen();
-        }
-      });
+      telegram.onEvent('web_app_open', handleWebAppOpen);
 
       return () => {
         telegram.offEvent('web_app_close', handleWebAppClose);
-        document.removeEventListener('visibilitychange', handleWebAppOpen);
+        telegram.offEvent('web_app_open', handleWebAppOpen);
       };
     }
   }, [applyEnergyGain]);

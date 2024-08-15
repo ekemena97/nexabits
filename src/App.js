@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useThemeContext } from "./context/ThemeContext.js";
 import TelegramContext from "./context/TelegramContext.js";
 import { TaskProvider } from "./context/TaskContext.js";
 import { TapProvider } from "./context/TapContext.js";
-import { TreasureProvider } from "./context/treasureContext.js"; // Import TreasureProvider
+import { TreasureProvider } from "./context/treasureContext.js";
+import { TimeLapseProvider } from "./context/TimeContext.js"; 
+import { ReferralProvider } from "./context/ReferralContext.js"; 
 import Loading from "./components/Loading.js";
-import Logo from "./components/Logo.js";
 import Navigation from "./components/Navigation.js";
+import bgMain from "./assets/bg-main.png";  // Import the background image
 
 // List of images to preload from the assets folder
 const imageUrls = [
@@ -40,9 +41,7 @@ function preloadImages(imageUrls) {
 const queryClient = new QueryClient();
 
 function App() {
-  const { theme, setTheme } = useThemeContext();
   const [loading, setLoading] = useState(true);
-  const [showLogo, setShowLogo] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
@@ -107,9 +106,8 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const shouldShowLogo = !location.pathname.startsWith("/news") && !location.pathname.startsWith("/blog") && !location.pathname.startsWith("/ai");
-    setShowLogo(shouldShowLogo);
-  }, [location]);
+    setFullScreenDimensions();
+  }, []);
 
   function setFullScreenDimensions() {
     const appContainer = document.querySelector(".App");
@@ -119,41 +117,47 @@ function App() {
     }
   }
 
-  useEffect(() => {
-    setFullScreenDimensions();
-  }, []);
-
   if (loading) {
     return <Loading />;
   }
 
+  const isNewsPage = location.pathname === '/news';
+
   return (
     <QueryClientProvider client={queryClient}>
-      <TreasureProvider> {/* Add TreasureProvider */}
-        <TapProvider>
-          <TelegramContext>
-            <TaskProvider>
-              <div className="app-container">
-                <main
-                  className={`App-main w-full h-full flex flex-col content-center items-center relative font-poppins ${
-                    theme === "dark" ? "text-[#ffffff] bg-[#19191E]" : "bg-[#fff] text-[#15231D]"
-                  }`}
-                  onTouchMove={(e) => e.stopPropagation()} // Allow scrolling
-                >
-                  <div className={`${theme === "dark" ? "z-0" : "z-0"}`} />
-                  <div
-                    className={`w-screen h-screen fixed -z-10 ${
-                      theme === "dark" ? "bg-[#19191E]" : "bg-[#fff]"
-                    }`}
-                  />
-                  {showLogo && <Logo />}
-                  <Outlet /> {/* Ensure Outlet is included to render nested routes */}
-                  <Navigation />
-                </main>
-              </div>
-            </TaskProvider>
-          </TelegramContext>
-        </TapProvider>
+      <TreasureProvider>
+        <TimeLapseProvider>
+          <TapProvider>
+            <TelegramContext>
+              <ReferralProvider>
+                <TaskProvider>
+                  <div className="app-container">
+                    <main
+                      className="App-main w-full h-full flex flex-col content-center items-center relative font-poppins"
+                      style={{
+                        color: isNewsPage ? 'initial' : 'white',
+                        textShadow: isNewsPage ? 'initial' : '1px 1px 3px rgba(0, 0, 0, 0.7)',
+                      }}
+                      onTouchMove={(e) => e.stopPropagation()} // Allow scrolling
+                    >
+                      <div className="z-0" />
+                      <div
+                        className="w-screen h-screen fixed -z-10"
+                        style={{
+                          backgroundImage: `url(${bgMain})`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center',
+                        }}
+                      />
+                      <Outlet /> {/* Ensure Outlet is included to render nested routes */}
+                      <Navigation style={{ position: 'fixed', bottom: 0, width: '100%', zIndex: 1000 }} />
+                    </main>
+                  </div>
+                </TaskProvider>
+              </ReferralProvider>
+            </TelegramContext>
+          </TapProvider>
+        </TimeLapseProvider>
       </TreasureProvider>
     </QueryClientProvider>
   );

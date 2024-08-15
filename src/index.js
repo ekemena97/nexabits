@@ -15,6 +15,8 @@ import Task from './carrotPages/Task.js';
 import Tap from './carrotPages/Tap.js';
 import BlogPost from './components/BlogPost.js';  // Ensure correct import path
 import AiAnalysis from './carrotPages/AiAnalysis.js'; // Import the AiAnalysis component
+import Messenger from './carrotPages/Messenger.js';
+import Leaderboard from './carrotPages/Leaderboard.js';
 
 const router = createBrowserRouter([
   {
@@ -64,6 +66,14 @@ const router = createBrowserRouter([
       {
         path: '/news',
         element: <NewsFeed />,
+      },
+      {
+        path: '/messenger',
+        element: <Messenger />,
+      },
+      {
+        path: '/leaderboard',
+        element: <Leaderboard />,
       },
       {
         path: '/blog/:id',

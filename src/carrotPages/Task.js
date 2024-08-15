@@ -4,6 +4,8 @@ import { useThemeContext } from "../context/ThemeContext.js";
 import { TbMilitaryRank } from "react-icons/tb";
 import { GiTwoCoins } from "react-icons/gi";
 import { IoIosCheckmark } from "react-icons/io";
+import { FaGift, FaCopy, FaThumbsUp, FaTrophy } from "react-icons/fa"; // Import the FaTrophy icon
+import { Link } from "react-router-dom"; // Import Link for navigation
 import logoSvg from "../assets/logo.svg";
 import { FaTasks } from "react-icons/fa";
 import { useTapContext } from "../context/TapContext.js";
@@ -104,6 +106,15 @@ const Task = () => {
               </div>
             </div>
 
+            {/* Contest Button */}
+            <Link
+              to={`/leaderboard`}
+              className="absolute flex items-center gap-2 p-2 text-white rounded-md cursor-pointer transition-all duration-150 ease-in hover:bg-[#4A4FFF]"
+              style={{ top: '-2rem', right: '0.5rem', zIndex: 1500 }} // Custom positioning
+            >
+              <FaTrophy className="text-lg" /> Contest
+            </Link>
+
             {/* Tasks */}
             <div className="flex flex-col gap-2 px-4 sm:w-[70%]">
               {task?.task?.map((item, itemIndex) => (
@@ -131,7 +142,7 @@ const Task = () => {
                       <p className="sm:text-base text-sm">{item.task_title}</p>
                     </div>
                     <div className="text-gray-100 text-lg font-semibold flex flex-row items-center gap-2">
-                      <p className="sm:text-base text-sm">{item.task_points}</p>
+                      <p className="sm:text-base text-sm">{formatCount(item.task_points)}</p>
                       <GiTwoCoins />
                     </div>
                   </div>

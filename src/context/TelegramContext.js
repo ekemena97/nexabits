@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useTapContext } from './TapContext.js'; // Import TapContext
 import { debounce } from 'lodash';
+import Loading from '../components/Loading.js'; // Import Loading component
 
 const TelegramUserContext = createContext();
 const TelegramStartappParamContext = createContext();
@@ -111,6 +112,30 @@ const logIpAddress = async (userId) => {
   }
 };
 
+const verifyTelegramWebAppData = async (telegramInitData) => {
+  try {
+    const response = await fetch(`${process.env.REACT_APP_API_URL}/verify-telegram-data`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ telegramInitData }),
+    });
+
+    if (!response.ok) {
+      console.error('Network response was not ok for verifyTelegramWebAppData', response);
+      throw new Error(`Network response was not ok for verifyTelegramWebAppData. Status: ${response.status}, URL: ${response.url}`);
+    }
+
+    const result = await response.json();
+    console.log('Verification Response:', result);
+    return result.verified;
+  } catch (error) {
+    console.error('Error verifying Telegram WebApp data:', error);
+    return false;
+  }
+};
+
 const TelegramContext = ({ children }) => {
   const [userId, setUserId] = useState(null);
   const [startParam, setStartParam] = useState(null);
@@ -118,11 +143,26 @@ const TelegramContext = ({ children }) => {
   const [username, setUsername] = useState(null);
   const [isBot, setIsBot] = useState(null);
   const [isPremium, setIsPremium] = useState(null);
+  const [telegramVerified, setTelegramVerified] = useState(false);
+  const [loading, setLoading] = useState(true); // Loading state
+  const [verificationError, setVerificationError] = useState(null); // Verification error state
 
   const { count, coinsPerTap, energyLimit, refillRate, energy } = useTapContext(); // Destructure TapContext values
 
   useEffect(() => {
-    if (window.Telegram) {
+    const sessionData = sessionStorage.getItem('telegramUser');
+    if (sessionData) {
+      const { userId, startParam, firstName, username, isBot, isPremium } = JSON.parse(sessionData);
+      setUserId(userId);
+      setStartParam(startParam);
+      setFirstName(firstName);
+      setUsername(username);
+      setIsBot(isBot);
+      setIsPremium(isPremium);
+      setTelegramVerified(true);
+      setLoading(false); // Stop loading
+      console.log('Loaded user data from sessionStorage:', { userId, firstName, username, isBot, isPremium });
+    } else if (window.Telegram) {
       const telegram = window.Telegram.WebApp;
       telegram.ready();
 
@@ -143,25 +183,46 @@ const TelegramContext = ({ children }) => {
       setIsBot(isBot);
       setIsPremium(isPremium);
 
+      console.log('User Data:', { userId, firstName, username, isBot, isPremium });
       if (userId) {
-        console.log('Saving user data to Firestore');
-        saveDataToFirestore(userId, { firstName, username, isBot, isPremium })
-          .then(() => logIpAddress(userId))
-          .catch(error => console.error('Error in initial saveDataToFirestore or logIpAddress:', error));
+        verifyTelegramWebAppData(telegram.initData).then((verified) => {
+          if (verified) {
+            console.log('Telegram data verified successfully');
+            setTelegramVerified(true);
+            sessionStorage.setItem('telegramUser', JSON.stringify({ userId, startParam, firstName, username, isBot, isPremium }));
+            setLoading(false); // Stop loading
 
-        if (startParam) {
-          console.log('Saving referral data to Firestore');
-          saveReferralToFirestore(userId, startParam).catch(error => console.error('Error in saveReferralToFirestore:', error));
-        }
+            console.log('Saving user data to Firestore');
+            saveDataToFirestore(userId, { firstName, username, isBot, isPremium })
+              .then(() => logIpAddress(userId))
+              .catch(error => console.error('Error in initial saveDataToFirestore or logIpAddress:', error));
+
+            if (startParam) {
+              console.log('Saving referral data to Firestore');
+              saveReferralToFirestore(userId, startParam).catch(error => console.error('Error in saveReferralToFirestore:', error));
+            }
+          } else {
+            console.error('Telegram data verification failed');
+            setVerificationError('Verification failed. Please try again.');
+            setLoading(false); // Stop loading even if verification fails
+          }
+        }).catch(error => {
+          console.error('Error verifying Telegram WebApp data:', error);
+          setVerificationError('An error occurred during verification. Please try again.');
+          setLoading(false); // Stop loading on error
+        });
+      } else {
+        setLoading(false); // Stop loading if no userId
       }
     } else {
       console.error("Telegram WebApp is not available");
+      setLoading(false); // Stop loading if Telegram WebApp is not available
     }
   }, []);
 
   // Log state changes from TapContext and save `coinsPerTap`, `energyLimit`, and `refillRate` immediately
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || !telegramVerified) return;
 
     console.log('TapContext useEffect is running');
     console.log('TapContext values changed:', { count, coinsPerTap, energyLimit, refillRate, energy });
@@ -180,27 +241,27 @@ const TelegramContext = ({ children }) => {
     };
 
     saveTapUserData();
-  }, [userId, coinsPerTap, energyLimit, refillRate]);
+  }, [userId, telegramVerified, coinsPerTap, energyLimit, refillRate]);
 
-  // Save count after 10 seconds of no changes using debounce
-  const debouncedSaveCount = useCallback(debounce(async (userId, count) => {
+  // Save count after 20 seconds of no changes using debounce
+  const debouncedSaveUserCount = useCallback(debounce(async (userId, count) => {
     try {
       await saveDataToFirestore(userId, { count });
       console.log('Count saved to Firestore:', count);
     } catch (error) {
       console.error('Error saving count to Firestore:', error);
     }
-  }, 20000), []); // 10 seconds in milliseconds
+  }, 20000), []); // 20 seconds in milliseconds
 
   useEffect(() => {
-    if (!userId || count === undefined) return;
+    if (!userId || count === undefined || !telegramVerified) return;
 
-    debouncedSaveCount(userId, count);
+    debouncedSaveUserCount(userId, count);
 
     return () => {
-      debouncedSaveCount.cancel(); // Cleanup debounce on unmount or when count changes
+      debouncedSaveUserCount.cancel(); // Cleanup debounce on unmount or when count changes
     };
-  }, [userId, count, debouncedSaveCount]);
+  }, [userId, count, telegramVerified, debouncedSaveUserCount]);
 
   return (
     <TelegramUserContext.Provider value={userId}>
@@ -209,7 +270,18 @@ const TelegramContext = ({ children }) => {
           <TelegramUsernameContext.Provider value={username}>
             <TelegramIsBotContext.Provider value={isBot}>
               <TelegramIsPremiumContext.Provider value={isPremium}>
-                {children}
+                {loading ? (
+                  <Loading />
+                ) : (
+                  telegramVerified ? (
+                    children
+                  ) : (
+                    <div>
+                      
+                      {children}
+                    </div>
+                  )
+                )}
               </TelegramIsPremiumContext.Provider>
             </TelegramIsBotContext.Provider>
           </TelegramUsernameContext.Provider>

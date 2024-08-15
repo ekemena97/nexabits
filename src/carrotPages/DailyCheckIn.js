@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './DailyCheckIn.css';
 import { FaCoins, FaCheckCircle } from 'react-icons/fa';
+import { handleDailyCheckIn } from '../components/Campaigns.js';
 
 const rewards = [
   { day: 1, amount: '50' },
@@ -17,7 +18,7 @@ const rewards = [
 
 const getNextDay = (currentDay) => (currentDay % 10) + 1;
 
-const DailyCheckIn = ({ onClose, onClaimReward }) => {
+const DailyCheckIn = ({ onClose, onClaimReward, onCheckIn }) => {
   const [claimedDays, setClaimedDays] = useState(JSON.parse(localStorage.getItem('claimedRewardDays')) || []);
   const [currentDay, setCurrentDay] = useState(parseInt(localStorage.getItem('currentRewardDay')) || 1);
   const [canClaim, setCanClaim] = useState(true);
@@ -25,6 +26,7 @@ const DailyCheckIn = ({ onClose, onClaimReward }) => {
   const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
+    window.Telegram.WebApp.ready();
     const endTime = localStorage.getItem('rewardEndTime');
     const resetEndTime = localStorage.getItem('resetRewardEndTime');
     
@@ -112,9 +114,14 @@ const DailyCheckIn = ({ onClose, onClaimReward }) => {
 
       const rewardAmount = convertToPoints(rewards.find(reward => reward.day === currentDay).amount);
       onClaimReward(rewardAmount);
+      handleDailyCheckIn();  //trigger the daily and consecutive checkin counter from the campaign.js
 
-      if (navigator.vibrate) {
-        navigator.vibrate(200);
+      if (onCheckIn) {
+        onCheckIn();  // Notify Tap.js to re-render
+      }
+
+      if (window.Telegram.WebApp.ready()) {
+        window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
       }
 
       setShowSuccess(true);
