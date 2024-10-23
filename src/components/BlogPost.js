@@ -145,22 +145,14 @@ const BlogPost = () => {
     >
       <div className="main-content-container">
         <div
-          className={`blog-post-container ${
-            theme === "dark"
-              ? "bg-[#19191E] text-[#fff]"
-              : "bg-[#fff] text-[#19191E]"
-          }`}
+          className="blog-post-container"
         >
           <div className="title-container">
             {/*<img src={title} alt="Title" className="title-image" /> */}
             <h1 className="blog-post-title">{blog.title}</h1>
           </div>
           <br />
-          <div className={`flex-container ${
-            theme === "dark"
-              ? "bg-[#19191E] text-[#fff]"
-              : "bg-[#fff] text-[#19191E]"
-          }`}>
+          <div className="flex-container">
             <img src={`${PUBLIC_URL}${blog.image}`} alt={blog.title} className="blog-post-image" />
             <div className="blog-post-intro">{parse(sanitizedIntro)}</div>
             <div className="blog-post-content">{parse(sanitizedContent)}</div>

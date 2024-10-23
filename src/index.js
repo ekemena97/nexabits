@@ -75,6 +75,7 @@ const router = createBrowserRouter([
         path: '/leaderboard',
         element: <Leaderboard />,
       },
+      
       {
         path: '/blog/:id',
         element: <BlogPost />,  // Use BlogPost component directly

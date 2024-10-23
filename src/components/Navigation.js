@@ -1,7 +1,7 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { useThemeContext } from "../context/ThemeContext.js";
-import crypto from "../assets/coin.png";
+import coin from "../assets/coin.png";
 import referral from "../assets/referral.png";
 import boost from "../assets/chatbot.png";
 import earn from "../assets/earn.png";
@@ -82,7 +82,7 @@ const Navigation = () => {
           cursor-pointer rounded capitalize font-semibold flex flex-col justify-center items-center h-full p-2`;
         }}
       >
-        <img src={crypto} className="sm:w-12 w-8 mb-2" alt="Tap" /> {/* Move image upwards */}
+        <img src={coin} className="sm:w-12 w-8 mb-2" alt="Tap" /> {/* Move image upwards */}
         <p className="sm:text-base text-sm mt-neg-15">Tap</p> {/* Move text upwards */}
       </NavLink>
 

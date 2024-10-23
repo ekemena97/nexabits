@@ -7,26 +7,36 @@ import { TapProvider } from "./context/TapContext.js";
 import { TreasureProvider } from "./context/treasureContext.js";
 import { TimeLapseProvider } from "./context/TimeContext.js"; 
 import { ReferralProvider } from "./context/ReferralContext.js"; 
+import { LeaderboardProvider } from "./context/LeaderboardContext.js"; 
 import Loading from "./components/Loading.js";
 import Navigation from "./components/Navigation.js";
 import bgMain from "./assets/bg-main.png";  // Import the background image
 
+// Assets to preload, including those from Tap.js
+import crypto from "./assets/crypto.png";
+import logo3 from "./assets/logo3.png";
+import treasure from "./assets/treasure.png";
+import notification from "./assets/notification.gif";
+import coin from "./assets/coin.png";
+import referral from "./assets/referral.png";
+import boost from "./assets/chatbot.png";
+import earn from "./assets/earn.png";
+import news from "./assets/news.png";
+import trophy from "./assets/trophy.png";
+
 // List of images to preload from the assets folder
 const imageUrls = [
-  "/assets/image1.jpg",
-  "/assets/image2.jpg",
-  "/assets/image3.jpg",
-  "/assets/image4.png",
-  "/assets/news1.png",
-  "/assets/news1_1.jpg",
-  "/assets/news2.png",
-  "/assets/news2_1.jpg",
-  "/assets/news3.png",
-  "/assets/news3_1.jpg",
-  "/assets/news4.png",
-  "/assets/news4_1.png",
-  "/assets/news5.png",
-  "/assets/news5_1.jpg"
+  bgMain,  // Preload the background image
+  crypto,
+  logo3,
+  treasure,
+  notification,
+  coin,
+  referral,
+  boost,
+  earn,
+  news,
+  trophy,
 ];
 
 // Utility function to preload images
@@ -37,6 +47,18 @@ function preloadImages(imageUrls) {
   });
 }
 
+// Utility function to cache assets
+const cacheAssets = async (urls) => {
+  if ('caches' in window) {
+    try {
+      const cache = await caches.open('app-assets-cache');
+      await cache.addAll(urls);
+    } catch (error) {
+      console.error('Failed to cache assets:', error);
+    }
+  }
+};
+
 // Create a QueryClient instance
 const queryClient = new QueryClient();
 
@@ -45,19 +67,26 @@ function App() {
   const location = useLocation();
 
   useEffect(() => {
+    // Preload and cache images
+    preloadImages(imageUrls);
+    cacheAssets(imageUrls);
+
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 2000);
+    }, 500);
 
     if (window.Telegram && window.Telegram.WebApp) {
       const webApp = window.Telegram.WebApp;
-      webApp.expand();
       webApp.ready();
+      webApp.expand();
 
-      webApp.onEvent("viewportChanged", setFullScreenDimensions);
+      // Set full-screen dimensions
       setFullScreenDimensions();
 
-      webApp.onEvent("viewportChanged", () => webApp.MainButton.hide());
+      webApp.onEvent("viewportChanged", () => {
+        webApp.expand();
+        setFullScreenDimensions();
+      });
 
       if (webApp.version && parseFloat(webApp.version) >= 6.1) {
         webApp.BackButton.show();
@@ -92,16 +121,21 @@ function App() {
       }
     };
 
+    const preventDefault = (e) => {
+      if (e.touches.length > 1 || (e.scale && e.scale !== 1)) {
+        e.preventDefault();
+      }
+    };
+
     window.addEventListener("beforeunload", handleBeforeUnload);
     window.addEventListener("popstate", handlePopState);
-
-    // Preload images
-    preloadImages(imageUrls);
+    document.addEventListener('touchmove', preventDefault, { passive: false });
 
     return () => {
       clearTimeout(timer);
       window.removeEventListener("beforeunload", handleBeforeUnload);
       window.removeEventListener("popstate", handlePopState);
+      document.removeEventListener('touchmove', preventDefault);
     };
   }, []);
 
@@ -112,8 +146,10 @@ function App() {
   function setFullScreenDimensions() {
     const appContainer = document.querySelector(".App");
     if (appContainer) {
+      appContainer.style.setProperty('--tg-viewport-height', '100vh');
+      appContainer.style.setProperty('--tg-viewport-stable-height', '100vh');
+      appContainer.style.height = "100vh";
       appContainer.style.width = "100%";
-      appContainer.style.height = "100%";
     }
   }
 
@@ -123,6 +159,7 @@ function App() {
 
   const isNewsPage = location.pathname === '/news';
 
+
   return (
     <QueryClientProvider client={queryClient}>
       <TreasureProvider>
@@ -131,28 +168,30 @@ function App() {
             <TelegramContext>
               <ReferralProvider>
                 <TaskProvider>
-                  <div className="app-container">
-                    <main
-                      className="App-main w-full h-full flex flex-col content-center items-center relative font-poppins"
-                      style={{
-                        color: isNewsPage ? 'initial' : 'white',
-                        textShadow: isNewsPage ? 'initial' : '1px 1px 3px rgba(0, 0, 0, 0.7)',
-                      }}
-                      onTouchMove={(e) => e.stopPropagation()} // Allow scrolling
-                    >
-                      <div className="z-0" />
-                      <div
-                        className="w-screen h-screen fixed -z-10"
+                  <LeaderboardProvider>
+                    <div className="app-container">
+                      <main
+                        className="App-main w-full h-full flex flex-col content-center items-center relative font-poppins"
                         style={{
-                          backgroundImage: `url(${bgMain})`,
-                          backgroundSize: 'cover',
-                          backgroundPosition: 'center',
+                          color: isNewsPage ? 'initial' : 'white',
+                          textShadow: isNewsPage ? 'initial' : '1px 1px 3px rgba(0, 0, 0, 0.7)',
                         }}
-                      />
-                      <Outlet /> {/* Ensure Outlet is included to render nested routes */}
-                      <Navigation style={{ position: 'fixed', bottom: 0, width: '100%', zIndex: 1000 }} />
-                    </main>
-                  </div>
+                        onTouchMove={(e) => e.stopPropagation()}
+                      >
+                        <div className="z-0" />
+                        <div
+                          className="w-screen h-screen fixed -z-10"
+                          style={{
+                            backgroundImage: `url(${bgMain})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                          }}
+                        />
+                        <Outlet />
+                        <Navigation />
+                      </main>
+                    </div>
+                  </LeaderboardProvider>
                 </TaskProvider>
               </ReferralProvider>
             </TelegramContext>

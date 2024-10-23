@@ -1,0 +1,230 @@
+/* Global Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Rajdhani', sans-serif;
+  background-color: #121212;
+  color: #e0e0e0;
+}
+
+/* Dashboard Container */
+.dashboard-container {
+  max-width: 1200px;
+  margin: 50px auto;
+  padding: 20px;
+  background: #1f1f1f;
+  border-radius: 15px;
+  box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* Header Section */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #333;
+}
+
+.coin-info {
+  display: flex;
+  align-items: center;
+}
+
+.coin-name, .coin-symbol {
+  font-size: 2rem;
+  margin-right: 20px;
+}
+
+.coin-icon::before, .symbol-icon::before {
+  content: "💰";
+  margin-right: 10px;
+  font-size: 2.5rem;
+}
+
+/* Creator & Owner Section */
+.creator-owner-section {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+}
+
+.creator, .owner {
+  background: #252525;
+  padding: 20px;
+  border-radius: 10px;
+  width: 48%;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.creator h3, .owner h3 {
+  font-size: 1.5rem;
+  margin-bottom: 15px;
+  color: #6ab04c;
+}
+
+.creator p, .owner p {
+  font-size: 1rem;
+  margin-bottom: 10px;
+}
+
+.copy-btn {
+  background-color: #6ab04c;
+  color: #1f1f1f;
+  padding: 8px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.copy-btn:hover {
+  background-color: #48a842;
+}
+
+/* Supply & Liquidity Section */
+.supply-liquidity {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+}
+
+.total-supply, .total-liquidity {
+  background: #252525;
+  padding: 20px;
+  width: 48%;
+  border-radius: 10px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.total-supply h4, .total-liquidity h4 {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+  color: #ffcc00;
+}
+
+.total-supply p, .total-liquidity p {
+  font-size: 1.2rem;
+  color: #e0e0e0;
+}
+
+/* Liquidity Providers & Top Holders */
+.holders-liquidity {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+}
+
+.liquidity-providers, .top-holders {
+  background: #252525;
+  padding: 20px;
+  width: 48%;
+  border-radius: 10px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.liquidity-providers h4, .top-holders h4 {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+  color: #ffcc00;
+}
+
+.liquidity-providers p, .top-holders ul {
+  font-size: 1.2rem;
+}
+
+.top-holders ul {
+  list-style-type: none;
+}
+
+.top-holders li {
+  margin-bottom: 10px;
+}
+
+.copy-btn {
+  background-color: #ffcc00;
+  color: #1f1f1f;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.copy-btn:hover {
+  background-color: #e6b800;
+}
+
+/* Tax Section */
+.tax-section {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+}
+
+.buy-tax, .sell-tax {
+  background: #252525;
+  padding: 20px;
+  width: 48%;
+  border-radius: 10px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.buy-tax h4, .sell-tax h4 {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+  color: #f39c12;
+}
+
+.buy-tax p, .sell-tax p {
+  font-size: 1.2rem;
+}
+
+/* Listings Section */
+.listings {
+  margin-top: 30px;
+  background: #252525;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.listings h4 {
+  font-size: 1.5rem;
+  color: #ffcc00;
+  margin-bottom: 10px;
+}
+
+.listing-icons {
+  display: flex;
+}
+
+.listing-icons a {
+  margin-right: 20px;
+  font-size: 1.2rem;
+  color: #f39c12;
+  text-decoration: none;
+}
+
+.listing-icons a:hover {
+  color: #ffbf00;
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+  .creator-owner-section,
+  .supply-liquidity,
+  .holders-liquidity,
+  .tax-section {
+    flex-direction: column;
+  }
+
+  .creator, .owner, .total-supply, .total-liquidity, .liquidity-providers, .top-holders, .buy-tax, .sell-tax {
+    width: 100%;
+    margin-bottom: 20px;
+  }
+}

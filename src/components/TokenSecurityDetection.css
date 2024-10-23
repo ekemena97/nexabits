@@ -1,0 +1,152 @@
+/* General container styling */
+.token-security-container {
+  text-align: center;
+  padding-top: 5px;
+  padding-right: 1px;
+  padding-left: 1px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Headings */
+h1 {
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+  color: #00ffdd;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+p {
+  font-size: 1.1rem;
+  color: #aaaaaa;
+  line-height: 1.5;
+}
+
+/* Form container */
+.form-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  flex-wrap: nowrap;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* Inputs and buttons */
+.network-select, .token-input, .check-button {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #00ffdd;
+  background-color: #25254e;
+  color: white;
+  text-align: center;
+  font-size: 1rem;
+  box-sizing: border-box;
+  transition: all 0.3s ease-in-out;
+}
+
+.network-select {
+  width: 30%;
+}
+
+.token-input {
+  width: 60%;
+}
+
+.check-button {
+  width: 20%;
+  background-color: #00d896;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  padding-right: 10px;
+  padding-left: 10px;
+}
+
+.check-button:hover {
+  background-color: #00b681;
+  transform: scale(1.05);
+}
+
+/* Coin Info Styling (Horizontally Aligned with more space and padding) */
+.coin-info {
+  display: flex;
+  justify-content: space-evenly; /* Spread items evenly */
+  gap: 40px; /* Increased gap between items for better clarity */
+  margin-top: 20px;
+  padding: 15px 30px; /* Add more padding for breathing space */
+  font-size: 1.3rem;
+  background-color: #25254e;
+  border-radius: 8px;
+}
+
+/* Coin Info Item (Aligned horizontally, responsive size) */
+.coin-info-item {
+  display: flex;
+  align-items: center;  /* Vertically center icon, text, and number */
+  justify-content: flex-start;  /* Align items horizontally */
+  gap: 10px;  /* Space between icon, label, and value */
+  padding: 5px 0;  /* Add slight padding */
+  flex-wrap: nowrap;  /* Prevent wrapping */
+  width: 100%;  /* Ensure the item spans full width */
+}
+
+/* Icon Styling */
+.icon {
+  font-size: 1.5rem;  /* Default size for the icon */
+  color: #00ffdd;  /* Default color for icons */
+  margin-right: 5px;  /* Ensure space between icon and text */
+}
+
+/* Span styling for text and number */
+.coin-info-item span {
+  display: inline-block;  /* Ensure the text behaves as inline */
+  font-size: 1.2rem;  /* Default font size */
+  color: white;  /* Default text color */
+  white-space: nowrap;  /* Prevent text wrapping */
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+  .coin-info-item {
+    gap: 8px;  /* Reduce gap on smaller screens */
+  }
+
+  .icon {
+    font-size: 1.2rem;  /* Reduce icon size for smaller screens */
+  }
+
+  .coin-info-item span {
+    font-size: 1rem;  /* Reduce text size for smaller screens */
+  }
+}
+
+@media (max-width: 480px) {
+  .coin-info-item {
+    gap: 6px;  /* Further reduce gap on very small screens */
+  }
+
+  .icon {
+    font-size: 1rem;  /* Further reduce icon size */
+  }
+
+  .coin-info-item span {
+    font-size: 0.9rem;  /* Further reduce text size */
+  }
+}
+
+
+/* The main dashboard */
+
+

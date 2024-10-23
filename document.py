@@ -5,7 +5,7 @@ from google.cloud.firestore_v1._helpers import DatetimeWithNanoseconds
 import datetime
 
 # Set up Firestore client
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "C:/Users/Hp/Desktop/TapTap/nexabit/nexabit2-245fe89ff2e6.JSON"
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "C:/Users/Hp/Desktop/TapTap/nexabit/nexabits-525d28620a6a.JSON"
 db = firestore.Client()
 
 class CustomJSONEncoder(json.JSONEncoder):
@@ -67,18 +67,38 @@ def fetch_and_save_all_documents():
 
     print(f"All documents have been saved to '{output_file}'")
 
+def upload_data_from_file():
+    collection_name = input("Please enter the collection name: ")
+    file_name = input("Please enter the JSON file name (including .json extension): ")
+
+    try:
+        with open(file_name, 'r') as f:
+            data = json.load(f)
+
+        for key, value in data.items():
+            db.collection(collection_name).document(key).set(value)
+
+        print(f"Data from '{file_name}' has been uploaded to the '{collection_name}' collection successfully.")
+    except FileNotFoundError:
+        print(f"The file '{file_name}' was not found.")
+    except json.JSONDecodeError:
+        print(f"There was an error decoding the JSON file '{file_name}'. Please ensure it is valid JSON.")
+
 def main():
     print("Select the functionality to execute:")
     print("1. Fetch and print a specific document by unique ID")
     print("2. Fetch and save all documents in a collection as a JSON file")
-    choice = input("Enter the number of the functionality you want to execute (1 or 2): ")
+    print("3. Upload data from a JSON file to a Firestore collection")
+    choice = input("Enter the number of the functionality you want to execute (1, 2, or 3): ")
     
     if choice == '1':
         fetch_specific_document()
     elif choice == '2':
         fetch_and_save_all_documents()
+    elif choice == '3':
+        upload_data_from_file()
     else:
-        print("Invalid choice. Please run the script again and enter 1 or 2.")
+        print("Invalid choice. Please run the script again and enter 1, 2, or 3.")
 
 if __name__ == "__main__":
     main()

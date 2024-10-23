@@ -11,7 +11,7 @@ export const TapProvider = ({ children }) => {
   const [count, setCount] = useState(5000);
   const [coinsPerTap, setCoinsPerTap] = useState(1);
   const [energyLimit, setEnergyLimit] = useState(500);
-  const [refillRate, setRefillRate] = useState(2400);
+  const [refillRate, setRefillRate] = useState(600);
   const [energy, setEnergy] = useState(500);
   const hasInitialized = useRef(false);
 
@@ -48,7 +48,7 @@ export const TapProvider = ({ children }) => {
     const initialCount = await fetchStoredValue('count', 5000);
     const initialCoinsPerTap = await fetchStoredValue('coinsPerTap', 1);
     const initialEnergyLimit = await fetchStoredValue('energyLimit', 500);
-    const initialRefillRate = await fetchStoredValue('refillRate', 2400);
+    const initialRefillRate = await fetchStoredValue('refillRate', 600);
     const initialEnergy = calculateInitialEnergy(initialEnergyLimit, initialRefillRate);
 
     setCount(initialCount);

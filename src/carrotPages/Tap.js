@@ -14,6 +14,9 @@ import "../components/robotIcon.css";
 import { useTreasureContext } from '../context/treasureContext.js'; // Import the custom hook
 import useForceUpdate from '../components/useForceUpdate.js'; // Custom hook to force updates
 import Campaigns from "../components/Campaigns.js";
+import NetworkButtons from "../components/NetworkButtons.js";
+import TokenSecurityDetection from "../components/TokenSecurityDetection.js";
+
 import notification from "../assets/notification.gif"; // Replace 'myGif.gif' with the actual name of your GIF file
 
 import "./Tap.css";
@@ -355,22 +358,29 @@ const Tap = () => {
                 color: 'gold',
                 fontSize: '0.6rem',
                 marginLeft: '8.7rem',
-                marginTop: '-17.5rem',
+                marginTop: '-18rem',
               }}
             >
               +{coin.value}
             </div>
           ))}
       
-      
+        
+        <NetworkButtons />
+        <TokenSecurityDetection />
         <div className="flex flex-col items-center sm:p-0 p-3">
+        
+          
+          
           <div className="flex flex-col h-full sm:w-[80%] w-full items-center py-6 justify-items-center sm:space-y-20 space-y-16">
-            <div className="small-robot-icon-container" style={{ marginTop: '-2%' }}>
+            
+            
+            {/*<div className="small-robot-icon-container" style={{ marginTop: '-2%' }}>
               <RobotIcon className="small-robot-icon" />
               <div className="red-dot"></div>
-            </div>
+            </div> */}
 
-            <div className="flex items-center justify-center mt-1" style={{ marginTop: '2%', marginLeft: '2rem', position: 'relative' }}>
+            <div className="flex items-center justify-center mt-1" style={{ marginTop: '10.5rem', marginLeft: '80%', position: 'absolute' }}>
               <Link to="/leaderboard" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', position: 'relative' }}>
                 <span className="text-xs sm:text-sm lg:text-base xl:text-lg 2xl:text-xl" style={{ color: "#96DED1", marginRight: '0.5rem', lineHeight: '1.2' }}>
                   {getRankText()}
@@ -378,7 +388,7 @@ const Tap = () => {
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'center', marginLeft: '0.6rem', }}>
                   <FaTrophy style={{ color: 'gold', marginRight: '2px', fontSize: '12px', verticalAlign: 'middle' }} />
                   {/* Notification gif and Top 60 text visibility toggled here */}
-                  {notificationVisible && (
+                  {/*{notificationVisible && (
                     <>
                       <div style={{ position: 'absolute', top: '-25px', left: '50%', transform: 'translateX(-50%)' }}>
                         <img 
@@ -390,13 +400,13 @@ const Tap = () => {
                       </div>
                       <span className="text-xs sm:text-sm lg:text-base xl:text-lg 2xl:text-xl" style={{ verticalAlign: 'middle' }}>Top 60</span>
                     </>
-                  )}
+                  )} */}
                   <FaChevronRight style={{ marginLeft: '1px', fontSize: '10px', verticalAlign: 'middle' }} />
                 </div>
               </Link>
             </div>
 
-            <div
+            {/*<div
               onClick={handleClick}
               className={`text-sm flex flex-col items-center gap-1 ${
                 isTappable ? "cursor-pointer" : "cursor-not-allowed"
@@ -413,23 +423,24 @@ const Tap = () => {
               />
               <p className="text-xs sm:text-sm lg:text-base xl:text-lg 2xl:text-xl text-gray-100">Tap coin, Earn $NEXAI</p>
               <br></br>
-            </div>
+            </div> */}
 
             <div
               className="w-full flex flex-col items-center mb-16"
-              style={{ marginTop: "-0.1%" }}
-            >
+              style={{ marginTop: "1%" }}
+            > {/*<p className="text-xs sm:text-sm lg:text-base xl:text-lg 2xl:text-xl text-gray-100">Tap coin, Earn $NEXAI</p>*/}
+              <br></br>
               <div className="flex flex-col items-center justify-center w-[80%] mb-4">
-                <div className="w-full bg-[#D2B48C] rounded-full h-6 overflow-hidden mb-2">
+                <div className="w-full bg-[#D2B48C] rounded-full h-4 overflow-hidden mb-2">
                   <div
-                    className="h-6 rounded-full bg-gradient-to-r from-[#5A5FFF] to-[#6B7CFE]"
+                    className="h-4 rounded-full bg-gradient-to-r from-[#5A5FFF] to-[#6B7CFE]"
                     style={{
                       width: `${(energy / energyLimit) * 100}%`,
                     }}
                   ></div>
                 </div>
                 <div className="flex items-center text-xs sm:text-sm lg:text-base xl:text-lg 2xl:text-xl text-gray-100">
-                  <span className="text-2xl mx-2">🔥</span> Energy Level{" "}
+                  <span className="text-2xl mx-2">🔥</span> Next Epoch in{" "}
                   <span className="ml-2 font-bold text-white">
                     {energy}/{energyLimit}
                   </span>

@@ -1,0 +1,11 @@
+{
+  "version": "1.0",
+  "apis": [
+    {
+      "identifier": "goplus",
+      "source": "@goplus/v1.0#111vgnp1om1nf4w9s",
+      "integrity": "sha512-z9fUSxGC1UjTsn3ty1HKjCyzm4R3StEeJ+nabLUILA2OvoI4KGtcKeFj+/S2zEuSrw4hd8n+9Kci3YA767jzlQ==",
+      "installerVersion": "6.1.2"
+    }
+  ]
+}

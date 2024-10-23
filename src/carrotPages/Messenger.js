@@ -40,8 +40,22 @@ const Messenger = () => {
     setStatus('');
 
     try {
+      let finalMessage = message.trim();
+      let inlineKeyboard = null;
+
+      // Handle reminder messages
+      if (finalMessage.toLowerCase().startsWith('reminder')) {
+        finalMessage = finalMessage.substring(8).trim(); // Remove 'reminder'
+        inlineKeyboard = {
+          inline_keyboard: [
+            [{ text: '🚀 Open App', url: 'https://t.me/NexaBit_Tap_bot/start' }],
+            [{ text: '🌐 Join Group', url: 'https://t.me/nexabitHQ' }]
+          ]
+        };
+      }
+
       let response;
-      if (message.trim().toLowerCase() === 'start') {
+      if (finalMessage.toLowerCase() === 'start') {
         response = await fetch(`${process.env.REACT_APP_API_URL}/api/trigger-start`, {
           method: 'POST',
           headers: {
@@ -54,7 +68,10 @@ const Messenger = () => {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ message }),
+          body: JSON.stringify({
+            message: finalMessage,
+            inlineKeyboard, // Include the inline keyboard if applicable
+          }),
         });
       }
 

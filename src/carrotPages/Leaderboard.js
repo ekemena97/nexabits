@@ -1,23 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
+import { LeaderboardContext } from '../context/LeaderboardContext.js';
 import './Leaderboard.css';
-import data from '../assets/data.json';
 import gold from '../assets/gold.png';
 import silver from '../assets/silver.png';
 import bronze from '../assets/bronze.png';
+import bgMain from '../assets/bg-main.png'; // Import the background image
 
 const Leaderboard = () => {
-  const [referralUsers, setReferralUsers] = useState([]);
-  const [contentCreatorUsers, setContentCreatorUsers] = useState([]);
+  const { leaderboardReferralUsers, leaderboardContentCreatorUsers } = useContext(LeaderboardContext);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [showDetails, setShowDetails] = useState(false);
 
+  // Sort referral users by referrals
+  const sortedReferralUsers = [...leaderboardReferralUsers].sort((a, b) => b.referrals - a.referrals);
+
+  // Sort content creator users by points
+  const sortedContentCreatorUsers = [...leaderboardContentCreatorUsers].sort((a, b) => b.points - a.points);
+
   useEffect(() => {
-    const sortedReferralUsers = data.referralContest.sort((a, b) => b.referrals - a.referrals);
-    const sortedContentCreatorUsers = data.contentCreatorContest.sort((a, b) => b.points - a.points);
-
-    setReferralUsers(sortedReferralUsers);
-    setContentCreatorUsers(sortedContentCreatorUsers);
-
     const handleScroll = () => {
       const scrollTop = window.scrollY;
       const docHeight = document.body.scrollHeight - window.innerHeight;
@@ -80,13 +80,33 @@ const Leaderboard = () => {
 
   const handleShowDetails = () => {
     setShowDetails(!showDetails);
+    if (!showDetails) {
+      document.body.style.overflow = 'hidden'; // Disable background scrolling
+    } else {
+      document.body.style.overflow = ''; // Re-enable background scrolling
+    }
   };
 
+  useEffect(() => {
+    // Cleanup function to reset body overflow when the component unmounts
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
+
   return (
-    <div className="leaderboard">
+    <div className="leaderboard"
+      style={{
+        backgroundImage: `url(${bgMain})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        minHeight: '100vh',
+      }}
+    >
       <div className="scroll-progress" style={{ width: `${scrollProgress}%` }} />
       <div className="contest-announcement">
-        <h2>Join the Ultimate Contest and Claim Your Share of $40,000 in USDC! 🎉</h2>
+        <h2>Join the Ultimate Contest and Claim Your Share of $40,000 ! 🎉</h2>
         <button className="details-button" onClick={handleShowDetails}>
           📜 Click To Read Event Details
         </button>
@@ -104,7 +124,7 @@ const Leaderboard = () => {
               </tr>
             </thead>
             <tbody>
-              {referralUsers.map((user, index) => (
+              {sortedReferralUsers.map((user, index) => (
                 <tr key={user.id}>
                   <td>{getPosition(index)}</td>
                   <td>{user.firstname}</td>
@@ -127,7 +147,7 @@ const Leaderboard = () => {
               </tr>
             </thead>
             <tbody>
-              {contentCreatorUsers.map((user, index) => (
+              {sortedContentCreatorUsers.map((user, index) => (
                 <tr key={user.id}>
                   <td>{getPosition(index)}</td>
                   <td>{user.firstname}</td>
@@ -146,59 +166,49 @@ const Leaderboard = () => {
             <div className="modal-close-icon" onClick={handleShowDetails}>✖</div>
             <h2>🎉 Two Contests, One Huge Opportunity! 🎉</h2>
             <p>
-              We're excited to announce two incredible contests with a total prize pool of $40,000 in USDC! Each contest has a prize pool of $20,000, and everyone is welcome to participate in both contests to maximize their earnings.
+              We're excited to announce two incredible contests with a total prize pool of $40,000 in NeXAI token! Each contest has a prize pool of $20,000, and everyone is welcome to participate in both contests to maximize their earnings.
             </p>
             <h3>🔥 The Stakes Are High, and the Rewards Are Even Higher! 🔥</h3>
             <ul>
-              <li>🥇 <strong>1st Place:</strong> Win up to $6,000 in USDC!</li>
-              <li>🥈 <strong>2nd Place:</strong> Earn up to $5,000 in USDC!</li>
-              <li>🥉 <strong>3rd Place:</strong> Take home up to $3,000 in USDC!</li>
+              <li>🥇 <strong>1st Place:</strong> Win up to $6,000 !</li>
+              <li>🥈 <strong>2nd Place:</strong> Earn up to $5,000 !</li>
+              <li>🥉 <strong>3rd Place:</strong> Take home up to $3,000 !</li>
             </ul>
             <p>
               In addition to the top three prizes, participants who place between 4th and 10th will share $5,000, those between 11th and 20th will share $4,000, and those between 21st and 30th will share $3,500.
             </p>
-            <h3>🔥 Content Challenge Details 🔥</h3>
-            <p>
-              The Content Challenge requires participants to create original content, post it on social media, and share the link with your followers, encouraging them to like, comment, and share with others. You can post on your favorite social media platforms such as YouTube, Twitter (X), TikTok, Facebook, and Instagram. On YouTube and TikTok, we check the number of views; on Twitter, Facebook, Instagram, or other platforms, we check the number of likes, retweets, and shares.
-            </p>
-            <p>
-              The content topics for the challenge include:
-            </p>
+            <h3>🔥 Content Challenge Scoring Guide 🔥</h3>
+            <p>Your content is scored on a scale of 0 to 100 based on the following engagement metrics:</p>
             <ul>
-              <li>1. How to sign up on Telegram</li>
-              <li>2. How to protect your privacy on Telegram (Stop unknown users from adding you to groups without your consent)</li>
-              <li>3. How to search for your favorite mini app on Telegram</li>
-              <li>4. How to navigate your way on the NexaBit mini app on Telegram</li>
-              <li>5. The role of AI in financial market analysis</li>
-              <li>6. How AI is making life easy recently (OpenAI and co)</li>
-              <li>7. How to analyze the crypto market using the NexaBit AI</li>
-              <li>8. How to read your favorite news updates and get airdrop news on NexaBit</li>
-              <li>9. How to earn keys on NexaBit</li>
-              <li>10. How to claim daily points in order to get positioned for airdrops</li>
-              <li>11. How to pin your favorite Telegram channel or bot to the top of your Telegram</li>
-              <li>12. How to maximize your points on NexaBit</li>
-              <li>13. What is market analysis (Simple market indicators explained and fear/greed index)</li>
-              <li>14. How to trace support and resistance</li>
-              <li>15. What is dollar-cost averaging and how does it help a crypto trader</li>
-              <li>16. How to set up buying levels and selling levels while trading</li>
-              <li>17. How to set stop loss and take profit during trading</li>
-              <li>18. What is Telegram mini app</li>
-              <li>More topics are released every week.</li>
+              <li><strong>Views (10%)</strong>: The number of times your content is watched.</li>
+              <li><strong>Likes (30%)</strong>: The number of likes significantly boosts your score.</li>
+              <li><strong>Shares (35%)</strong>: Shares have the highest impact on your score.</li>
+              <li><strong>Comments (25%)</strong>: Comments reflect deeper engagement. Spam or unrelated comments will reduce your score through a penalty applied by the Comment Quality Factor (CQF).</li>
+              <li><strong>Follower Factor</strong>: Your score is balanced according to your follower count to ensure fairness.</li>
             </ul>
-            <p>
-              All links must be submitted every week via this <strong>[form]</strong>, and the leaderboard is updated on the first day of each week.
-            </p>
+            <p><strong>Formula to Calculate Final Score</strong>:</p>
+            <pre style={{ whiteSpace: 'pre-wrap' }}>{`
+Raw Score = (Views / Followers * 10) + (Likes / Followers * 30) + (Shares / Followers * 35) + (Comments / Followers * 25 * CQF)
+
+Adjusted Score = Raw Score * Follower Factor
+
+Final Score = min((Adjusted Score / Max Raw Score) * 100, 100)
+            `}</pre>
+            <p>Scores are updated every 12 hours to reflect the latest engagement metrics. Each content submission can take up to 24 hours to be evaluated by our team of judges. Submit your content link for evaluation within each scoring period to ensure your score is up to date.</p>
             <h3>🔥 Referral Challenge Details 🔥</h3>
             <p>
               The rules for the Referral Challenge are simple: the referral should have earned at least 10,000 points on the NexaBit App (t.me/Nexabit_Tap_Bot/start).
             </p>
             <h3>🎁 Special Surprise Bonus 🎁</h3>
             <p>
-              We’re also giving away $1,000 in USDC, distributed randomly to 10 amazing participants who referred at least 10 users or other affiliates. This is our way of thanking those who go above and beyond!
+              We’re also giving away $1,000, distributed randomly to 10 amazing participants who referred at least 10 users or other affiliates. This is our way of thanking those who go above and beyond!
             </p>
             <h4>🗓 Contest Dates: 30th August 2024 - 30th September 2024</h4>
             <p>
               Both contests run simultaneously, giving you the opportunity to earn from both! Don't miss your chance to participate and win big. Remember, the more you engage, the more you can earn!
+            </p>
+            <p>
+              Please note that citizens of the US, Lebanon, Iraq, Sudan, Syria, North Korea, Afghanistan, Myanmar, and Barbados are not eligible to participate in the contest.
             </p>
             <p><strong>Join both contests today and let’s make history together!</strong></p>
             <button className="close-details-button" onClick={handleShowDetails}>Close Details</button>

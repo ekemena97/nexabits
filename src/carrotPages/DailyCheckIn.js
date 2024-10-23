@@ -101,38 +101,40 @@ const DailyCheckIn = ({ onClose, onClaimReward, onCheckIn }) => {
   };
 
   const handleClaim = () => {
-    if (canClaim) {
-      const newClaimedDays = [...claimedDays, currentDay];
-      setClaimedDays(newClaimedDays);
-      localStorage.setItem('claimedRewardDays', JSON.stringify(newClaimedDays));
+  if (canClaim) {
+    const newClaimedDays = [...claimedDays, currentDay];
+    setClaimedDays(newClaimedDays);
+    localStorage.setItem('claimedRewardDays', JSON.stringify(newClaimedDays));
 
-      const endTime = new Date(new Date().getTime() + 12 * 60 * 60 * 1000);
-      localStorage.setItem('rewardEndTime', endTime);
+    const endTime = new Date(new Date().getTime() + 12 * 60 * 60 * 1000);
+    localStorage.setItem('rewardEndTime', endTime);
 
-      setCanClaim(false);
-      startClaimTimer(12 * 60 * 60 * 1000);
+    setCanClaim(false);
+    startClaimTimer(12 * 60 * 60 * 1000);
 
-      const rewardAmount = convertToPoints(rewards.find(reward => reward.day === currentDay).amount);
-      onClaimReward(rewardAmount);
-      handleDailyCheckIn();  //trigger the daily and consecutive checkin counter from the campaign.js
+    const rewardAmount = convertToPoints(rewards.find(reward => reward.day === currentDay).amount);
+    onClaimReward(rewardAmount);
+    handleDailyCheckIn();  // Trigger the daily and consecutive checkin counter from the Campaigns.js
 
-      if (onCheckIn) {
-        onCheckIn();  // Notify Tap.js to re-render
-      }
-
-      if (window.Telegram.WebApp.ready()) {
-        window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
-      }
-
-      setShowSuccess(true);
-      setTimeout(() => {
-        setShowSuccess(false);
-        onClose();
-      }, 1000); // Display success message for 2 seconds
-
-      localStorage.removeItem('resetRewardEndTime');
+    if (onCheckIn) {
+      onCheckIn();  // Notify Tap.js to re-render
     }
-  };
+
+    // Trigger haptic feedback
+    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+      window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');  // Medium impact feedback
+    }
+
+    setShowSuccess(true);
+    setTimeout(() => {
+      setShowSuccess(false);
+      onClose();
+    }, 1000); // Display success message for 1 second
+
+    localStorage.removeItem('resetRewardEndTime');
+  }
+};
+
 
   const convertToPoints = (amount) => {
     const unit = amount.slice(-1);

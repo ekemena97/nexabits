@@ -64,16 +64,12 @@ const Task = () => {
 
   return (
     <section
-      className={`h-full w-[90%] flex flex-col mt-10 mb-16 relative ${
-        theme === "dark" ? "bg-[#19191E] text-[#fff]" : "bg-[#fff] text-[#192928]"
-      } `}
+      className="h-full w-[90%] flex flex-col mt-10 mb-16 relative"
     >
       <h1 className="sm:text-2xl text-xl my-3 text-center font-semibold text-gray-100"></h1>
 
       <div
-        className={`w-full min-h-[70vh] rounded overflow-y-scroll scrollbar-hide ${
-          theme === "dark" ? "bg-[#19191E] text-[#fff]" : "bg-[#F1F2F2] text-[#192928]"
-        }`}
+        className="w-full min-h-[70vh] rounded overflow-y-scroll scrollbar-hide"
       >
         {realTasks.map((task, taskIndex) => (
           <div key={taskIndex} className="flex mx-auto flex-col gap-3 items-center pt-5">
@@ -84,9 +80,7 @@ const Task = () => {
                     {task.title}
                   </h1>
                   <div
-                    className={`px-4 py-2 rounded-md flex flex-row items-center justify-between cursor-pointer ${
-                      theme === "dark" ? "bg-[#232323] border border-gray-200" : "bg-[#fff] border border-[#F1F2F2]"
-                    }`}
+                    className="px-4 py-2 rounded-md flex flex-row items-center justify-between cursor-pointer border border-gray-200"
                   >
                     <div className="flex flex-row items-center gap-2">
                       <span className="text-3xl">
@@ -127,9 +121,7 @@ const Task = () => {
                   onClick={() => handleTaskClick(item, taskIndex, itemIndex)}
                 >
                   <div
-                    className={`px-4 py-2 rounded-md flex flex-row items-center justify-between cursor-pointer ${
-                      theme === "dark" ? "bg-[#232323] border border-gray-200" : "bg-[#fff] border border-[#F1F2F2]"
-                    }`}
+                    className="px-4 py-2 rounded-md flex flex-row items-center justify-between cursor-pointer border border-gray-200"
                   >
                     <div className="flex flex-row items-center gap-2">
                       <span className="text-2xl">

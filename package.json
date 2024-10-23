@@ -1,13 +1,16 @@
 {
-  "name": "NexaBit",
-  "version": "1.0.0",
+  "name": "NexaBits",
+  "version": "1.1.0",
   "private": true,
   "homepage": ".",
+  "proxy": "https://nexabitimage-858950055775.us-east1.run.app",
   "type": "module",
   "dependencies": {
+    "@api/goplus": "file:.api/apis/goplus",
     "@google-cloud/firestore": "^6.8.0",
     "@google-cloud/functions-framework": "^3.4.0",
     "@google-cloud/language": "^6.4.0",
+    "@goplus/sdk-node": "^1.0.12",
     "@tanstack/react-query": "^5.50.1",
     "@testing-library/jest-dom": "^6.4.2",
     "@testing-library/react": "^14.2.2",

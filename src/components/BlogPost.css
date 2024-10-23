@@ -47,6 +47,7 @@ body, html {
   margin: 0;
   /*color: #333; */
   line-height: 1.2; /* Decrease the space between lines */
+  color: #7677f0;
 }
 
 .blog-post-image {

@@ -51,7 +51,7 @@
   border: solid #444; /* Set border style and color */
   border-width: 1px 0 0 0; /* Top, right, bottom (none), left */
   padding: 10px; /* Add some padding for better spacing */
-  background-color: #19191E; /* Dark background to match dark mode */
+  
   color: #eee; /* Light text color for better contrast */
   border-radius: 8px 8px 0 0; /* Rounded corners only on the top */
   /*box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* Subtle shadow for a floating effect */

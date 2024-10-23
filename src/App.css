@@ -1,13 +1,18 @@
+/* General Styles */
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400&display=swap');
+
 html, body, #root {
   height: 100%;
   margin: 0;
   padding: 0;
   overflow: auto;
+  overscroll-behavior: none;
 }
 
 .app-container {
   height: 100%;
   overflow: auto;
+
 }
 
 .App {
@@ -29,7 +34,7 @@ html, body, #root {
 }
 
 .App-header {
-  background-color: #1c2025; /*#282c34;*/
+  background-color: #1c2025; /* Adjust to your preferred color */
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -47,36 +52,26 @@ html, body, #root {
 .App-main {
   flex: 1;
   overflow-y: auto; /* Allows scrolling if content overflows */
+  --tg-viewport-height: 100vh;
+  --tg-viewport-stable-height: 100vh;
+  height: 100vh;
 }
 
-html, body #root {
-  overscroll-behavior: none;
-  height: 100%;
-  margin: 0;
-  padding: 0;
+/* Fixed Navigation */
+.fixed-nav {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  z-index: 1000;
+  transition: bottom 0.3s ease;
 }
 
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
+/* Gradient and Glassmorphism Effects */
 .gradient-06 {
   position: absolute;
   width: 100%;
   height: 100%;
-  /* left: 20%; */
   top: 5%;
-
-  /* background: rgba(45, 72, 152, 0.75); */
   filter: blur(175px);
   transform: rotate(-180.2deg);
 }
@@ -85,9 +80,7 @@ html, body #root {
   position: absolute;
   width: 100%;
   height: 100%;
-  /* left: 20%; */
   top: 5%;
-
   background: rgba(232, 202, 2, 0.35);
   filter: blur(175px);
   transform: rotate(-180.2deg);
@@ -97,20 +90,14 @@ html, body #root {
   position: absolute;
   width: 304px;
   height: 100vh;
-  /* left: 30%; */
   top: 10%;
-
   background: rgba(45, 72, 152, 0.75);
   filter: blur(200px);
   transform: rotate(-53.13deg);
 }
 
 .gradient-05 {
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.04) 0%,
-    rgba(255, 255, 255, 0) 100%
-  );
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0) 100%);
 }
 
 .glassmorphism {
@@ -125,9 +112,6 @@ html, body #root {
   position: absolute;
   width: 100%;
   height: 100%;
-  /* left: 20%; */
-  /* right: 65%; */
-
   background: rgba(232, 202, 2, 0.35);
   filter: blur(45px);
   transform: rotate(-235.2deg);
@@ -138,12 +122,20 @@ html, body #root {
   position: absolute;
   width: 100%;
   height: 100%;
-  /* left: 30%; */
   top: 10%;
-
   background: rgba(45, 72, 152, 0.75);
   filter: blur(200px);
   transform: rotate(-53.13deg);
+}
+
+/* Animations */
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes coinCluster {
@@ -170,15 +162,6 @@ html, body #root {
   top: 50%;
   transform: translate(-50%, -50%);
   pointer-events: none;
-}
-
-
-.text-gold-500 {
-  color: rgb(236,214,82);
-}
-
-.text-blue-500 {
-  color: rgb(101,114,255);
 }
 
 @keyframes celebrationMove {
@@ -254,14 +237,20 @@ html, body #root {
   animation: rotate 5s linear infinite, blink 1s infinite;
 }
 
+/* Text Colors */
+.text-gold-500 {
+  color: rgb(236,214,82);
+}
+
+.text-blue-500 {
+  color: rgb(101,114,255);
+}
+
 .text-gold {
   color: gold;
 }
 
-/* logo.css */
+/* Logo Container */
 .logo-container {
   position: relative;
 }
-
-
-

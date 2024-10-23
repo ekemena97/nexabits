@@ -1,0 +1,35 @@
+.network-buttons-container {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background-color: #181A1B; /* Dark background similar to the image */
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.network-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #1f1f1f; /* Button-like background */
+  padding: 8px 16px;
+  border-radius: 12px;
+  margin: 0 10px;
+  transition: transform 0.2s ease-in-out;
+}
+
+.network-button:hover {
+  transform: scale(1.1); /* Simple hover effect */
+}
+
+.network-logo {
+  width: 20px;
+  height: 20px;
+  margin-right: 3px;
+}
+
+.network-button span {
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+}

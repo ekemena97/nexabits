@@ -422,11 +422,7 @@ const CryptoAnalysis = ({ onFetchAnalysis }) => {
 
   return (
     <div className="analysis-main-container">
-      <div className={`crypto-analysis ${
-          theme === "dark"
-            ? "bg-[#19191E] text-[#fff]"
-            : "bg-[#fff] text-[#19191E]"
-        }`}
+      <div className="crypto-analysis"
       >
         {message && <p className="message">{message}</p>} {/* Conditionally render the message */}
         <input 

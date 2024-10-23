@@ -7,6 +7,7 @@ import dotenv from 'dotenv';
 import fetch from 'node-fetch';
 import keepAlive from './keepAlive.js'; // Import the keep-alive function
 import { getStorageItem, setStorageItem } from './storageHelpers.js';
+import { GoPlus, ErrorCode } from '@goplus/sdk-node';
 import crypto from 'crypto'; // Importing the crypto module
 
 
@@ -504,7 +505,7 @@ app.use((req, res, next) => {
 
 // New route to send messages to all users
 app.post('/api/send-message', async (req, res) => {
-  const { message } = req.body;
+  const { message, inlineKeyboard } = req.body;
 
   if (!message || !message.trim()) {
     return res.status(400).json({ message: 'Message cannot be empty' });
@@ -521,7 +522,10 @@ app.post('/api/send-message', async (req, res) => {
 
       await Promise.all(
         batch.map(user => {
-          return bot.telegram.sendMessage(user.id, message).catch(err => console.error(`Failed to send message to ${user.id}:`, err));
+          return bot.telegram.sendMessage(user.id, message, {
+            reply_markup: inlineKeyboard || undefined, // Pass inline keyboard if provided
+            parse_mode: 'Markdown' // Use markdown if necessary
+          }).catch(err => console.error(`Failed to send message to ${user.id}:`, err));
         })
       );
 
@@ -536,6 +540,7 @@ app.post('/api/send-message', async (req, res) => {
     res.status(500).json({ message: 'Error sending messages' });
   }
 });
+
 
 
 
@@ -599,6 +604,57 @@ app.post('/api/validate-passcode', (req, res) => {
     res.json({ success: false });
   }
 });
+
+// Token security endpoint
+app.post('/token-security', async (req, res) => {
+  const { chainId, addresses } = req.body;
+
+  try {
+    let result;
+
+    if (chainId === '0') {
+      // Solana-specific API call
+      const solanaUrl = `https://api.gopluslabs.io/api/v1/solana/token_security?contract_addresses=${addresses[0]}`;
+      const options = {
+        method: 'GET',
+        headers: {
+          accept: '*/*',
+        },
+      };
+
+      // Fetch from the GoPlus Solana API
+      const solanaResponse = await fetch(solanaUrl, options);
+      result = await solanaResponse.json();
+    } else {
+      // General token security API call for other chains
+      const options = {
+        method: 'GET',
+        headers: {
+          accept: '*/*',
+        },
+      };
+
+      // Construct the URL for the general API call
+      const generalUrl = `https://api.gopluslabs.io/api/v1/token_security/${chainId}?contract_addresses=${addresses.join(',')}`;
+      
+      // Fetch from the GoPlus API for other chains
+      const generalResponse = await fetch(generalUrl, options);
+      result = await generalResponse.json();
+    }
+
+    if (!result || (result.code && result.code !== ErrorCode.SUCCESS)) {
+      return res.status(400).json({ error: result.message || 'Unknown error' });
+    }
+
+    return res.json({ result: result.result || result });
+  } catch (error) {
+    console.error('An error occurred:', error);
+    return res.status(500).json({ error: `Failed to fetch: ${error.message}` });
+  }
+});
+
+
+
 
 
 

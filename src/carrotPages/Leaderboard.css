@@ -17,6 +17,7 @@
   margin: 0;
   padding: 0;
   width: 100%;
+  padding-bottom: 100px;
 }
 
 .leaderboard h1 {
@@ -53,7 +54,6 @@
   justify-content: space-around; /* Adjust to place tables side by side */
   padding: 10px 15px; /* Adjust padding to bring the table closer to screen edges */
   overflow-x: auto; /* Enable horizontal scrolling */
-  background-color: #2c2c2c; /* Consistent lightened dark background */
 }
 
 .category {
@@ -65,11 +65,36 @@
   border-collapse: collapse;
   width: 100%;
   max-width: 600px; /* Adjusted width for side by side tables */
-  border-radius: 10px;
+  border-radius: 20px;
   overflow: hidden;
-  background-color: #383838; /* Light grey background for the table */
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); /* Softer shadow */
   margin: 0 10px; /* Small margin to avoid touching the screen edges */
+  position: relative; /* To position the side borders */
+}
+
+.leaderboard-table:before,
+.leaderboard-table:after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 5px; /* Adjust width as needed for thickness */
+  background: linear-gradient(to bottom, #ff66cc, #6699ff, #cc66ff, #ffd700); /* Gradient color for the border */
+}
+
+.leaderboard-table:before {
+  left: -5px; /* Adjust position to align with the left side */
+}
+
+.leaderboard-table:after {
+  right: -5px; /* Adjust position to align with the right side */
+}
+
+/* Adjusting existing border */
+.leaderboard-table {
+  border-top: 3px solid;
+  border-bottom: 3px solid;
+  border-image: linear-gradient(to right, #ff66cc, #6699ff, #cc66ff, #ffd700) 1;
 }
 
 th, td {
@@ -82,7 +107,7 @@ th, td {
 
 th {
   background-color: #bcadcc; /* Deep purple background for table headers */
-  background-image: linear-gradient(45deg, #c895fc, #8ebfa8); /* Slight gradient for depth */
+  background-image: linear-gradient(45deg, #3682d8, #7c77f0); /* Slight gradient for depth */
   font-size: 15px;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -90,11 +115,11 @@ th {
 }
 
 tbody tr:nth-child(odd) {
-  background-color: #494949; /* Lighter grey for alternating rows */
+   /* Lighter grey for alternating rows */
 }
 
 tbody tr:nth-child(even) {
-  background-color: #3e3e3e; /* Slightly darker grey for contrast */
+   /* Slightly darker grey for contrast */
 }
 
 tbody tr:hover {
@@ -119,12 +144,6 @@ td:nth-child(2) {
 
 td:nth-child(3) {
   color: #e6f2ff; /* Very light blue, close to white for the referrals */
-}
-
-/* Adding a gradient border to the table */
-.leaderboard-table {
-  border: 3px solid;
-  border-image: linear-gradient(to right, #ff66cc, #6699ff, #cc66ff, #ffd700) 1;
 }
 
 /* Modal Overlay */
@@ -212,6 +231,24 @@ td:nth-child(3) {
 
 /* Responsive Styles */
 @media screen and (max-width: 600px) {
+  .leaderboard h1 {
+    font-size: 20px;
+  }
+
+  th, td {
+    font-size: 13px;
+    padding: 8px;
+  }
+
+  .leaderboard-table {
+    width: 100%;
+    margin: 0;
+  }
+
+  .leaderboard-container {
+    flex-direction: column; /* Stack tables vertically on small screens */
+  }
+
   .modal-content {
     padding: 20px; /* Adjust padding for smaller screens */
   }
@@ -244,29 +281,6 @@ td:nth-child(3) {
   color: #ff5722; /* Change color on hover */
 }
 
-
-
-/* Responsive Styles */
-@media screen and (max-width: 600px) {
-  .leaderboard h1 {
-    font-size: 20px;
-  }
-
-  th, td {
-    font-size: 13px;
-    padding: 8px;
-  }
-
-  .leaderboard-table {
-    width: 100%;
-    margin: 0;
-  }
-
-  .leaderboard-container {
-    flex-direction: column; /* Stack tables vertically on small screens */
-  }
-}
-
 .details-button {
   display: block;
   margin: 20px auto;
@@ -274,7 +288,7 @@ td:nth-child(3) {
   font-size: 15px;
   font-weight: bold;
   color: #fff;
-  background: linear-gradient(135deg, #a76fe3 0%, #7788ed 100%);
+  background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
   border: none;
   border-radius: 5px;
   cursor: pointer;
@@ -292,7 +306,7 @@ td:nth-child(3) {
   padding: 10px 20px;
   font-size: 16px;
   color: #fff;
-  background-color: #ff5722;
+  background-color: #2b2d87;
   border: none;
   border-radius: 5px;
   cursor: pointer;

@@ -27,22 +27,18 @@ const AiAnalysis = () => {
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        textAlign: 'center', // Center text content
-        padding: '20px' // Add some padding to avoid content touching the edges
       }}
     >
-      <img src={animation2} alt="Animation" style={{ marginBottom: '20px' }} />
-      <h1 className="ai-title">AI Technical Analysis</h1>
-      {showIntro ? (
-        <p>Hey there! I'm your AI expert, ready to guide you on your crypto journey with insightful market analysis and tips.</p>
-      ) : (
-        <p>✨Leveraging billions of data points from CoinMarketCap and CoinGecko, fine-tuned with OpenAI datasets for precise insights.</p>
-      )}
-      <CryptoAnalysis onFetchAnalysis={handleFetchAnalysis} />
+      <div className="flex flex-col items-center justify-center h-full -mt-1 text-center px-5">
+        <img src={animation2} alt="Animation" className="-mb-1 w-20 h-20" />
+        <h1 className="ai-title text-xl font-bold mb-4">AI Technical Analysis</h1>
+        {showIntro ? (
+          <p className="text-base mb-6 px-3">Hey there! I'm your AI expert, ready to guide you on your crypto journey with insightful market analysis and tips.</p>
+        ) : (
+          <p className="text-base mb-6 px-3">✨Leveraging billions of data points from CoinMarketCap and CoinGecko, fine-tuned with OpenAI datasets for precise insights.</p>
+        )}
+        <CryptoAnalysis onFetchAnalysis={handleFetchAnalysis} />
+      </div>
     </div>
   );
 };
