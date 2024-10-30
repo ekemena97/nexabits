@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './TokenSecurityDetection.css'; // Custom CSS for styling
 import Dashboard from "../components/Dashboard.js";
-import { FaEthereum, FaUserAlt, FaExclamationTriangle, FaSkullCrossbones, FaFrown, FaCrown, FaCode, FaCheckCircle, FaTimesCircle } from 'react-icons/fa'; // Import icons
+import AddressDisplay from "./AddressDisplay.js";
+import { FaEthereum, FaUserAlt, FaExclamationTriangle, FaSkullCrossbones, FaFrown, FaCrown, FaCode, FaCheckCircle, FaTimesCircle, FaCopy, } from 'react-icons/fa'; // Import icons
 
 const TokenSecurityDetection = () => {
   const [riskyCount, setRiskyCount] = useState(0);
@@ -66,7 +67,7 @@ const TokenSecurityDetection = () => {
 
   const handleSubmit = async () => {
     if (!tokenAddress || tokenAddress === 'SUI Network will be added in the future' || tokenAddress === 'TON Network will be added in the future') {
-      setErrorMessage('Please enter a token address.');
+      setErrorMessage(<span style={{ fontSize: '0.5rem' }}>Please enter a token address.</span>);
       return;
     }
 
@@ -96,25 +97,25 @@ const TokenSecurityDetection = () => {
           "is_whitelisted",
           "is_blacklisted",
           "slippage_modifiable",
-          "anti_whale_modifiable",
-          "is_anti_whale",
           "trading_cooldown",
           "cannot_buy",
           "cannot_sell_all",
           "is_honeypot",
           "transfer_pausable",
           "owner_change_balance",
+          "selfdestruct",
         ];
 
         // List of specific fields for attention items
         const attentionFieldsToCheck = [
           "gas_abuse",
           "external_call",
-          "selfdestruct",
           "hidden_owner",
           "can_take_back_ownership",
           "is_proxy",
           "is_mintable",
+          "is_anti_whale",
+          "anti_whale_modifiable",
         ];
 
         // Count fields with a value of "1" for risky items
@@ -159,13 +160,13 @@ const TokenSecurityDetection = () => {
     } finally {
       setLoading(false);
     }
-  };
+  };  
 
   const isNetworkDisabled = selectedNetwork === 'SUI' || selectedNetwork === 'TON';
   const placeholderMessage = selectedNetwork === 'SUI'
-    ? 'SUI Network will be added in the future'
+    ? 'SUI Not Available Now'
     : selectedNetwork === 'TON'
-    ? 'TON Network will be added in the future'
+    ? 'TON Not Available Now'
     : 'Enter Token Address';
   const checker = (result, field) => {
     if (!result || !Object.keys(result)[0]) {
@@ -226,15 +227,31 @@ const TokenSecurityDetection = () => {
     );
   };
 
+  function formatNumber(value) {
+      const number = Number(value);
+      if (isNaN(number)) return "N/A";
+
+      if (number >= 1e27) return (number / 1e27).toFixed(1) + "D"; // Decillion
+      if (number >= 1e24) return (number / 1e24).toFixed(1) + "N"; // Nonillion
+      if (number >= 1e21) return (number / 1e21).toFixed(1) + "O"; // Octillion
+      if (number >= 1e18) return (number / 1e18).toFixed(1) + "S"; // Septillion
+      if (number >= 1e15) return (number / 1e15).toFixed(1) + "Q"; // Quadrillion
+      if (number >= 1e12) return (number / 1e12).toFixed(1) + "T"; // Trillion
+      if (number >= 1e9) return (number / 1e9).toFixed(1) + "B"; // Billion
+      if (number >= 1e6) return (number / 1e6).toFixed(1) + "M";   // Million
+      if (number >= 1e3) return (number / 1e3).toFixed(1) + "K";   // Thousand
+      return number.toFixed(1); // Default formatting
+  }
+
 
 
   return (
     <div className="token-security-container">
-      <h1>Token Security Detection</h1>
-      <p>Open, permissionless, user-driven token security detection platform</p>
+      <h1 style={{ fontSize: '1rem', fontWeight: 'bold' }}>Digital Asset Risk Assessment</h1>
+      <p style={{ fontSize: '0.8rem'}} >Unlock the truth behind the hype! Our AI empowers users to look beyond coin owner claims, revealing fraudulent tokens and uncovering past scams.</p>
 
       <div className="form-container">
-        <select value={selectedNetwork} onChange={handleNetworkChange} className="network-select">
+        <select value={selectedNetwork} onChange={handleNetworkChange} className="network-select" style={{ fontSize: '0.7rem' }}>
           <option value="Solana">Solana</option>
           <option value="Base">Base</option>
           <option value="Arbitrum">Arbitrum</option>
@@ -250,6 +267,7 @@ const TokenSecurityDetection = () => {
           placeholder={placeholderMessage}
           className="token-input"
           disabled={isNetworkDisabled}
+          style={{ fontSize: '0.8rem' }}
         />
         <button onClick={handleSubmit} className="check-button" disabled={isNetworkDisabled}>Check</button>
       </div>
@@ -260,41 +278,38 @@ const TokenSecurityDetection = () => {
       {result && (
         <>
           <div className="result-container">
-            <h2>Result:</h2>
+            <h2>Scan Result:</h2>
             {/* Raw JSON data (optional for debugging) */}
             {/*<pre>{JSON.stringify(result, null, 2)}</pre>*/}
           </div>
 
           {/* Coin Info Section */}
-          <div className="coin-info">
-            <div className="coin-info-item">
-              <FaUserAlt className="icon" />
-              <span>Name:</span>
-              {displayFieldValue(result, 'token_name')}
+          <div className="flex justify-between bg-gray-100 p-4 rounded-lg shadow-lg space-x-4">
+            <div className="flex items-center w-1/3 space-x-1 text-center">
+              <FaSkullCrossbones style={{ color: 'red' }} className="icon w-4 h-4 text-sm" /> {/* Set consistent width and height */}
+              <div>
+                <span className="text-sm">Threat:</span>
+                <span className="font-semibold ml-1">{riskyCount}</span>
+              </div>
             </div>
-            <div className="coin-info-item">
-              <FaEthereum className="icon" />
-              <span>Symbol:</span>
-              {displayFieldValue(result, 'token_symbol')}
+            <div className="flex items-center w-1/3 space-x-1 text-center">
+              <FaExclamationTriangle style={{ color: '#FFA500' }} className="icon w-4 h-4 text-sm" /> {/* Set consistent width and height */}
+              <div>
+                <span className="text-sm">Caution:</span>
+                <span className="font-semibold ml-1">{attentionCount}</span>
+              </div>
             </div>
-            <div className="coin-info-item">
-              <FaSkullCrossbones className="icon" />
-              <span>Risky item:</span>
-              <span>{riskyCount}</span>
-            </div>
-            <div className="coin-info-item">
-              <FaExclamationTriangle className="icon" />
-              <span>Attention item:</span>
-              <span>{attentionCount}</span>
-            </div>
-            <div className="coin-info-item">
-              <FaFrown className="icon" />
-              <span>Scam Coin Created:</span>
-              {displayFieldValue(result, 'honeypot_with_same_creator')}
+            <div className="flex items-center w-1/3 space-x-1 text-center">
+              <FaFrown style={{ color: 'purple' }} className="icon w-4 h-4 text-sm" /> {/* Set consistent width and height */}
+              <div>
+                <span className="text-sm">Scams:</span>
+                <span className="font-semibold ml-1">{displayFieldValue(result, 'honeypot_with_same_creator')}</span>
+              </div>
             </div>
           </div>
 
-          {/* Detection Summary Section */}
+
+          {/* The dashboard of the token details */}
           <div className="detection-summary" style={{ marginTop: '20px', marginBottom: '20px', textAlign: 'center' }}>
             {/* Creator and Owner Information */}
             <div className="creator-owner-info" style={{ 
@@ -305,20 +320,46 @@ const TokenSecurityDetection = () => {
               justifyContent: 'center'  /* Centering the content */
             }}>
               {/* Creator Info */}
-              <div className="creator-info" style={{ display: 'flex', alignItems: 'center', flex: '1 1 45%', minWidth: '200px', justifyContent: 'center' }}>
+              <div
+                className="creator-info"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  flex: '1 1 45%',
+                  minWidth: '200px',
+                  justifyContent: 'center'
+                }}
+              >
                 <FaCode className="icon" />
-                <span style={{ marginLeft: '5px' }}>Creator:</span>
-                {checker(result, 'creator_address')}
+                <span style={{ marginLeft: '1px' }}>Creator:</span>
+                <span style={{ marginLeft: '8px', fontSize: '0.8rem', }}>
+                  <AddressDisplay address={result[Object.keys(result)[0]].creator_address} />
+                </span>
               </div>
 
               {/* Owner Info */}
-              <div className="owner-info" style={{ display: 'flex', alignItems: 'center', flex: '1 1 45%', minWidth: '200px', justifyContent: 'center' }}>
+              <div
+                className="creator-info"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  flex: '1 1 45%',
+                  minWidth: '200px',
+                  justifyContent: 'center'
+                }}
+              >
                 <FaCrown className="icon" />
-                <span style={{ marginLeft: '5px' }}>Owner:</span>
-                {checker(result, 'owner_address')}
+                <span style={{ marginLeft: '1px' }}>Owner:</span>
+                <span style={{ marginLeft: '8px', fontSize: '0.8rem' }}>
+                  <AddressDisplay address={result[Object.keys(result)[0]].owner_address} />
+                </span>
               </div>
             </div>
           </div>
+
+          <Dashboard tokenData={result && result[Object.keys(result)[0]]} />
+
+
           {/* Security Checks */}
           <div className="security-checks" style={{ display: 'flex', justifyContent: 'space-between' }}>
             <div className="security-section" style={{ border: '1px solid black', padding: '10px', margin: '10px 2px 10px 10px' }}>
@@ -353,12 +394,8 @@ const TokenSecurityDetection = () => {
         </>
       )}
 
-      {/* The dashboard of the token details */}
-
-      <Dashboard tokenData={result && result[Object.keys(result)[0]]} />
-
       <p className="note">
-        Note: We can help you determine if a smart contract may be a scam, but there is no 100% guarantee.
+        <span style={{ fontWeight: 'bold' }} >Note</span>: <span style= {{fontSize: '0.7rem' }}> Our advanced AI helps spot potential scam tokens, but remember, no system grants 100% safety. Stay vigilant and do your own research!</span>
       </p>
     </div>
   );

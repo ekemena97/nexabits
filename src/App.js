@@ -10,9 +10,7 @@ import { ReferralProvider } from "./context/ReferralContext.js";
 import { LeaderboardProvider } from "./context/LeaderboardContext.js"; 
 import Loading from "./components/Loading.js";
 import Navigation from "./components/Navigation.js";
-import bgMain from "./assets/bg-main.png";  // Import the background image
-
-// Assets to preload, including those from Tap.js
+// Assets to preload
 import crypto from "./assets/crypto.png";
 import logo3 from "./assets/logo3.png";
 import treasure from "./assets/treasure.png";
@@ -24,7 +22,9 @@ import earn from "./assets/earn.png";
 import news from "./assets/news.png";
 import trophy from "./assets/trophy.png";
 
-// List of images to preload from the assets folder
+const bgMain = `${process.env.PUBLIC_URL}/assets/bg-main.png`;  // Use absolute path for the background image
+
+// List of images to preload
 const imageUrls = [
   bgMain,  // Preload the background image
   crypto,
@@ -64,12 +64,22 @@ const queryClient = new QueryClient();
 
 function App() {
   const [loading, setLoading] = useState(true);
+  const [imageLoaded, setImageLoaded] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
     // Preload and cache images
     preloadImages(imageUrls);
     cacheAssets(imageUrls);
+
+    // Load the background image
+    console.log('Loading image from:', bgMain); // Debugging log
+    const img = new Image();
+    img.src = bgMain; // Use the updated path
+    img.onload = () => setImageLoaded(true);
+    img.onerror = (error) => {
+      console.error("Image failed to load:", error);
+    };
 
     const timer = setTimeout(() => {
       setLoading(false);
@@ -159,7 +169,6 @@ function App() {
 
   const isNewsPage = location.pathname === '/news';
 
-
   return (
     <QueryClientProvider client={queryClient}>
       <TreasureProvider>
@@ -176,15 +185,16 @@ function App() {
                           color: isNewsPage ? 'initial' : 'white',
                           textShadow: isNewsPage ? 'initial' : '1px 1px 3px rgba(0, 0, 0, 0.7)',
                         }}
-                        onTouchMove={(e) => e.stopPropagation()}
                       >
                         <div className="z-0" />
                         <div
                           className="w-screen h-screen fixed -z-10"
                           style={{
-                            backgroundImage: `url(${bgMain})`,
+                            backgroundImage: imageLoaded ? `url(${bgMain})` : 'none', // Use dynamic loading
                             backgroundSize: 'cover',
                             backgroundPosition: 'center',
+                            width: '100%',
+                            height: '100%',
                           }}
                         />
                         <Outlet />

@@ -4,16 +4,16 @@ import { FaCoins, FaCheckCircle } from 'react-icons/fa';
 import { handleDailyCheckIn } from '../components/Campaigns.js';
 
 const rewards = [
-  { day: 1, amount: '50' },
-  { day: 2, amount: '100' },
-  { day: 3, amount: '300' },
-  { day: 4, amount: '700' },
-  { day: 5, amount: '1K' },
-  { day: 6, amount: '5K' },
-  { day: 7, amount: '15K' },
-  { day: 8, amount: '30K' },
-  { day: 9, amount: '50K' },
-  { day: 10, amount: '100K' },
+  { day: 1, amount: '2' },
+  { day: 2, amount: '8' },
+  { day: 3, amount: '12' },
+  { day: 4, amount: '20' },
+  { day: 5, amount: '30' },
+  { day: 6, amount: '50' },
+  { day: 7, amount: '70' },
+  { day: 8, amount: '120' },
+  { day: 9, amount: '200' },
+  { day: 10, amount: '500' },
 ];
 
 const getNextDay = (currentDay) => (currentDay % 10) + 1;
