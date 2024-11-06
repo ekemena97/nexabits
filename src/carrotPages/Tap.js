@@ -16,6 +16,8 @@ import useForceUpdate from '../components/useForceUpdate.js'; // Custom hook to 
 import Campaigns from "../components/Campaigns.js";
 import NetworkButtons from "../components/NetworkButtons.js";
 import TokenSecurityDetection from "../components/TokenSecurityDetection.js";
+import WalletButton from "../components/WalletButton.js";
+import TonTrend from "../components/TonTrend.js";
 
 import notification from "../assets/notification.gif"; // Replace 'myGif.gif' with the actual name of your GIF file
 
@@ -92,7 +94,6 @@ const Tap = () => {
   const userId = useTelegramUser();
   const [refreshState, setRefreshState] = useState(false);
   const [notificationVisible, setNotificationVisible] = useState(false); // State for visibility of notification gif and Top 60 text
-
   // Function to force a re-render
   const handleCheckIn = () => {
     setRefreshState(prev => !prev);
@@ -367,6 +368,20 @@ const Tap = () => {
       
         
         <NetworkButtons />
+        <TonTrend />
+
+        {/*<header >
+          <TonConnectButton className="my-button-class" style={{ float: "right",}}/>
+        </header>
+
+        <header>
+          <button onClick={() => tonConnectUI.openModal()} style={{ float: "right",}}>
+            Connect Wallet
+          </button>
+        </header> */}
+
+        <WalletButton />  
+
         <TokenSecurityDetection />
         <div className="flex flex-col items-center sm:p-0 p-3">
         

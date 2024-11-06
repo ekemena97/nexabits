@@ -106,8 +106,8 @@ const Dashboard = ({ tokenData }) => {
 
         {/* Total Supply */}
         <div className="total-supply bg-gray-800 p-2 rounded-sm shadow-md flex items-center justify-center space-x-1 flex-grow-0 flex-shrink-0" style={{ flexBasis: 'auto' }}>
-          <span style={{ color: '#22c55e', fontSize: '0.8rem' }}>Total Supply:</span>
-          <span className="ml-1" style={{ color: '#d1d5db', fontSize: '0.8rem', fontWeight: '600' }}>{formatNumber(total_supply)}</span>
+          <span style={{ color: '#22c55e', fontSize: '0.7rem' }}>Total Supply:</span>
+          <span className="ml-1" style={{ color: '#d1d5db', fontSize: '0.6rem', fontWeight: '600' }}>{formatNumber(total_supply)}</span>
         </div>        
 
         {/* Buy Tax */}

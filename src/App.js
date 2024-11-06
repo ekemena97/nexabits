@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { TonConnectUIProvider } from '@tonconnect/ui-react'; // Import TonConnect provider
 import TelegramContext from "./context/TelegramContext.js";
 import { TaskProvider } from "./context/TaskContext.js";
 import { TapProvider } from "./context/TapContext.js";
@@ -170,45 +171,47 @@ function App() {
   const isNewsPage = location.pathname === '/news';
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TreasureProvider>
-        <TimeLapseProvider>
-          <TapProvider>
-            <TelegramContext>
-              <ReferralProvider>
-                <TaskProvider>
-                  <LeaderboardProvider>
-                    <div className="app-container">
-                      <main
-                        className="App-main w-full h-full flex flex-col content-center items-center relative font-poppins"
-                        style={{
-                          color: isNewsPage ? 'initial' : 'white',
-                          textShadow: isNewsPage ? 'initial' : '1px 1px 3px rgba(0, 0, 0, 0.7)',
-                        }}
-                      >
-                        <div className="z-0" />
-                        <div
-                          className="w-screen h-screen fixed -z-10"
+    <TonConnectUIProvider manifestUrl="https://nexabits.web.app/tonconnect-manifest.json"> {/* Wrap app with TON Connect */}  
+      <QueryClientProvider client={queryClient}>
+        <TreasureProvider>
+          <TimeLapseProvider>
+            <TapProvider>
+              <TelegramContext>
+                <ReferralProvider>
+                  <TaskProvider>
+                    <LeaderboardProvider>
+                      <div className="app-container">
+                        <main
+                          className="App-main w-full h-full flex flex-col content-center items-center relative font-poppins"
                           style={{
-                            backgroundImage: imageLoaded ? `url(${bgMain})` : 'none', // Use dynamic loading
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'center',
-                            width: '100%',
-                            height: '100%',
+                            color: isNewsPage ? 'initial' : 'white',
+                            textShadow: isNewsPage ? 'initial' : '1px 1px 3px rgba(0, 0, 0, 0.7)',
                           }}
-                        />
-                        <Outlet />
-                        <Navigation />
-                      </main>
-                    </div>
-                  </LeaderboardProvider>
-                </TaskProvider>
-              </ReferralProvider>
-            </TelegramContext>
-          </TapProvider>
-        </TimeLapseProvider>
-      </TreasureProvider>
-    </QueryClientProvider>
+                        >
+                          <div className="z-0" />
+                          <div
+                            className="w-screen h-screen fixed -z-10"
+                            style={{
+                              backgroundImage: imageLoaded ? `url(${bgMain})` : 'none', // Use dynamic loading
+                              backgroundSize: 'cover',
+                              backgroundPosition: 'center',
+                              width: '100%',
+                              height: '100%',
+                            }}
+                          />
+                          <Outlet />
+                          <Navigation />
+                        </main>
+                      </div>
+                    </LeaderboardProvider>
+                  </TaskProvider>
+                </ReferralProvider>
+              </TelegramContext>
+            </TapProvider>
+          </TimeLapseProvider>
+        </TreasureProvider>
+      </QueryClientProvider>
+    </TonConnectUIProvider>  
   );
 }
 

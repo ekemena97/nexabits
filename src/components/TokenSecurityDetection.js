@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import './TokenSecurityDetection.css'; // Custom CSS for styling
 import Dashboard from "../components/Dashboard.js";
 import AddressDisplay from "./AddressDisplay.js";
-import { FaEthereum, FaUserAlt, FaExclamationTriangle, FaSkullCrossbones, FaFrown, FaCrown, FaCode, FaCheckCircle, FaTimesCircle, FaCopy, } from 'react-icons/fa'; // Import icons
+import { FaEthereum, FaUserAlt, FaExclamationTriangle, FaExclamationCircle, FaSkullCrossbones, FaFrown, FaCrown, FaCode, FaCheckCircle, FaTimesCircle, FaCopy, } from 'react-icons/fa'; // Import icons
+import NegativeSummary from "./NegativeSummary.js";
 
 const TokenSecurityDetection = () => {
   const [riskyCount, setRiskyCount] = useState(0);
@@ -217,6 +218,9 @@ const TokenSecurityDetection = () => {
     );
   };
 
+
+
+
   const displayFieldValue = (result, field) => {
     return result && Object.keys(result)[0] ? (
       <span style={{ marginLeft: '0px' }}>
@@ -248,7 +252,7 @@ const TokenSecurityDetection = () => {
   return (
     <div className="token-security-container">
       <h1 style={{ fontSize: '1rem', fontWeight: 'bold' }}>Digital Asset Risk Assessment</h1>
-      <p style={{ fontSize: '0.8rem'}} >Unlock the truth behind the hype! Our AI empowers users to look beyond coin owner claims, revealing fraudulent tokens and uncovering past scams.</p>
+      <p style={{ fontSize: '0.8rem'}} >Look beyond coin owner claims, reveal fraudulent tokens and uncover past scams based on tokens' on-chain behaviors.</p>
 
       <div className="form-container">
         <select value={selectedNetwork} onChange={handleNetworkChange} className="network-select" style={{ fontSize: '0.7rem' }}>
@@ -284,7 +288,7 @@ const TokenSecurityDetection = () => {
           </div>
 
           {/* Coin Info Section */}
-          <div className="flex justify-between bg-gray-100 p-4 rounded-lg shadow-lg space-x-4">
+          <div className="flex justify-between  p-4 rounded-lg shadow-lg space-x-4">
             <div className="flex items-center w-1/3 space-x-1 text-center">
               <FaSkullCrossbones style={{ color: 'red' }} className="icon w-4 h-4 text-sm" /> {/* Set consistent width and height */}
               <div>
@@ -307,6 +311,11 @@ const TokenSecurityDetection = () => {
               </div>
             </div>
           </div>
+
+          {/* Display token risk summary */}
+
+          <NegativeSummary tokenData={result && result[Object.keys(result)[0]]} />
+        
 
 
           {/* The dashboard of the token details */}

@@ -1,0 +1,84 @@
+.ton-trend-container {
+  text-align: center;
+  max-width: 800px;
+  margin: auto;
+}
+
+.carousel {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.carousel-content {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  grid-template-rows: repeat(2, auto);
+  gap: 5px;
+  transition: transform 1s ease-in-out;
+}
+
+.jetton-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  width: 60px;
+  overflow: hidden;
+}
+
+.jetton-image {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: contain; /* Maintain aspect ratio */
+  margin-top: 3px;
+}
+
+.jetton-info {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: bold;
+  margin-top: 2px;
+}
+
+.jetton-number {
+  font-size: 10px;
+  font-weight: bold;
+  color: #333;
+  margin-right: 3px;
+}
+
+.jetton-symbol {
+  font-size: 10px;
+}
+
+.chevron {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 10px;
+  color: #666;
+}
+
+.chevron.left,
+.chevron.right {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+}
+
+.chevron.left {
+  left: -20px; /* Adjust position */
+}
+
+.chevron.right {
+  right: -20px; /* Adjust position */
+}

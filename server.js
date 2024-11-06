@@ -653,8 +653,46 @@ app.post('/token-security', async (req, res) => {
   }
 });
 
+// Backend route to handle POST requests at /trends
+app.post('/trends', async (req, res) => {
+  const { account_ids } = req.body;
 
+  // Log the data received from the frontend
+  console.log('Received data from frontend:', account_ids);
 
+  if (!account_ids || !Array.isArray(account_ids)) {
+    return res.status(400).json({ error: 'account_ids must be an array' });
+  }
+
+  try {
+    // Send POST request to the external API with the Accept header set to '*/*'
+    const response = await fetch('https://tonapi.io/v2/jettons/_bulk', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': '*/*',
+      },
+      body: JSON.stringify({ account_ids }),
+    });
+
+    // Check if the response is OK
+    if (!response.ok) {
+      const errorMessage = await response.text();
+      console.error('External API error:', errorMessage);
+      return res.status(response.status).json({ error: errorMessage });
+    }
+
+    // Parse the response data
+    const data = await response.json();
+    console.log('Data received from external API:', data);
+
+    // Send the response back to the client
+    return res.json(data);
+  } catch (error) {
+    console.error('Error in POST /trends:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 
 
 
