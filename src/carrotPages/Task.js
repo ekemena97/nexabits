@@ -11,6 +11,9 @@ import { FaTasks } from "react-icons/fa";
 import { useTapContext } from "../context/TapContext.js";
 import { useTaskContext } from "../context/TaskContext.js";
 import { useTelegramUser } from "../context/TelegramContext.js";
+import Task2 from "./Task2.js"; // Import Task2 component
+import Referrals from "./Referrals.js";
+import NftGrid from "../components/NftGrid.js";
 
 const TELEGRAM_API_URL = `https://api.telegram.org/bot${process.env.REACT_APP_BOT_TOKEN}/getChatMember`;
 const TELEGRAM_GROUP_CHAT_ID = '@nexabitHQ';
@@ -20,6 +23,8 @@ const Task = () => {
   const { theme } = useThemeContext();
   const { completedTasks, timers, startTaskTimer, markTaskAsCompleted } = useTaskContext();
   const userId = useTelegramUser(); // Get userId from TelegramContext
+  // Dynamically calculate the total number of tasks
+  const totalTasks = realTasks.reduce((sum, task) => sum + (task.task?.length || 0), 0);
 
   useEffect(() => {
     const checkTelegramMembership = async () => {
@@ -64,9 +69,19 @@ const Task = () => {
 
   return (
     <section
-      className="h-full w-[90%] flex flex-col mt-10 mb-16 relative"
+      className="h-full w-[90%] mx-auto flex flex-col mt-4 mb-3 relative"
     >
+      <div>
+
+        <NftGrid totalTasks={totalTasks} /> {/* Pass totalTasks as a prop */}
+
+      </div>
       <h1 className="sm:text-2xl text-xl my-3 text-center font-semibold text-gray-100"></h1>
+      <div className="text-center">
+        <h1 style={{all: 'unset', fontSize: '0.6rem', }}>Complete tasks to earn NFT gift boxes containing random Common or Rare NFTs.</h1>
+        <h1 style={{all: 'unset', fontSize: '0.6rem', }}> Collect 4  specific fragments to assemble the final special NFT. <br /></h1>
+        <h1 style={{all: 'unset', fontSize: '0.6rem', }}>This will be exchanged in the NeXa NFT marketplace soon!</h1>
+      </div>  
 
       <div
         className="w-full min-h-[70vh] rounded overflow-y-scroll scrollbar-hide"
@@ -101,13 +116,13 @@ const Task = () => {
             </div>
 
             {/* Contest Button */}
-            <Link
+            {/*<Link
               to={`/leaderboard`}
               className="absolute flex items-center gap-2 p-2 text-white rounded-md cursor-pointer transition-all duration-150 ease-in hover:bg-[#4A4FFF]"
               style={{ top: '-2rem', right: '0.5rem', zIndex: 1500 }} // Custom positioning
             >
               <FaTrophy className="text-lg" /> Contest
-            </Link>
+            </Link> */}
 
             {/* Tasks */}
             <div className="flex flex-col gap-2 px-4 sm:w-[70%]">
@@ -141,14 +156,21 @@ const Task = () => {
                 </a>
               ))}
 
-              <div className="flex flex-col mt-6 gap-2">
-                <h1 className="sm:text-xl text-lg w-full"></h1>
-                <div className="text-center text-base mt-4"></div>
-              </div>
             </div>
           </div>
         ))}
       </div>
+
+      {/* Task 2 Component */}
+      <Task2 
+        incrementPoints={incrementPoints} // Pass incrementPoints function to Task2
+        markTaskAsCompleted={markTaskAsCompleted} // Pass markTaskAsCompleted function to Task2
+      />      
+
+      {/* Referral Check */}
+
+      <Referrals />      
+
     </section>
   );
 };

@@ -5,19 +5,19 @@
     font-family: Arial, sans-serif;
 }
 
-h1 {
+.campaigns-container h1 {
     margin-bottom: 10px; /* Reduced space below the heading */
     font-size: 1.2rem; /* Further reduced font size */
 }
 
-.campaigns {
+.campaigns-container .campaigns {
     display: flex;
     justify-content: center;
     gap: 12px; /* Reduced gap between the campaign blocks */
     /* Remove flex-wrap to prevent wrapping */
 }
 
-.campaign {
+.campaigns-container .campaign {
     flex: 1; /* Allow the campaign blocks to resize proportionally */
     display: flex;
     align-items: center;
@@ -42,7 +42,7 @@ h1 {
     font-size: 1rem; /* Further reduced emoji size */
 }
 
-.counting {
+.campaigns-container .counting {
     background-color: white; /* Background for the number */
     color: black; /* Black text color */
     padding: 2px 5px; /* Further adjusted padding */
@@ -57,7 +57,7 @@ h1 {
 
 /* Media query for smaller screens */
 @media (max-width: 480px) {
-    h1 {
+    .campaigns-container h1 {
         font-size: 1rem; /* Even smaller font size for the heading */
         margin-bottom: 5px; /* Reduced space below the heading */
     }
@@ -67,7 +67,7 @@ h1 {
         font-size: 0.8rem; /* Further reduced font size */
     }
 
-    .counting {
+    .campaigns-container .counting {
         padding: 1px 4px; /* Further reduced padding for the count */
         min-width: 16px; /* Further adjusted min width for the count */
         height: 16px; /* Set height equal to min-width to create a circle */

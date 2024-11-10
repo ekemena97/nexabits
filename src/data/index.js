@@ -244,60 +244,42 @@ export const realTasks = [
       task_status: "Ongoing",
       task_status_message: "Challenge is Open",
       bonus_total: 1000000,
-      title: "Do Tasks, Earn $NEXAI Token",
+      title: "Task 1 - Earn $NEXT Token and a rare NFT",
       user_point_score: 0,
       company: "Utility of MY",
       desc: "Ends in 4 days, after which active campaign participants will share 3,000,000 MY tokens. So, what features will MY holders have?",
       task: [
-        {
-          task_title: "Join us on Telegram",
-          task_desc: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Corporis laudantium facilis nisi iusto ut.",
-          task_points: "5000",
-          task_status: true,
-          task_link: "https://t.me/nexabitHQ"
-        },
+
         {
           task_title: "Follow us on Twitter",
           task_desc: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Corporis laudantium facilis nisi iusto ut.",
-          task_points: "7000",
+          task_points: "10",
           task_status: true,
           task_link: "https://x.com/nexabitHQ"
-        },
+        },        
         {
-          task_title: "Subscribe to NexaBit YouTube Channel",
+          task_title: "Join us on Telegram",
           task_desc: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Corporis laudantium facilis nisi iusto ut.",
-          task_points: "10000",
+          task_points: "10",
+          task_status: true,
+          task_link: "https://t.me/nexabitHQ"
+        },
+
+        {
+          task_title: "Subscribe to YouTube",
+          task_desc: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Corporis laudantium facilis nisi iusto ut.",
+          task_points: "6",
           task_status: true,
           task_link: "https://www.youtube.com/@NexaBitHQ"
         },
         {
-          task_title: "Join us on LinkedIn",
-          task_desc: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Corporis laudantium facilis nisi iusto ut.",
-          task_points: "12000",
-          task_status: true,
-          task_link: "https://www.linkedin.com/company/nexabithq/"
-        },
-        {
           task_title: "Follow us on Tiktok",
           task_desc: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Corporis laudantium facilis nisi iusto ut.",
-          task_points: "5000",
+          task_points: "4",
           task_status: false,
           task_link: "https://www.tiktok.com/@nexabithq"
         },
-        {
-          task_title: "Follow us on FaceBook",
-          task_desc: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Corporis laudantium facilis nisi iusto ut.",
-          task_points: "5000",
-          task_status: true,
-          task_link: "https://www.facebook.com/nexabitHQ"
-        },
-        {
-          task_title: "Follow us on InstaGram",
-          task_desc: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Corporis laudantium facilis nisi iusto ut.",
-          task_points: "5000",
-          task_status: false,
-          task_link: "https://www.instagram.com/nexabithq"
-        },
+
       ],
       about: [
         {
@@ -321,5 +303,6 @@ export const realTasks = [
           desc: "Early access to new features. Tokenholders will get early access to new features and updates before public release. ",
         },
       ]
-    }, 
+    },
+
   ];

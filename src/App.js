@@ -9,6 +9,7 @@ import { TreasureProvider } from "./context/treasureContext.js";
 import { TimeLapseProvider } from "./context/TimeContext.js"; 
 import { ReferralProvider } from "./context/ReferralContext.js"; 
 import { LeaderboardProvider } from "./context/LeaderboardContext.js"; 
+import { WalletProvider } from "./context/WalletContext.js";  // Import WalletContext
 import Loading from "./components/Loading.js";
 import Navigation from "./components/Navigation.js";
 // Assets to preload
@@ -69,6 +70,16 @@ function App() {
   const location = useLocation();
 
   useEffect(() => {
+
+
+    // Initialize Telegram Analytics SDK
+    if (window.telegramAnalytics) {
+      window.telegramAnalytics.init({
+        token: 'eyJhcHBfbmFtZSI6ImRhdGFjb2RlIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9OZXhhQml0X1RhcF9ib3QiLCJhcHBfZG9tYWluIjoiaHR0cHM6Ly9uZXhhYml0cy53ZWIuYXBwIn0=!jxpdxXSn9NgupqezW9uWCKQYF7+qT11X9PPDJ3LLzuk=',
+        appName: 'datacode',
+      });
+    }
+
     // Preload and cache images
     preloadImages(imageUrls);
     cacheAssets(imageUrls);
@@ -173,43 +184,45 @@ function App() {
   return (
     <TonConnectUIProvider manifestUrl="https://nexabits.web.app/tonconnect-manifest.json"> {/* Wrap app with TON Connect */}  
       <QueryClientProvider client={queryClient}>
-        <TreasureProvider>
-          <TimeLapseProvider>
-            <TapProvider>
-              <TelegramContext>
-                <ReferralProvider>
-                  <TaskProvider>
-                    <LeaderboardProvider>
-                      <div className="app-container">
-                        <main
-                          className="App-main w-full h-full flex flex-col content-center items-center relative font-poppins"
-                          style={{
-                            color: isNewsPage ? 'initial' : 'white',
-                            textShadow: isNewsPage ? 'initial' : '1px 1px 3px rgba(0, 0, 0, 0.7)',
-                          }}
-                        >
-                          <div className="z-0" />
-                          <div
-                            className="w-screen h-screen fixed -z-10"
+        <WalletProvider> {/* Add WalletProvider here */}
+          <TreasureProvider>
+            <TimeLapseProvider>
+              <TapProvider>
+                <TelegramContext>
+                  <ReferralProvider>
+                    <TaskProvider>
+                      <LeaderboardProvider>
+                        <div className="app-container">
+                          <main
+                            className="App-main w-full h-full flex flex-col content-center items-center relative font-poppins"
                             style={{
-                              backgroundImage: imageLoaded ? `url(${bgMain})` : 'none', // Use dynamic loading
-                              backgroundSize: 'cover',
-                              backgroundPosition: 'center',
-                              width: '100%',
-                              height: '100%',
+                              color: isNewsPage ? 'initial' : 'white',
+                              textShadow: isNewsPage ? 'initial' : '1px 1px 3px rgba(0, 0, 0, 0.7)',
                             }}
-                          />
-                          <Outlet />
-                          <Navigation />
-                        </main>
-                      </div>
-                    </LeaderboardProvider>
-                  </TaskProvider>
-                </ReferralProvider>
-              </TelegramContext>
-            </TapProvider>
-          </TimeLapseProvider>
-        </TreasureProvider>
+                          >
+                            <div className="z-0" />
+                            <div
+                              className="w-screen h-screen fixed -z-10"
+                              style={{
+                                backgroundImage: imageLoaded ? `url(${bgMain})` : 'none', // Use dynamic loading
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center',
+                                width: '100%',
+                                height: '100%',
+                              }}
+                            />
+                            <Outlet />
+                            <Navigation />
+                          </main>
+                        </div>
+                      </LeaderboardProvider>
+                    </TaskProvider>
+                  </ReferralProvider>
+                </TelegramContext>
+              </TapProvider>
+            </TimeLapseProvider>
+          </TreasureProvider>
+        </WalletProvider> {/* Close WalletProvider */}
       </QueryClientProvider>
     </TonConnectUIProvider>  
   );

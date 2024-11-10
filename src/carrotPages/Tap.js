@@ -277,17 +277,17 @@ const Tap = () => {
   };
 
   const getRankText = () => {
-    if (count >= 1000000000) return "NeuronAce";
-    if (count >= 500000000) return "AlgoLorX ";
-    if (count >= 200000000) return "QuantumX";
-    if (count >= 120000000) return "TensorTX";
-    if (count >= 50000000) return "LogicLoX";
-    if (count >= 10000000) return "PixelPX";
-    if (count >= 2000000) return "DataDuX";
-    if (count >= 500000) return "MechaMstX ";
-    if (count >= 100000) return "CodeCqX";
-    if (count >= 20000) return "QuantX";
-    if (count >= 10000) return "ByteLX";
+    if (count >= 10000000) return "NeuronAce";
+    if (count >= 5000000) return "AlgoLorX ";
+    if (count >= 2000000) return "QuantumX";
+    if (count >= 1200000) return "TensorTX";
+    if (count >= 500000) return "LogicLoX";
+    if (count >= 100000) return "PixelPX";
+    if (count >= 20000) return "DataDuX";
+    if (count >= 5000) return "MechaMstX ";
+    if (count >= 1000) return "CodeCqX";
+    if (count >= 200) return "QuantX";
+    if (count >= 100) return "ByteX";
     return "SynthX";
   };
 

@@ -1,67 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import { useTonWallet, useTonConnectUI } from '@tonconnect/ui-react';
+import React, { useState } from 'react';
+import { useWalletContext } from '../context/WalletContext.js';
 import { FiCopy, FiLogOut, FiChevronDown } from 'react-icons/fi';
 import { ToastContainer, toast } from 'react-toastify';
-import { toUserFriendlyAddress } from '@tonconnect/sdk';
 import 'react-toastify/dist/ReactToastify.css';
 import JettonStats from './JettonStats.js'; // Import JettonStats component
 import tonSymbol from '../assets/ton_symbol.png'; // Import the TON symbol icon
 
 const WalletButton = () => {
-  const wallet = useTonWallet();
-  const [tonConnectUI, setOptions] = useTonConnectUI();
+  const { wallet, walletAddress, fullUserFriendlyAddress, walletDetails, handleConnect, handleDisconnect } = useWalletContext();
   const [isModalOpen, setModalOpen] = useState(false);
-  const [walletAddress, setWalletAddress] = useState('');
-  const [fullUserFriendlyAddress, setFullUserFriendlyAddress] = useState('');
-  const [walletDetails, setWalletDetails] = useState({
-    address: '',
-    device: '',
-    provider: '',
-    tonProof: '',
-    name: '',
-    imageUrl: ''
-  });
-
-  useEffect(() => {
-    if (wallet) {
-      const userFriendlyAddress = toUserFriendlyAddress(wallet.account.address);
-      setWalletAddress(`${userFriendlyAddress.slice(0, 4)}...${userFriendlyAddress.slice(-4)}`);
-      setFullUserFriendlyAddress(userFriendlyAddress);
-      
-      // Store wallet details in state
-      setWalletDetails({
-        address: wallet.account.address,
-        device: wallet.device.appName,
-        provider: wallet.provider,
-        tonProof: wallet.connectItems?.tonProof?.proof || '',
-        name: wallet.name,
-        imageUrl: wallet.imageUrl
-      });
-    }
-  }, [wallet]);
-
-  const handleConnect = () => {
-    if (!wallet) {
-      tonConnectUI.openModal();
-    } else {
-      setModalOpen(!isModalOpen);
-    }
-  };
 
   const handleCopyAddress = () => {
     navigator.clipboard.writeText(fullUserFriendlyAddress); // Copy human-readable address
     toast.success('Address copied to clipboard', { position: "bottom-center", autoClose: 2000 });
   };
 
-  const handleDisconnect = () => {
-    tonConnectUI.disconnect();
-    setModalOpen(false); // Close modal after disconnecting
+  const toggleModal = () => {
+    if (wallet) setModalOpen(!isModalOpen);
+    else handleConnect();
   };
 
   return (
     <header style={{ position: "relative" }}>
       <button
-        onClick={handleConnect}
+        onClick={toggleModal}
         style={{
           float: "right",
           display: "flex",

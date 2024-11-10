@@ -60,14 +60,11 @@ const Referrals = () => {
 
   return (
     <section
-      className="h-full w-[90%] flex flex-col sm:mt-20 mt-12 mb-24 relative"
+      className="h-full w-[90%] flex flex-col sm:mt-2 mt-2 mb-5 relative"
     >
-      <h1 className="sm:text-2xl text-xl my-3 text-center font-semibold text-gray-100">
-        Referrals
-      </h1>
 
       {/* Contest Button */}
-      <Link
+      {/*<Link
         to={`/leaderboard`}
         className="absolute flex items-center gap-2 p-2 text-white rounded-md text-lg font-bold cursor-pointer transition-transform duration-150 ease-in hover:bg-[#4A4FFF] hover:scale-105"
         style={{ top: '-2.9rem', right: '-0.3rem', zIndex: 1500 }}
@@ -79,7 +76,7 @@ const Referrals = () => {
         <span className="absolute text-xs text-yellow-300 animate-pulse" style={{ top: '2.5rem', right: '1rem' }}>
           Join Now!🔥
         </span>
-      </Link>
+      </Link> */}
 
 
 
@@ -88,47 +85,47 @@ const Referrals = () => {
       >
         <div className="flex flex-col items-center sm:p-0 p-3 gap-3">
           <div className="flex flex-col gap-1 sm:w-[80%] w-full items-center py-0 justify-items-center">
-            <div
-              className="sm:text-6xl text-3xl font-semibold"
-            >
-              Invite Friends
+            <div className="sm:text-l text-xl">
+              <span className="text-l font-semibold">Task 3:</span> 
+              <span className="font-normal text-lg"> Invite 2 of your active friends</span>
             </div>
+
+
             <div className="text-sm text-gray-100 text-center">
-              You and your friends will receive bonuses
+              You and your friends will receive bonuses and NFT unlocks
             </div>
           </div>
 
           <div
-            className="border border-gray-200 flex flex-row sm:gap-4 gap-1 items-center px-6 sm:w-[80%] w-full py-3 rounded-md cursor-pointer transition-all duration-150 ease-in hover:bg-gray-300"
+            className="border border-gray-200 flex flex-row sm:gap-4 gap-1 items-center px-4 sm:px-6 sm:w-[80%] w-full py-2 rounded-md cursor-pointer transition-all duration-150 ease-in hover:bg-gray-300"
           >
             <FaGift className="text-gray-100 sm:text-5xl text-4xl" />
             <div className="flex flex-col gap-1">
-              <div className="text-gray-100 text-sm">Invite a friend</div>
-              <div className="text-gray-100 text-sm flex flex-row gap-2 sm:items-center items-start">
+              <div className="text-gray-100 text-xs">Invite a friend</div>
+              <div className="text-gray-100 text-xs flex flex-row gap-2 sm:items-center items-start">
                 <img src={crypto} className="sm:w-6 w-4 hidden sm:flex" />
                 <div>
-                  <span className="text-[#EBD14C]">+5,000</span> for you and
-                  your friend.
+                  <span className="text-[#EBD14C]">+50</span> for you and your friend.
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-col ml-auto text-right text-xs text-white justify-center">
+              <div className="text-[10px]">
+                <span className="font-bold">Friends invited:</span> <span className="text-[#EBD14C] font-bold text-sm">{totalReferrals} <span className="text-white font-normal">/</span> 2</span>
+              </div>
+              <div className="flex flex-col items-start text-[9px]">
+                <div>
+                  <span className="text-[#EBD14C] font-bold text-xs">+{successfulReferrals}</span> are active.
+                </div>
+                <div>
+                  <span className="text-[#EBD14C] font-bold text-xs">+{premiumReferredUsers}</span> are Premium.
                 </div>
               </div>
             </div>
           </div>
 
-          <div
-            className="border border-gray-200 flex flex-row sm:gap-4 gap-1 items-center px-6 sm:w-[80%] w-full py-3 rounded-md cursor-pointer transition-all duration-150 ease-in hover:bg-gray-300"
-          >
-            <FaGift className="text-gray-100 sm:text-5xl text-4xl" />
-            <div className="flex flex-col gap-1">
-              <div className="text-gray-100 text-sm">Invite Telegram Premium friend</div>
-              <div className="text-gray-100 text-sm flex flex-row gap-2 sm:items-center items-start">
-                <img src={crypto} className="sm:w-6 w-4 hidden sm:flex" />
-                <div>
-                  <span className="text-[#EBD14C]">+10,000</span> for you and
-                  your friend.
-                </div>
-              </div>
-            </div>
-          </div>
+
+
 
           <div className="relative w-full flex flex-col items-center">
             {copySuccess && (
@@ -161,18 +158,6 @@ const Referrals = () => {
             >
               <div>Share to your friends</div>
               <GoPersonAdd />
-            </div>
-
-            <div className="sm:w-[80%] w-full py-3">
-              <div className="text-center">
-                Friends: {totalReferrals}
-              </div>
-              <div className="text-center">
-                Premium Friends: {premiumReferredUsers}
-              </div>
-              <div className="text-center">
-                Successful Referrals: {successfulReferrals}
-              </div>
             </div>
           </div>
         </div>

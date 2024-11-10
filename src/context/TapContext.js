@@ -8,7 +8,7 @@ const TapContext = createContext();
 export const useTapContext = () => useContext(TapContext);
 
 export const TapProvider = ({ children }) => {
-  const [count, setCount] = useState(5000);
+  const [count, setCount] = useState(50);
   const [coinsPerTap, setCoinsPerTap] = useState(1);
   const [energyLimit, setEnergyLimit] = useState(500);
   const [refillRate, setRefillRate] = useState(600);
@@ -45,7 +45,7 @@ export const TapProvider = ({ children }) => {
   const initializeState = useCallback(async () => {
     if (hasInitialized.current) return;
 
-    const initialCount = await fetchStoredValue('count', 5000);
+    const initialCount = await fetchStoredValue('count', 50);
     const initialCoinsPerTap = await fetchStoredValue('coinsPerTap', 1);
     const initialEnergyLimit = await fetchStoredValue('energyLimit', 500);
     const initialRefillRate = await fetchStoredValue('refillRate', 600);
