@@ -17,6 +17,7 @@ import BlogPost from './components/BlogPost.js';  // Ensure correct import path
 import AiAnalysis from './carrotPages/AiAnalysis.js'; // Import the AiAnalysis component
 import Messenger from './carrotPages/Messenger.js';
 import Leaderboard from './carrotPages/Leaderboard.js';
+import LaunchPad from './carrotPages/LaunchPad.js';
 
 const router = createBrowserRouter([
   {
@@ -44,8 +45,8 @@ const router = createBrowserRouter([
         ],
       },
       {
-        path: '/ref',
-        element: <Referrals />,
+        path: '/launch',
+        element: <LaunchPad />,
         children: [
           {
             path: ':coinId',

@@ -39,6 +39,11 @@ const NftGrid = () => {
     isWalletConnected ? Fragment4 : Demo4                  // Fragment4 if wallet is connected
   ];
 
+  // Determine if all required conditions are met to remove the overlay from the boss image
+  const showBossImageWithoutOverlay = 
+  allTasksCompleted && isTask2Complete && successfulReferrals >= 2 && isWalletConnected;
+
+
   return (
     <div className="nft-grid">
       <div className="small-images">
@@ -75,7 +80,7 @@ const NftGrid = () => {
       </div>
       <div className="boss-section">
         <span className="equal-sign">=</span>
-        <div className="boss-image">
+        <div className={`boss-image ${showBossImageWithoutOverlay ? 'uncovered' : ''}`}>
           <img src={images[0]} alt="Boss" />
         </div>
       </div>

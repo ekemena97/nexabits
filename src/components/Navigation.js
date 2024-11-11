@@ -24,7 +24,7 @@ const Navigation = () => {
       }}
     >
       <NavLink
-        to="/ref"
+        to="/launch"
         className={({ isActive }) => {
           return `flex-grow flex-basis-0 text-base text-center font-poppins 
           ${
@@ -36,7 +36,7 @@ const Navigation = () => {
         }}
       >
         <img src={referral} className="sm:w-12 w-8 mb-2" alt="Friends" /> {/* Move image upwards */}
-        <p className="sm:text-base text-sm mt-neg-15">Friends</p> {/* Move text upwards */}
+        <p className="sm:text-base text-sm mt-neg-15">LaunchPad</p> {/* Move text upwards */}
       </NavLink>
       {/*<NavLink
         to="/leaderboard"
@@ -83,7 +83,7 @@ const Navigation = () => {
         }}
       >
         <img src={coin} className="sm:w-12 w-8 mb-2" alt="Tap" /> {/* Move image upwards */}
-        <p className="sm:text-base text-sm mt-neg-15">Tap</p> {/* Move text upwards */}
+        <p className="sm:text-base text-sm mt-neg-15">Home</p> {/* Move text upwards */}
       </NavLink>
 
 
