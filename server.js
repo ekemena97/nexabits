@@ -8,6 +8,7 @@ import fetch from 'node-fetch';
 import keepAlive from './keepAlive.js'; // Import the keep-alive function
 import { getStorageItem, setStorageItem } from './storageHelpers.js';
 import { GoPlus, ErrorCode } from '@goplus/sdk-node';
+import { HermesClient } from '@pythnetwork/hermes-client';
 import crypto from 'crypto'; // Importing the crypto module
 
 
@@ -691,6 +692,69 @@ app.post('/trends', async (req, res) => {
   } catch (error) {
     console.error('Error in POST /trends:', error);
     return res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Initialize HermesClient with the endpoint URL
+const hermesClient = new HermesClient("https://hermes.pyth.network");
+
+// Map of supported coins and their corresponding price feed IDs
+const priceIds = {
+  BTC: "0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43",
+  ETH: "0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace",
+  SUI: "0x23d7315113f5b1d3ba7a83604c44b94d79f4fd69af77f804fc7f920a6dc65744",
+  TON: "0x8963217838ab4cf5cadc172203c1f0b763fbaa45f346d8ee50ba994bbcac3026",
+  SOL: "0xef0d8b6fda2ceba41da15d4095d1da392a0d2f8ed0c6c7bc0f4cfac8c280b56d",
+  BNB: "0x2f95862b045670cd22bee3114c39763a4a08beeb663b145d283c31d7d1101c4f",
+  USDT: "0x2b89b9dc8fdf9f34709a5b106b472f0f39bb6ca9ce04b0fd7f2e971688e2e53b",
+  TRX: "0x67aed5a24fdad045475e7195c98a98aea119c763f272d4523f5bac93a4f33c2b",
+};
+
+// Endpoint to fetch price updates based on the selected coin
+app.get('/price-updates', async (req, res) => {
+  const { coin } = req.query;
+  console.log("Received request for coin:", coin);
+
+  const priceId = priceIds[coin];
+  console.log("Using price ID:", priceId);
+
+  if (!priceId) {
+    console.error("Invalid or unsupported coin type:", coin);
+    return res.status(400).json({ error: "Invalid or unsupported coin type." });
+  }
+
+  try {
+    // Fetch the latest price updates
+    const priceUpdates = await hermesClient.getLatestPriceUpdates([priceId]);
+    console.log("Price updates received:", JSON.stringify(priceUpdates, null, 2));
+
+    // Check if `priceUpdates.parsed` exists and has valid data
+    if (!priceUpdates || !Array.isArray(priceUpdates.parsed) || priceUpdates.parsed.length === 0) {
+      console.error("No valid parsed price data found for coin:", coin);
+      return res.status(500).json({ error: "No valid price data available." });
+    }
+
+    // Loop through parsed items to locate a valid price data structure
+    let currentPrice = null;
+    for (const priceData of priceUpdates.parsed) {
+      if (priceData && priceData.price && priceData.price.price) {
+        // Convert price to readable format (e.g., if stored in cents or smaller units)
+        currentPrice = (priceData.price.price / 100000000).toFixed(2);
+        console.log("Extracted current price:", currentPrice);
+        break;  // Stop once we successfully extract a price
+      }
+    }
+
+    // Check if a valid price was found
+    if (!currentPrice) {
+      console.error("Failed to locate valid price data for coin:", coin);
+      return res.status(500).json({ error: "Price data missing or malformed." });
+    }
+
+    res.json({ currentPrice });
+  } catch (error) {
+    console.error("Error fetching or processing price updates:", error);
+    res.status(500).json({ error: "An error occurred while fetching price updates." });
   }
 });
 

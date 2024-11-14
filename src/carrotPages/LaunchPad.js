@@ -1,29 +1,130 @@
-import React from "react";
-import { FaBtc } from "react-icons/fa"; // Binance icon
-import { BiArrowFromRight } from "react-icons/bi"; // MetaMask (Fox) icon
-import { FiMenu, FiUser } from "react-icons/fi"; // Menu and User icons
-import { FaDollarSign } from "react-icons/fa"; // Tether icon
-import logo from '../assets/logo.png';
+import React, { useState, useEffect } from "react";
+import { FaDollarSign, FaBitcoin, FaEthereum, FaChevronDown } from "react-icons/fa";
+import { BiArrowFromRight, BiDownArrow } from "react-icons/bi";
+import { FiMenu, FiUser } from "react-icons/fi";
+import { SiBinance, SiSolana } from "react-icons/si"; // Using available icons
+import logo from "../assets/logo.png";  // Including the logo import
+import Payment from '../components/Payment.js';
 
 const LaunchPad = () => {
-  return (
-    <div className="flex flex-col items-center p-4 bg-[#121212] text-white font-sans">
+  const [timeLeft, setTimeLeft] = useState({ days: 60, hours: 0, minutes: 0, seconds: 0 });
+  const [sellAmount, setSellAmount] = useState("");
+  const [selectedToken, setSelectedToken] = useState("TON");
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+  const [currentPrice, setCurrentPrice] = useState(null); // To store the current price
+  const [timeRemaining, setTimeRemaining] = useState(20); // Start with 30 seconds countdown
+  const [showPayment, setShowPayment] = useState(false);
 
+  const handleApprove = () => {
+    setShowPayment(true);
+  }    
+
+  const tokenOptions = [
+    { name: "USDT", icon: <img src="https://cryptologos.cc/logos/tether-usdt-logo.svg?v=025" alt="USDT" className="w-5 h-5" /> },
+    { name: "TON", icon: <img src="https://cryptologos.cc/logos/toncoin-ton-logo.svg?v=025" alt="TON" className="w-5 h-5" /> },
+    { name: "SUI", icon: <img src="https://cryptologos.cc/logos/sui-sui-logo.svg?v=025" alt="SUI" className="w-5 h-5" /> },
+    { name: "SOL", icon: <img src="https://cryptologos.cc/logos/solana-sol-logo.svg?v=025" alt="SOL" className="w-5 h-5" /> },
+    { name: "BNB", icon: <img src="https://cryptologos.cc/logos/binance-coin-bnb-logo.svg?v=025" alt="BNB" className="w-5 h-5" /> },
+    { name: "BTC", icon: <img src="https://cryptologos.cc/logos/bitcoin-btc-logo.svg?v=025" alt="BTC" className="w-5 h-5" /> },
+    { name: "ETH", icon: <img src="https://cryptologos.cc/logos/ethereum-eth-logo.svg?v=025" alt="ETH" className="w-5 h-5" /> },
+    { name: "TRX", icon: <img src="https://cryptologos.cc/logos/tron-trx-logo.svg?v=025" alt="TRON" className="w-5 h-5" /> } // Added TRON
+  ];
+
+
+  useEffect(() => {
+    const fetchPrice = async () => {
+      const url = `${process.env.REACT_APP_API_URL}/price-updates?coin=${selectedToken}`;
+      console.log("Fetching price from:", url);
+
+      try {
+        const response = await fetch(url);
+        console.log("Response status:", response.status);
+
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+        const data = await response.json();
+        console.log("Received data:", data);
+
+        if (data && data.currentPrice) {
+          setCurrentPrice(data.currentPrice);
+          console.log("Current Price set to:", data.currentPrice);
+        }
+      } catch (error) {
+        console.error("Error fetching price:", error);
+      }
+    };
+
+    // Fetch the price for the first time and set the interval
+    fetchPrice();
+
+    // Set interval to fetch price every 30 seconds
+    const intervalId = setInterval(() => {
+      fetchPrice();
+    }, 30000); // 30000 ms = 30 seconds
+
+    // Countdown timer for the loader
+    const countdownId = setInterval(() => {
+      setTimeRemaining((prevTime) => {
+        if (prevTime === 1) return 30; // Reset countdown to 30 after it reaches 0
+        return prevTime - 1;
+      });
+    }, 1000); // Update countdown every second
+
+    // Cleanup interval when component is unmounted
+    return () => {
+      clearInterval(intervalId);
+      clearInterval(countdownId);
+    };
+  }, [selectedToken]); // Dependency on selectedToken to refetch price when it changes
+
+  useEffect(() => {
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + 60);
+
+    const countdown = setInterval(() => {
+      const now = new Date();
+      const difference = targetDate - now;
+
+      if (difference <= 0) {
+        clearInterval(countdown);
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      } else {
+        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
+        const minutes = Math.floor((difference / (1000 * 60)) % 60);
+        const seconds = Math.floor((difference / 1000) % 60);
+        setTimeLeft({ days, hours, minutes, seconds });
+      }
+    }, 1000);
+
+    return () => clearInterval(countdown);
+  }, []);
+
+  // Handle dropdown toggle and position
+  const handleDropdownClick = (e) => {
+    const rect = e.target.getBoundingClientRect();
+    setDropdownPosition({ top: rect.bottom + window.scrollY, left: rect.left });
+    setShowDropdown(!showDropdown);
+  };
+
+  // Function to calculate $WTH amount
+  const calculateWTHAmount = () => {
+    if (sellAmount && currentPrice) {
+      return (sellAmount * currentPrice / 0.0001).toFixed(2); // Calculates and formats the amount
+    }
+    return "0.00";
+  };
+
+  return (
+    <div className="flex flex-col items-center p-4 bg-[#121212] text-white font-sans mb-4">
       {/* Header Section */}
       <div className="flex justify-between items-center w-full max-w-md py-2">
-        
-        {/* Logo */}
         <div className="flex-1">
-          <img
-            src={logo} // Placeholder for logo
-            alt="Logo"
-            className="w-10"
-          />
+          <img src={logo} alt="Logo" className="w-10" />
         </div>
-        
-        {/* Wallet Info */}
         <div className="flex items-center gap-2">
-          <FaBtc className="text-yellow-500 text-xl" />
+          <FaBitcoin className="text-yellow-500 text-xl" />
           <BiArrowFromRight className="text-yellow-500 text-xl" />
           <span className="bg-gray-600 text-white px-2 py-1 rounded-lg text-sm">
             0x5...0dC
@@ -34,84 +135,152 @@ const LaunchPad = () => {
       </div>
 
       {/* Content Section */}
-      <div className="text-center mt-4 max-w-md">
-        <h1 className="text-2xl font-bold mb-2">AGENTS AI (Public)</h1>
+      <div className="text-center mt-2 max-w-md">
+        <h1 className="text-2xl font-bold mb-2">$Next LaunchPad</h1>
         <p className="text-gray-400 text-base leading-relaxed">
-          AgentsAI is a cutting-edge platform that merges AI technology with blockchain, allowing users to create, launch, and trade autonomous AI agents with ease.
+          NexaBit Launchpad propels vetted projects to the moon, giving users the chance to join early. Unlock early access to the next big thing in crypto!
         </p>
       </div>
 
       {/* IDO Progress Section */}
       <div className="mt-8 w-full max-w-md p-4 bg-[#1a1a1a] rounded-lg shadow-lg">
-        
-        {/* Total Raised */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="text-gray-400 text-sm">TOTAL RAISED</div>
-          <div className="flex items-center text-white text-2xl font-bold">
+        <div className="flex items-center justify-between mb-4 w-full max-w-xs mx-auto whitespace-nowrap">
+          <div className="text-gray-400 text-xs sm:text-sm">TOTAL RAISED</div>
+          <div className="flex items-center text-white font-bold text-lg sm:text-xl md:text-2xl">
             <FaDollarSign className="text-green-500 mr-1" />
-            139,819.72 USDT
+            <span className="text-sm sm:text-base md:text-lg lg:text-xl">
+              139,819.72 / 250,000 USDT
+            </span>
           </div>
-        </div>
-
-        {/* Small Amount Display */}
-        <div className="bg-gray-700 text-center text-white py-1 rounded mb-4">
-          0.001 USDT
         </div>
 
         {/* Progress Bar and Text */}
         <div className="text-center text-white text-sm mb-2">
-          139,819.72 / 250,000 USDT
-          <br />
           Progress 55.92%
         </div>
-        <div className="relative bg-gray-700 rounded-full h-3 mb-4">
+        <div 
+          className="relative rounded-full h-3 mb-4" 
+          style={{ backgroundColor: '#8B4513' }}
+        >
           <div
             className="absolute top-0 left-0 h-3 rounded-full"
-            style={{ width: '55.92%', backgroundColor: '#6b46c1' }} // Purple background color for progress
+            style={{ width: '55.92%', backgroundColor: '#6b46c1' }}
           ></div>
         </div>
 
         {/* Allocation Info */}
         <div className="flex justify-between text-gray-400 text-sm mb-4">
           <div>
-            <p>LIMITED</p>
-            <p>Total Allocation: 0</p>
-            <p>Remaining Allocation: 0</p>
+            <p>User Cap: 0</p>
+            <p>HardCap: <span className="text-gray-400 text-xs">$500,000</span></p>
+            <p>SoftCap: <span className="text-gray-400 text-xs">$250,000</span></p>
           </div>
           <div>
             <p>PARTICIPANTS: 1287</p>
           </div>
         </div>
 
+        {/* Swap Interface */}
+        <label className="block text-gray-400 text-sm mb-1">Indicate the amount of $WarThog that you want to secure below</label>
+        <div className="mt-6 w-full max-w-lg p-4 rounded-lg" style={{ backgroundColor: "#383838" }}>
+          <div className="mb-4">
+            <div
+              className="flex items-center p-2 rounded-lg"
+              style={{ backgroundColor: "#2c2c2c" }} // Darker background for input field container
+            >
+              <input
+                type="number"
+                value={sellAmount}
+                onChange={(e) => setSellAmount(e.target.value)}
+                className="bg-transparent text-white w-full outline-none placeholder-gray-400"
+                style={{ backgroundColor: "#2c2c2c" }} // Ensure input area has the same background color
+                placeholder="Enter amount"
+              />
+              <div
+                className="flex items-center gap-1 ml-2 text-white cursor-pointer relative"
+                onClick={handleDropdownClick}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  minWidth: "2rem",
+                  flexShrink: 0,
+                  backgroundColor: "#444", // Subtle gray background for the container
+                  padding: "0.2rem 0.6rem", // Padding to make it look more like a button
+                  borderRadius: "0.4rem", // Slight rounding of the container
+                }}
+              >
+                {/* Coin icon added back */}
+                <span className="text-white text-sm ml-1">${currentPrice}</span> {/* Smaller, white price */}
+                {tokenOptions.find((token) => token.name === selectedToken)?.icon}
+                <span className="ml-1 text-white">{selectedToken}</span>
+                <FaChevronDown className="ml-1 text-white" size={14} />
+              </div>
+
+              {showDropdown && (
+                <div
+                  className="absolute w-32 shadow-lg rounded-lg"
+                  style={{
+                    backgroundColor: "#6b46c1", // Purple background for dropdown
+                    top: dropdownPosition.top,
+                    left: dropdownPosition.left,
+                  }}
+                >
+                  {tokenOptions.map((token) => (
+                    <div
+                      key={token.name}
+                      className="flex items-center gap-2 p-2 text-white hover:cursor-pointer"
+                      onClick={() => {
+                        setSelectedToken(token.name);
+                        setShowDropdown(false);
+                      }}
+                    >
+                      {token.icon} {token.name}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+          <p className="text-gray-400 text-sm mt-2">
+            You will get <span style={{ color: '#FFD700', fontWeight: 'bold', fontSize: '1.2em' }}>
+              {Number(calculateWTHAmount()).toLocaleString()}
+            </span> <span style={{ fontWeight: 'bold', fontSize: '1.2em' }}>$WTH</span> for contributing {sellAmount || 0} {selectedToken}.
+
+          </p>
+        </div>
+
+
         {/* Approve Button */}
         <button
+          onClick={handleApprove}
           className="w-full text-white font-semibold py-2 rounded-lg mb-4"
-          style={{ backgroundColor: "#6b46c1" }} // Purple background color for button
+          style={{ backgroundColor: "#6b46c1" }}
         >
           Approve
         </button>
 
-        {/* Countdown Timer */}
-        <div className="text-center text-gray-400 text-sm">IDO ENDS IN</div>
-        <div className="flex justify-center gap-2 mt-2 text-white text-lg font-semibold">
-          <div className="flex flex-col items-center">
-            <div className="bg-gray-800 p-2 rounded-md">0</div>
-            <div className="text-xs mt-1">Day</div>
-          </div>
-          <div className="flex flex-col items-center">
-            <div className="bg-gray-800 p-2 rounded-md">15</div>
-            <div className="text-xs mt-1">Hours</div>
-          </div>
-          <div className="flex flex-col items-center">
-            <div className="bg-gray-800 p-2 rounded-md">31</div>
-            <div className="text-xs mt-1">Mins</div>
-          </div>
-          <div className="flex flex-col items-center">
-            <div className="bg-gray-800 p-2 rounded-md">41</div>
-            <div className="text-xs mt-1">Secs</div>
+        {showPayment && (
+          <Payment
+            sellAmount={sellAmount}
+            selectedToken={selectedToken}
+            calculateWTHAmount={calculateWTHAmount}
+            setShowPayment={setShowPayment}
+          />
+        )}        
+
+        {/* Timer */}
+        <div
+          className="-mt-4 mb-10 text-center py-4 px-8 rounded-lg shadow-lg"
+          style={{ backgroundColor: "#1a1a1a" }}
+        >
+          <p className="text-sm">Round One ends in: </p>
+          <div className="flex justify-center gap-2">
+            <span>{timeLeft.days}d</span>
+            <span>{timeLeft.hours}h</span>
+            <span>{timeLeft.minutes}m</span>
+            <span>{timeLeft.seconds}s</span>
           </div>
         </div>
-
       </div>
     </div>
   );

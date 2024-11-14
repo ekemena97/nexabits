@@ -36,7 +36,7 @@ const Navigation = () => {
         }}
       >
         <img src={referral} className="sm:w-12 w-8 mb-2" alt="Friends" /> {/* Move image upwards */}
-        <p className="sm:text-base text-sm mt-neg-15">LaunchPad</p> {/* Move text upwards */}
+        <p className="sm:text-base text-sm mt-neg-15">Launch</p> {/* Move text upwards */}
       </NavLink>
       {/*<NavLink
         to="/leaderboard"
