@@ -74,9 +74,9 @@ const Payment = ({ sellAmount, selectedToken, calculateWTHAmount, setShowPayment
   };
 
   return (
-    <div className="text-white p-4 bg-[#1a1a1a] rounded-lg text-sm">
+    <div className="text-[#f7f9fb] p-4 bg-[rgba(30,35,55,0.3)] shadow-lg rounded-lg text-sm mt-4 font-inter">
       <p>
-        Send exactly <strong>{sellAmount} {selectedToken}</strong> to the team wallet address below:
+        Send exactly <strong>{sellAmount || 0} {selectedToken}</strong> to the team wallet address below:
       </p>
       <div className="flex items-center mt-2 space-x-2">
         <FaWallet className="text-purple-500 text-sm" />
@@ -96,8 +96,8 @@ const Payment = ({ sellAmount, selectedToken, calculateWTHAmount, setShowPayment
       </p>
       <p className="mt-2">Transaction confirmation is automated. Click copy and send the exact amount within this timeframe.</p>
       <p className="mt-2 flex items-center">
-        <FaClock className="mr-1 text-gold" />
-        Transaction expires in <strong className="text-gold ml-1">{formatTime(timeLeft)}</strong>
+        <FaClock className="mr-1 text-[#ffd700]" />
+        Transaction expires in <strong className="text-[#ffd700] ml-1">{formatTime(timeLeft)}</strong>
       </p>
 
       {/* Complete Transaction button and additional text if wallet is connected and selected token is TON */}
@@ -105,7 +105,7 @@ const Payment = ({ sellAmount, selectedToken, calculateWTHAmount, setShowPayment
         <div className="mt-4 text-center">
           <button
             style={{
-              background: 'linear-gradient(to right, #3498db, #1abc9c)',
+              background: 'linear-gradient(to right, #2d83ec, #1ac9ff)',
               padding: '8px 16px',
               borderRadius: '8px',
               color: 'white',

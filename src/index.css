@@ -3,3 +3,35 @@
 @tailwind utilities;
 
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400&display=swap");
+
+
+/* Font Faces */
+@font-face {
+  font-family: 'SF TransRobotic';
+  src: url('./assets/sf-transrobotics.condensed.ttf') format('truetype'); /* Adjust the path if necessary */
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Blanka';
+  src: url('./assets/Blanka.otf') format('truetype'); /* Adjust the path if necessary */
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'DisposableDroidBB';
+  src: url('./assets/DisposableDroidBB.ttf') format('truetype'); /* Adjust the path if necessary */
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Elianto-Regular';
+  src: url('./assets/Elianto-Regular.ttf') format('truetype'); /* Adjust the path if necessary */
+  font-weight: normal;
+  font-style: normal;
+}

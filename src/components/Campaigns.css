@@ -21,13 +21,13 @@
     flex: 1; /* Allow the campaign blocks to resize proportionally */
     display: flex;
     align-items: center;
-    background-color: #333; /* Dark background for the campaign */
+    background-color: #25254e; /* Dark background for the campaign */
     padding: 6px 10px; /* Reduced padding */
     border-radius: 50px;
     font-size: 0.9rem; /* Reduced font size */
     position: relative; /* For positioning the glow */
-    box-shadow: 0 0 10px rgba(0, 204, 255, 0.5); /* Neon blue glow */
-    background: linear-gradient(135deg, #7c77f0 0%, #88a2bf 100%); /* Gradient background */
+    /*box-shadow: 0 0 10px rgba(0, 204, 255, 0.5);  Neon blue glow */
+    /*background: linear-gradient(135deg, #7c77f0 0%, #88a2bf 100%);  Gradient background */
     transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth hover transition */
 }
 

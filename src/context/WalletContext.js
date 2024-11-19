@@ -21,7 +21,7 @@ export const WalletProvider = ({ children }) => {
   useEffect(() => {
     if (wallet) {
       const userFriendlyAddress = toUserFriendlyAddress(wallet.account.address);
-      setWalletAddress(`${userFriendlyAddress.slice(0, 4)}...${userFriendlyAddress.slice(-4)}`);
+      setWalletAddress(`${userFriendlyAddress.slice(0, 3)}...${userFriendlyAddress.slice(-3)}`);
       setFullUserFriendlyAddress(userFriendlyAddress);
       
       setWalletDetails({

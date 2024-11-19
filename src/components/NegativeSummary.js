@@ -107,27 +107,29 @@ const NegativeSummary = ({ tokenData }) => {
     },
   };
 
-  // Function to create a summary item
-  const createSummaryItem = (summary) => (
-    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
+  const createSummaryItem = (summary, index) => (
+    <div key={index} style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
       <FaExclamationCircle color={summary.iconColor} style={{ fontSize: '1.5rem', marginRight: '0.6rem' }} />
-      <span style={{ fontSize: '0.6rem', color: 'grey', textAlign: 'left', marginRight: '0.3rem' }}>{summary.text}</span>
+      <span style={{ fontSize: '0.6rem', color: 'grey', textAlign: 'left', marginRight: '0.3rem' }}>
+        {summary.text}
+      </span>
     </div>
   );
+
 
   // Generate negative summaries based on conditions
   const generateNegativeSummary = () => {
     const negative_summary = [];
 
     // Add summaries based on conditions
-    if (cannot_buy === "1") {
-      negative_summary.push(createSummaryItem(summaries.cannot_buy));
+    if (cannot_buy === "1" || cannot_buy === 1) {
+      negative_summary.push(createSummaryItem(summaries.cannot_buy, "cannot_buy"));
     }
-    if (is_open_source === "0") {
-      negative_summary.push(createSummaryItem(summaries.is_open_source));
+    if (is_open_source === "0" || is_open_source === 0) {
+      negative_summary.push(createSummaryItem(summaries.is_open_source, "is_open_source"));
     }
-    if (owner_change_balance === "1") {
-      negative_summary.push(createSummaryItem(summaries.owner_change_balance));
+    if (owner_change_balance === "1" || owner_change_balance === 1) {
+      negative_summary.push(createSummaryItem(summaries.owner_change_balance, "owner_change_balance"));
     }
 
     // Check other fields
@@ -150,15 +152,16 @@ const NegativeSummary = ({ tokenData }) => {
       'is_mintable',
     ];
 
-    // Add summaries for each field
-    negativeFields.forEach((field) => {
-      if (tokenData[field] === "1") {
-        negative_summary.push(createSummaryItem(summaries[field]));
+    // Add summaries for each field if the value is '1' or `true`
+    negativeFields.forEach((field, index) => {
+      if (tokenData[field] === "1" || tokenData[field] === 1 || tokenData[field] === true) {
+        negative_summary.push(createSummaryItem(summaries[field], index));
       }
     });
 
     return negative_summary;
   };
+
 
   return (
     <div>

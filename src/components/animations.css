@@ -1,0 +1,27 @@
+/* animations.css */
+@keyframes chevronMove {
+  0% {
+    transform: translateX(0); /* Start at the initial position */
+  }
+  50% {
+    transform: translateX(10px); /* Move 10px to the right */
+  }
+  100% {
+    transform: translateX(0); /* Return to the initial position */
+  }
+}
+
+.chevron {
+  font-size: 1rem;
+  animation: chevronMove 2s ease-in-out 1 normal forwards, delayAnimation 30s 1 normal forwards;
+}
+
+/* Adding the delay animation */
+@keyframes delayAnimation {
+  0% {
+    transform: translateX(0); /* Keeps the final position of the animation */
+  }
+  100% {
+    transform: translateX(0); /* Keep it stationary until the next cycle */
+  }
+}

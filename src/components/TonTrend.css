@@ -1,84 +1,148 @@
 .ton-trend-container {
-  text-align: center;
-  max-width: 800px;
-  margin: auto;
-}
-
-.carousel {
   display: flex;
+  justify-content: center;
   align-items: center;
-  position: relative;
+  padding: 2px;
+  overflow: hidden;
+  flex-direction: column; /* Ensure title is at the top */
+  width: 100%;
+  margin-top: 0; /* Remove any default margin on top */
+  padding-top: 0; /* Remove any default padding on top */
+  position: relative; /* Ensure relative positioning for control */
 }
 
-.carousel-content {
-  display: grid;
-  grid-template-columns: repeat(10, 1fr);
-  grid-template-rows: repeat(2, auto);
-  gap: 5px;
-  transition: transform 1s ease-in-out;
-}
-
-.jetton-item {
+.trending-title {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  padding: 5px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  width: 60px;
-  overflow: hidden;
+  gap: 10px;
+  margin-bottom: 10px; /* Space between title and the boxes */
+  top: -10px; /* Adjust upward by a specific amount */
+  color: #f7f9fb;
 }
 
-.jetton-image {
-  width: 30px;
+.trending-icon {
+  width: 30px; /* Adjust the size of the SVG icon */
   height: 30px;
-  border-radius: 50%;
-  object-fit: contain; /* Maintain aspect ratio */
-  margin-top: 3px;
+  color: #ffd700; /* Gold color */
 }
 
-.jetton-info {
+.trending-title h2 {
+  color: #f7f9fb;
+  font-size: 16px; /* Default size */
+  font-weight: bold;
+  margin: 0; /* Remove any default margin */
+}
+
+/* Responsive font size for smaller screens */
+@media screen and (max-width: 1024px) {
+  .trending-title h2 {
+    font-size: 14px; /* Slightly smaller font on medium screens */
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .trending-title h2 {
+    font-size: 12px; /* Even smaller font on smaller screens */
+  }
+
+  .trending-icon {
+    width: 25px;
+    height: 25px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .trending-title h2 {
+    font-size: 10px; /* Smallest font for very small screens */
+  }
+
+  .trending-icon {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.trending-boxes {
   display: flex;
+  justify-content: center;
   align-items: center;
-  font-size: 12px;
-  font-weight: bold;
-  margin-top: 2px;
+  width: 100%;
+  gap: 16px;
+  overflow: hidden; /* Hide non-visible items */
+  margin-top: 5px;
+  margin-bottom: 30px;
 }
 
-.jetton-number {
+.trending-item {
+  flex: 0 0 calc(20% - 2px); /* Each box takes 1/5th of the container width */
+  display: flex;
+  flex-direction: column; /* Arrange items vertically */
+  justify-content: flex-start; /* Align items to the top */
+  align-items: center;
+  background-color: rgba(30, 35, 55, 0.4); /* 50% transparent */
+  border-radius: 8px;
+  padding: 6px 4px 6px; /* Reduced vertical padding */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  transition: transform 0.3s ease-in-out;
+}
+
+.trending-item:hover {
+  transform: scale(1.05); /* Scale up on hover */
+}
+
+/* Image at the top */
+.trending-image {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 6px; /* Reduced space between image and next row */
+}
+
+/* Horizontal alignment for number and symbol */
+.trending-number-symbol {
+  display: flex;
+  flex-direction: row; /* Place number and symbol in a row */
+  align-items: center; /* Vertically align */
+  justify-content: center; /* Center horizontally */
+  gap: 2px; /* Space between number and symbol */
+  width: 100%; /* Take full width of the container */
+}
+
+.trending-number {
+  font-size: 10px;
+  color: #f7f9fb;
+}
+
+.trending-symbol {
   font-size: 10px;
   font-weight: bold;
-  color: #333;
-  margin-right: 3px;
+  color: #f7f9fb;
+  white-space: nowrap; /* Prevent text from wrapping */
+  overflow: hidden; /* Hide overflowing text */
+  text-overflow: ellipsis; /* Add ellipsis to truncated text */
 }
 
-.jetton-symbol {
-  font-size: 10px;
-}
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+  .trending-boxes {
+    gap: 4px;
+  }
 
-.chevron {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  padding: 10px;
-  color: #666;
-}
+  .trending-item {
+    flex: 0 0 calc(20% - 2px); /* Each box takes 1/5th of the container width */
+  }
 
-.chevron.left,
-.chevron.right {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 2;
-}
+  .trending-image {
+    width: 30px;
+    height: 30px;
+  }
 
-.chevron.left {
-  left: -20px; /* Adjust position */
-}
+  .trending-symbol {
+    font-size: 10px;
+  }
 
-.chevron.right {
-  right: -20px; /* Adjust position */
+  .trending-number {
+    font-size: 10px;
+  }
 }

@@ -16,7 +16,7 @@ const Navigation = () => {
       className={`fixed bottom-0 z-50 flex justify-around items-center`}
       style={{
         height: "90px", // Adjust the height to ensure it overlaps content below
-        backgroundColor: theme === "dark" ? "rgba(34, 40, 54, 1)" : "rgba(241, 241, 241, 0.7)", // Add transparency
+        backgroundColor: theme === "dark" ? "#1e2337" : "rgba(241, 241, 241, 0.7)", // Add transparency
         borderRadius: "15px", // Add rounded corners
         margin: "0 10px 10px 10px", // Add margin to move away from left and right
         left: "3px", // Ensure the nav is away from the left edge

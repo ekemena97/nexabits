@@ -5,6 +5,8 @@ import { FiMenu, FiUser } from "react-icons/fi";
 import { SiBinance, SiSolana } from "react-icons/si"; // Using available icons
 import logo from "../assets/logo.png";  // Including the logo import
 import Payment from '../components/Payment.js';
+import { useWalletContext } from '../context/WalletContext.js';
+
 
 const LaunchPad = () => {
   const [timeLeft, setTimeLeft] = useState({ days: 60, hours: 0, minutes: 0, seconds: 0 });
@@ -15,6 +17,14 @@ const LaunchPad = () => {
   const [currentPrice, setCurrentPrice] = useState(null); // To store the current price
   const [timeRemaining, setTimeRemaining] = useState(20); // Start with 30 seconds countdown
   const [showPayment, setShowPayment] = useState(false);
+  const {
+    wallet,
+    walletAddress,
+    fullUserFriendlyAddress,
+    walletDetails,
+    handleConnect,
+    handleDisconnect: originalHandleDisconnect,
+  } = useWalletContext();  
 
   const handleApprove = () => {
     setShowPayment(true);
@@ -117,37 +127,64 @@ const LaunchPad = () => {
   };
 
   return (
-    <div className="flex flex-col items-center p-4 bg-[#121212] text-white font-sans mb-4">
+    <div className="flex flex-col items-center p-2 text-[f7f9fb] font-sans mb-4 font-inter">
       {/* Header Section */}
       <div className="flex justify-between items-center w-full max-w-md py-2">
         <div className="flex-1">
           <img src={logo} alt="Logo" className="w-10" />
         </div>
         <div className="flex items-center gap-2">
-          <FaBitcoin className="text-yellow-500 text-xl" />
-          <BiArrowFromRight className="text-yellow-500 text-xl" />
-          <span className="bg-gray-600 text-white px-2 py-1 rounded-lg text-sm">
-            0x5...0dC
-          </span>
-          <FiUser className="text-xl" />
-          <FiMenu className="text-xl" />
+          <FaBitcoin className="text-[#f7f9fb] text-xl" />
+          <BiArrowFromRight
+            className="text-[#f7f9fb] text-xl cursor-pointer"
+            onClick={() => {
+              if (wallet) {
+                originalHandleDisconnect(); // Trigger disconnect if wallet is connected
+              }
+            }}
+          />
+
+          <div>
+            {wallet ? (
+              <span className="bg-[#1e2337] text-[#f7f9fb] px-2 py-1 rounded-lg text-sm">
+                {walletAddress}
+              </span>
+            ) : (
+              <button
+                onClick={handleConnect}
+                className="text-[#f7f9fb] px-4 py-1 rounded-lg text-sm"
+                style={{
+                  backgroundColor: '#0098ea',
+                  transition: 'background-color 0.3s',
+                }}
+                onMouseEnter={(e) => (e.target.style.backgroundColor = '#2A314A')}
+                onMouseLeave={(e) => (e.target.style.backgroundColor = '#0098ea')}
+              >
+                Connect
+              </button>
+
+            )}
+          </div>
+
+          <FiUser className="text-xl text-[#fddc00]" />
+          <FiMenu className="text-xl text-[#0098ea]" />
         </div>
       </div>
 
       {/* Content Section */}
       <div className="text-center mt-2 max-w-md">
         <h1 className="text-2xl font-bold mb-2">$Next LaunchPad</h1>
-        <p className="text-gray-400 text-base leading-relaxed">
-          NexaBit Launchpad propels vetted projects to the moon, giving users the chance to join early. Unlock early access to the next big thing in crypto!
+        <p className="text-[#f7f9fb] text-base leading-relaxed">
+          NexaBit Launchpad propels vetted meme tokens to the moon, giving users the chance to join early. Access the next big meme on TON now!
         </p>
       </div>
 
       {/* IDO Progress Section */}
-      <div className="mt-8 w-full max-w-md p-4 bg-[#1a1a1a] rounded-lg shadow-lg">
+      <div className="mt-8 w-full max-w-md p-4 bg-[rgba(30,35,55,0.3)] rounded-lg shadow-lg">
         <div className="flex items-center justify-between mb-4 w-full max-w-xs mx-auto whitespace-nowrap">
-          <div className="text-gray-400 text-xs sm:text-sm">TOTAL RAISED</div>
-          <div className="flex items-center text-white font-bold text-lg sm:text-xl md:text-2xl">
-            <FaDollarSign className="text-green-500 mr-1" />
+          <div className="text-[#f7f9fb] text-xs sm:text-sm">TOTAL RAISED</div>
+          <div className="flex items-center text-[#f7f9fb] font-bold text-lg sm:text-xl md:text-2xl">
+            <FaDollarSign className="text-[#fddc00] mr-1" />
             <span className="text-sm sm:text-base md:text-lg lg:text-xl">
               139,819.72 / 250,000 USDT
             </span>
@@ -155,72 +192,73 @@ const LaunchPad = () => {
         </div>
 
         {/* Progress Bar and Text */}
-        <div className="text-center text-white text-sm mb-2">
+        <div className="text-center text-[#f7f9fb] text-sm mb-2">
           Progress 55.92%
         </div>
         <div 
           className="relative rounded-full h-3 mb-4" 
-          style={{ backgroundColor: '#8B4513' }}
+          style={{ backgroundColor: '#D2B48C' }}
         >
           <div
-            className="absolute top-0 left-0 h-3 rounded-full"
-            style={{ width: '55.92%', backgroundColor: '#6b46c1' }}
+            className="absolute top-0 left-0 h-3 rounded-full bg-gradient-to-r from-[#5A5FFF] to-[#6B7CFE]"
+            style={{ width: '55.92%', }}
           ></div>
         </div>
 
         {/* Allocation Info */}
-        <div className="flex justify-between text-gray-400 text-sm mb-4">
+        <div className="flex justify-between text-[#f7f9fb] text-sm mb-4">
           <div>
             <p>User Cap: 0</p>
-            <p>HardCap: <span className="text-gray-400 text-xs">$500,000</span></p>
-            <p>SoftCap: <span className="text-gray-400 text-xs">$250,000</span></p>
+            <p>HardCap: <span className="text-[#f7f9fb] text-xs">$500,000</span></p>
+            <p>SoftCap: <span className="text-[#f7f9fb] text-xs">$250,000</span></p>
           </div>
           <div>
-            <p>PARTICIPANTS: 1287</p>
+            <p>PARTICIPANTS: <span className="text-[#fddc00] font-bold"> 1287</span></p>
           </div>
         </div>
 
         {/* Swap Interface */}
-        <label className="block text-gray-400 text-sm mb-1">Indicate the amount of $WarThog that you want to secure below</label>
-        <div className="mt-6 w-full max-w-lg p-4 rounded-lg" style={{ backgroundColor: "#383838" }}>
+        <label className="block text-[#f7f9fb] text-sm mb-1">Indicate the amount of $WarThog that you want to secure below</label>
+        <div className="mt-6 w-full max-w-lg p-4 rounded-lg" >
           <div className="mb-4">
             <div
-              className="flex items-center p-2 rounded-lg"
-              style={{ backgroundColor: "#2c2c2c" }} // Darker background for input field container
+              className="flex items-center p-2 rounded-lg border border-purple"
+               // Darker background for input field container
             >
               <input
                 type="number"
                 value={sellAmount}
                 onChange={(e) => setSellAmount(e.target.value)}
-                className="bg-transparent text-white w-full outline-none placeholder-gray-400"
-                style={{ backgroundColor: "#2c2c2c" }} // Ensure input area has the same background color
+                className="bg-transparent text-[#f7f9fb] w-full outline-none placeholder-[#f7f9fb] bg-[rgba(30,35,55,0.1)]"
+                // Ensure input area has the same background color
                 placeholder="Enter amount"
               />
               <div
-                className="flex items-center gap-1 ml-2 text-white cursor-pointer relative"
+                className="flex items-center gap-1 ml-2 text-[#f7f9fb] cursor-pointer relative shadow-md"
                 onClick={handleDropdownClick}
                 style={{
                   display: "flex",
                   alignItems: "center",
                   minWidth: "2rem",
                   flexShrink: 0,
-                  backgroundColor: "#444", // Subtle gray background for the container
+                  // Subtle gray background for the container
                   padding: "0.2rem 0.6rem", // Padding to make it look more like a button
                   borderRadius: "0.4rem", // Slight rounding of the container
+                  boxShadow: "0 4px 6px rgba(0, 0, 0, 0.4)", // Custom shadow for more precise control
                 }}
               >
                 {/* Coin icon added back */}
-                <span className="text-white text-sm ml-1">${currentPrice}</span> {/* Smaller, white price */}
+                <span className="text-[f7f9fb] text-sm ml-1">${currentPrice}</span> {/* Smaller, white price */}
                 {tokenOptions.find((token) => token.name === selectedToken)?.icon}
-                <span className="ml-1 text-white">{selectedToken}</span>
-                <FaChevronDown className="ml-1 text-white" size={14} />
+                <span className="ml-1 text-[f7f9fb]">{selectedToken}</span>
+                <FaChevronDown className="ml-1 text-[f7f9fb]" size={14} />
               </div>
 
               {showDropdown && (
                 <div
-                  className="absolute w-32 shadow-lg rounded-lg"
+                  className="absolute w-20 shadow-lg rounded-lg"
                   style={{
-                    backgroundColor: "#6b46c1", // Purple background for dropdown
+                    backgroundColor: "#0098ea", // Purple background for dropdown
                     top: dropdownPosition.top,
                     left: dropdownPosition.left,
                   }}
@@ -228,7 +266,7 @@ const LaunchPad = () => {
                   {tokenOptions.map((token) => (
                     <div
                       key={token.name}
-                      className="flex items-center gap-2 p-2 text-white hover:cursor-pointer"
+                      className="flex items-center gap-2 p-2 text-[f7f9fb] hover:cursor-pointer"
                       onClick={() => {
                         setSelectedToken(token.name);
                         setShowDropdown(false);
@@ -241,8 +279,8 @@ const LaunchPad = () => {
               )}
             </div>
           </div>
-          <p className="text-gray-400 text-sm mt-2">
-            You will get <span style={{ color: '#FFD700', fontWeight: 'bold', fontSize: '1.2em' }}>
+          <p className="text-[#f7f9fb] text-sm mt-2">
+            You will get <span style={{ color: '#fddc00', fontWeight: 'bold', fontSize: '1.2em' }}>
               {Number(calculateWTHAmount()).toLocaleString()}
             </span> <span style={{ fontWeight: 'bold', fontSize: '1.2em' }}>$WTH</span> for contributing {sellAmount || 0} {selectedToken}.
 
@@ -253,8 +291,8 @@ const LaunchPad = () => {
         {/* Approve Button */}
         <button
           onClick={handleApprove}
-          className="w-full text-white font-semibold py-2 rounded-lg mb-4"
-          style={{ backgroundColor: "#6b46c1" }}
+          className="w-full text-[f7f9fb] font-semibold py-2 rounded-lg mt-4"
+          style={{ backgroundColor: "#0098ea" }}
         >
           Approve
         </button>
@@ -270,10 +308,9 @@ const LaunchPad = () => {
 
         {/* Timer */}
         <div
-          className="-mt-4 mb-10 text-center py-4 px-8 rounded-lg shadow-lg"
-          style={{ backgroundColor: "#1a1a1a" }}
+          className="-mt-4 mb-20 text-center py-4 px-8 rounded-lg shadow-lg"
         >
-          <p className="text-sm">Round One ends in: </p>
+          <p className="text-sm mt-2">Round One ends in: </p>
           <div className="flex justify-center gap-2">
             <span>{timeLeft.days}d</span>
             <span>{timeLeft.hours}h</span>

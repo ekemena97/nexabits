@@ -17,8 +17,8 @@
 /* Headings */
 .token-security-container h1 {
   font-size: 2.5rem;
-  margin-bottom: 15px;
-  color: #00ffdd;
+  margin-bottom: 5px;
+  color: #f7f9fb;
   text-transform: uppercase;
   letter-spacing: 1.5px;
 }
@@ -26,7 +26,6 @@
 .token-security-container p {
   font-size: 1.1rem;
   color: #aaaaaa;
-  line-height: 1.5;
 }
 
 /* Form container */
@@ -34,7 +33,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 20px;
+  margin-top: 30px;
   margin-bottom: 20px;
   flex-wrap: nowrap;
   gap: 10px;
@@ -46,11 +45,11 @@
 
 /* Inputs and buttons */
 .network-select, .token-input, .check-button {
-  padding: 10px;
+  padding: 7px;
   border-radius: 8px;
-  border: 1px solid #00ffdd;
-  background-color: #25254e;
-  color: white;
+  border: 1px solid #5a5fff;
+  background-color: rgba(30, 35, 55, 0.1);
+  color: #f7f9fb;
   text-align: center;
   font-size: 1rem;
   box-sizing: border-box;
@@ -66,16 +65,18 @@
 }
 
 .check-button {
-  width: 20%;
-  background-color: #00d896;
+  width: 22%;
+  background-color: rgba(30, 35, 55, 0.3); /* Semi-transparent background only */
+  border: 1px solid #fddc00;
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.3s ease;
   padding-right: 10px;
   padding-left: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
 }
 
 .check-button:hover {
-  background-color: #00b681;
   transform: scale(1.05);
 }
 
@@ -144,6 +145,15 @@
   .coin-info-item span {
     font-size: 0.9rem;  /* Further reduce text size */
   }
+}
+
+.note {
+  line-height: 0.8;
+  text-align: left;  /* Ensures left alignment */
+}
+
+.token-input::placeholder {
+  color: #f7f9fb;
 }
 
 

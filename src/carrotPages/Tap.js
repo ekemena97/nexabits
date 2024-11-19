@@ -1,12 +1,15 @@
-import React, { useState, useEffect, memo } from "react";
+import React, { useState,useContext, useEffect, memo } from "react";
 import { useThemeContext } from "../context/ThemeContext.js";
 import { FaTrophy, FaChevronRight } from 'react-icons/fa';
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer, toast } from "react-toastify";
 import crypto from "../assets/crypto.png";
 import logo3 from "../assets/logo3.png";
 import treasure from "../assets/treasure.png"; // Import the treasure icon
 import Logo from "../components/Logo.js";
 import { useTapContext } from "../context/TapContext.js";
 import { useTelegramUser } from "../context/TelegramContext.js";
+import { ClaimContext } from "../context/ClaimContext.js";
 import { Link } from "react-router-dom";
 import DailyCheckIn from "./DailyCheckIn.js";
 import RobotIcon from "../components/RobotIcon.js";
@@ -14,80 +17,17 @@ import "../components/robotIcon.css";
 import { useTreasureContext } from '../context/treasureContext.js'; // Import the custom hook
 import useForceUpdate from '../components/useForceUpdate.js'; // Custom hook to force updates
 import Campaigns from "../components/Campaigns.js";
-import NetworkButtons from "../components/NetworkButtons.js";
 import TokenSecurityDetection from "../components/TokenSecurityDetection.js";
 import WalletButton from "../components/WalletButton.js";
 import TonTrend from "../components/TonTrend.js";
+import { handleDailyCheckIn } from "../components/Campaigns.js";
+import { motion } from "framer-motion";
 
 import notification from "../assets/notification.gif"; // Replace 'myGif.gif' with the actual name of your GIF file
 
 import "./Tap.css";
 
-const GiftIcon = ({ onClick }) => {
-  const [visible, setVisible] = useState(true);
-  const [shake, setShake] = useState(false);
-  const [lastClickTime, setLastClickTime] = useState(Date.now());
 
-  useEffect(() => {
-    let hideTimeout, showTimeout, shakeInterval, disappearTimeout;
-
-    const hideGift = () => {
-      setVisible(false);
-      showTimeout = setTimeout(() => setVisible(true), 10 * 60 * 1000);
-    };
-
-    const startHideGiftTimer = () => {
-      hideTimeout = setTimeout(hideGift, 5 * 60 * 1000);
-    };
-
-    if (visible) {
-      startHideGiftTimer();
-    } else {
-      showTimeout = setTimeout(() => {
-        setVisible(true);
-        startHideGiftTimer();
-      }, 10 * 60 * 1000);
-    }
-
-    shakeInterval = setInterval(() => {
-      setShake(true);
-      setTimeout(() => setShake(false), 1000);
-    }, 10 * 1000);
-
-    disappearTimeout = setInterval(() => {
-      if (Date.now() - lastClickTime >= 5 * 60 * 1000) {
-        hideGift();
-      }
-    }, 1000);
-
-    return () => {
-      clearTimeout(hideTimeout);
-      clearTimeout(showTimeout);
-      clearInterval(shakeInterval);
-      clearInterval(disappearTimeout);
-    };
-  }, [visible, lastClickTime]);
-
-  const handleGiftClick = () => {
-    setLastClickTime(Date.now());
-    onClick();
-  };
-
-  return (
-    visible && (
-      <div className="relative">
-        <div className={`circle-animation ${visible ? "blink" : ""}`}></div>
-        <div
-          onClick={handleGiftClick}
-          className={`fixed top-1/4 right-11 cursor-pointer z-20 ${shake ? "animate-shake" : ""}`}
-          style={{ transform: "scale(2.5)" }}
-        >
-          🎁
-        </div>
-      </div>
-    )
-  );
-};
 
 const Tap = () => {
   const { theme } = useThemeContext();
@@ -152,6 +92,20 @@ const Tap = () => {
   } = useTapContext();
 
   const { treasurePoints } = useTreasureContext(); // Get the treasurePoints from the context
+  // Access values from ClaimContext
+  const { 
+    daysVisited, 
+    canClaim, 
+    bonusUnlocked, 
+    remainingTime, 
+    claimPoints, 
+    resetBonus, 
+    TOTAL_DAYS, 
+    DAILY_POINTS, 
+    BONUS_POINTS,
+    markTaskAsCompleted,
+    onCompletion, 
+  } = useContext(ClaimContext);
   const forceUpdate = useForceUpdate(); // Custom hook to force updates
 
   const [animate, setAnimate] = useState(false);
@@ -159,6 +113,36 @@ const Tap = () => {
   const [coinAnimations, setCoinAnimations] = useState([]);
   const [showGiftIcon, setShowGiftIcon] = useState(true);
   const [showDailyCheckIn, setShowDailyCheckIn] = useState(false);
+
+  const handleClaimClick = () => {
+    if (!canClaim) {
+      toast.info("You have already claimed your points for today.", {
+        position: "top-center",
+      });
+      return;
+    }
+
+    claimPoints(incrementPoints, markTaskAsCompleted, onCompletion);
+    toast.success(`You've earned ${DAILY_POINTS} $NEXT tokens today!`, {
+      position: "top-center",
+    });
+
+    if (daysVisited + 1 === TOTAL_DAYS) {
+      toast.success(`Congratulations! You've unlocked an additional ${BONUS_POINTS} bonus points!`, {
+        position: "top-center",
+      });
+    }
+    handleDailyCheckIn();
+    console.log("Checkin Recorded")
+  };  
+
+  const formatCountdown = (milliseconds) => {
+    const hours = Math.floor(milliseconds / (1000 * 60 * 60));
+    const minutes = Math.floor((milliseconds % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((milliseconds % (1000 * 60)) / 1000);
+    return `${hours}h ${minutes}m ${seconds}s`;
+  };
+
 
   useEffect(() => {
     if (energy <= 0) {
@@ -284,8 +268,8 @@ const Tap = () => {
     if (count >= 500000) return "LogicLoX";
     if (count >= 100000) return "PixelPX";
     if (count >= 20000) return "DataDuX";
-    if (count >= 5000) return "MechaMstX ";
-    if (count >= 1000) return "CodeCqX";
+    if (count >= 5000) return "MstX ";
+    if (count >= 1000) return "CodeQX";
     if (count >= 200) return "QuantX";
     if (count >= 100) return "ByteX";
     return "SynthX";
@@ -300,36 +284,23 @@ const Tap = () => {
   };
 
   return (
-    <section className={`h-full w-[90%] flex flex-col mt-20 mb-24 relative`}>
-      <div className="gradient-06 z-0 w-full h-full w-30" />
+    <section className={`h-full w-[90%] flex flex-col mt-20 mb-4 relative font-inter`}>
+      <div className="gradient-06 z-0 w-full h-full w-30 font-inter" />
       <div
-        className={`z-10 w-full min-h-[70vh] sm:pb-12 pb-0 rounded overflow-y-scroll scrollbar-hide ${
+        className={`z-10 w-full sm:pb-12 pb-0 rounded overflow-y-scroll scrollbar-hide ${
           theme === "dark" ? "text-[#fff]" : "text-[#19191E]"
         }`}
       >
-        {showGiftIcon && <GiftIcon onClick={handleGiftClick} />}
-        {showDailyCheckIn && (
-          <DailyCheckIn
-            onClose={() => setShowDailyCheckIn(false)}
-            onClaimReward={handleRewardClaim}
-            onCheckIn={handleCheckIn}
-          />
-        )}
+
 
         <div className="relative  w-full">
-          <div className="fixed top-0 -mt-1 right-3 flex flex-row justify-between items-center w-full px-4 lg:px-8">
+          <div className="fixed top-0 -mt-1 right-2 flex flex-row justify-between items-center w-full px-2 lg:px-8">
             {/* Logo */}
             <div className="flex items-center mr-2 sm:mr-1 lg:mr-4 ml-4 sm:ml-2 lg:ml-8 mt-2 sm:mt-1 lg:mt-3">
               <Logo className="w-6 h-6" />
             </div>
 
-            {/* Treasure and Points */}
-            <div className="flex items-center mr-2 sm:mr-1 lg:mr-4 mt-2 sm:mt-1 lg:mt-3 ml-0.5 sm:ml-0.25 lg:ml-1">
-              <img src={treasure} className="w-4 h-4 mr-1 sm:mr-0.5 lg:mr-1.5" alt="Treasure" />
-              <span className={`${theme === "dark" ? "text-white" : "text-[#19191E]"} font-semibold text-xs sm:text-sm lg:text-base xl:text-lg 2xl:text-xl whitespace-nowrap`}>
-                {treasurePoints}
-              </span>
-            </div>
+
 
             {/* Campaigns */}
             <div className="mr-0.5 sm:mr-0.25 lg:mr-1 mt-1 sm:mt-0.5 lg:mt-2">
@@ -337,13 +308,18 @@ const Tap = () => {
             </div>
 
             {/* Logo3 and Count */}
-            <div className="flex items-center mr-1 sm:mr-0.5 lg:mr-2">
-              <img src={logo3} className="w-6 sm:w-5 lg:w-7 object-cover mr-2 sm:mr-1 lg:mr-3 mt-1 sm:mt-0.5 lg:mt-2" alt="Logo" />
-              <div className={`${theme === "dark" ? "text-white" : "text-[#19191E]"} text-sm sm:text-base lg:text-lg xl:text-xl 2xl:text-2xl font-semibold whitespace-nowrap`}>
-
+            <div className="flex items-center mr-4 sm:mr-2 lg:mr-4">
+              <img src={logo3} className="w-6 sm:w-5 lg:w-7 object-cover mr-1 sm:mr-1 lg:mr-1 mt-1 sm:mt-0.5 lg:mt-2" alt="Logo" />
+              <div className={`${theme === "dark" ? "text-white" : "text-[#19191E]"} text-sm sm:text-base mr-2 lg:text-lg xl:text-xl 2xl:text-2xl font-semibold whitespace-nowrap`} style={{ fontSize: count > 100 ? '12px' : '14px' }}>
                 {formatCount(count)}
               </div>
+
             </div>
+            {/* Wallet Button */}
+            <div className="ml-auto">
+              <WalletButton />
+            </div>
+            
           </div>
         </div>
 
@@ -366,8 +342,6 @@ const Tap = () => {
             </div>
           ))}
       
-        
-        <NetworkButtons />
         <TonTrend />
 
         {/*<header >
@@ -378,9 +352,7 @@ const Tap = () => {
           <button onClick={() => tonConnectUI.openModal()} style={{ float: "right",}}>
             Connect Wallet
           </button>
-        </header> */}
-
-        <WalletButton />  
+        </header> */}  
 
         <TokenSecurityDetection />
         <div className="flex flex-col items-center sm:p-0 p-3">
@@ -395,7 +367,7 @@ const Tap = () => {
               <div className="red-dot"></div>
             </div> */}
 
-            <div className="flex items-center justify-center mt-1" style={{ marginTop: '10.5rem', marginLeft: '80%', position: 'absolute' }}>
+            <div className="flex items-center justify-center mt-1" style={{ marginTop: '0.1rem', marginLeft: '49%', position: 'absolute' }}>
               <Link to="/leaderboard" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', position: 'relative' }}>
                 <span className="text-xs sm:text-sm lg:text-base xl:text-lg 2xl:text-xl" style={{ color: "#96DED1", marginRight: '0.5rem', lineHeight: '1.2' }}>
                   {getRankText()}
@@ -421,6 +393,15 @@ const Tap = () => {
               </Link>
             </div>
 
+            
+            {/* Treasure and Points */}
+            <div className="flex items-center mr-2 sm:mr-1 lg:mr-4 mt-2 sm:mt-1 lg:mt-3 ml-0.5 sm:ml-0.25 lg:ml-1"style={{ marginTop: '3rem', marginLeft: '-80%', position: 'absolute' }}>
+              <img src={treasure} className="w-4 h-4 mr-1 sm:mr-0.5 lg:mr-1.5" alt="Treasure" />
+              <span className={`${theme === "dark" ? "text-white" : "text-[#19191E]"} font-semibold text-xs sm:text-sm lg:text-base xl:text-lg 2xl:text-xl whitespace-nowrap`}>
+                {treasurePoints}
+              </span>
+            </div>            
+
             {/*<div
               onClick={handleClick}
               className={`text-sm flex flex-col items-center gap-1 ${
@@ -442,24 +423,42 @@ const Tap = () => {
 
             <div
               className="w-full flex flex-col items-center mb-16"
-              style={{ marginTop: "1%" }}
-            > {/*<p className="text-xs sm:text-sm lg:text-base xl:text-lg 2xl:text-xl text-gray-100">Tap coin, Earn $NEXAI</p>*/}
+              style={{ marginTop: "-1%" }}
+            > {/*<p className="text-xs sm:text-sm lg:text-base xl:text-lg 2xl:text-xl text-gray-100">Tap coin, Earn $NEXT</p>*/}
               <br></br>
               <div className="flex flex-col items-center justify-center w-[80%] mb-4">
                 <div className="w-full bg-[#D2B48C] rounded-full h-4 overflow-hidden mb-2">
                   <div
                     className="h-4 rounded-full bg-gradient-to-r from-[#5A5FFF] to-[#6B7CFE]"
                     style={{
-                      width: `${(energy / energyLimit) * 100}%`,
+                      width: `${(1-((remainingTime / 1000) / (12 * 3600))) * 100}%`,
                     }}
                   ></div>
                 </div>
-                <div className="flex items-center text-xs sm:text-sm lg:text-base xl:text-lg 2xl:text-xl text-gray-100">
-                  <span className="text-2xl mx-2">🔥</span> Next Epoch in{" "}
-                  <span className="ml-2 font-bold text-white">
-                    {energy}/{energyLimit}
-                  </span>
+                <div className="flex items-center text-xs sm:text-sm lg:text-base xl:text-lg 2xl:text-xl text-gray-100 ">
+                  {remainingTime > 0 && (
+                    <div>
+                      <span className="text-l mx-1"></span> Next Epoch in{" "}
+                      <span className="ml-2 font-bold text-white">
+                        {formatCountdown(remainingTime)}
+                      </span>
+                    </div>
+                  )}
+
+                  {canClaim ? (
+                    <button
+                      onClick={handleClaimClick}
+                      className="px-4 py-1 rounded-md font-semibold bg-[#4A4FFF] text-white text-xs sm:text-sm"
+                    >
+                      Claim Reward
+                    </button>
+                  ) : (
+                    <span className="text-xs sm:text-sm font-semibold text-gray ml-2">
+                      Claimed
+                    </span>
+                  )}
                 </div>
+
               </div>
             </div>
           </div>

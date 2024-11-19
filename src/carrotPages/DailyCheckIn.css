@@ -40,24 +40,24 @@
   justify-content: center;
 }
 
-.header {
+/*.header {
   margin-bottom: 20px;
   position: relative;
-  text-align: center; /* Center-align the text */
+  text-align: center; 
 }
 
 .header h2 {
   margin: 0;
   font-size: 24px;
-  color: rgb(101, 114, 255); /* Set color for "Daily reward" text */
+  color: rgb(101, 114, 255); 
   font-weight: bold;
 }
 
 .header p {
   margin: 0;
   font-size: 16px;
-  color: rgb(249,249,249); /* Set color for "Get Reward for Opening the App Daily" text */
-}
+  color: rgb(249,249,249); 
+} */
 
 .rewards-grid {
   display: flex;

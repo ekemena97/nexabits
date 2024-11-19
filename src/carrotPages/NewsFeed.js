@@ -56,7 +56,7 @@ const NewsFeed = () => {
   };
 
   return (
-    <div className="newsfeed-container">
+    <div className="newsfeed-container font-inter">
       <div className="carousel-container">
         <Suspense fallback={null}>
           <Carousel

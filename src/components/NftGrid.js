@@ -45,7 +45,7 @@ const NftGrid = () => {
 
 
   return (
-    <div className="nft-grid">
+    <div className="nft-grid font-inter">
       <div className="small-images">
         <div className="small-row">
           <div className="small-image">

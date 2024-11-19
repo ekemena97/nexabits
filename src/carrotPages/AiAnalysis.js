@@ -21,7 +21,7 @@ const AiAnalysis = () => {
 
   return (
     <div
-      className="ai-container"
+      className="ai-container font-inter"
       style={{
         backgroundImage: `url(${backgroundImage})`,
         backgroundSize: 'cover',

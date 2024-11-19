@@ -10,6 +10,7 @@ import { TimeLapseProvider } from "./context/TimeContext.js";
 import { ReferralProvider } from "./context/ReferralContext.js"; 
 import { LeaderboardProvider } from "./context/LeaderboardContext.js"; 
 import { WalletProvider } from "./context/WalletContext.js";  // Import WalletContext
+import { ClaimProvider } from "./context/ClaimContext.js"; // Import ClaimContext
 import Loading from "./components/Loading.js";
 import Navigation from "./components/Navigation.js";
 // Assets to preload
@@ -24,11 +25,10 @@ import earn from "./assets/earn.png";
 import news from "./assets/news.png";
 import trophy from "./assets/trophy.png";
 
-const bgMain = `${process.env.PUBLIC_URL}/assets/bg-main.png`;  // Use absolute path for the background image
+import { ReactComponent as BgMain } from "./assets/bg-main.svg";  // Use absolute path for the background image
 
 // List of images to preload
 const imageUrls = [
-  bgMain,  // Preload the background image
   crypto,
   logo3,
   treasure,
@@ -83,15 +83,6 @@ function App() {
     // Preload and cache images
     preloadImages(imageUrls);
     cacheAssets(imageUrls);
-
-    // Load the background image
-    console.log('Loading image from:', bgMain); // Debugging log
-    const img = new Image();
-    img.src = bgMain; // Use the updated path
-    img.onload = () => setImageLoaded(true);
-    img.onerror = (error) => {
-      console.error("Image failed to load:", error);
-    };
 
     const timer = setTimeout(() => {
       setLoading(false);
@@ -192,29 +183,35 @@ function App() {
                   <ReferralProvider>
                     <TaskProvider>
                       <LeaderboardProvider>
-                        <div className="app-container">
-                          <main
-                            className="App-main w-full h-full flex flex-col content-center items-center relative font-poppins"
-                            style={{
-                              color: isNewsPage ? 'initial' : 'white',
-                              textShadow: isNewsPage ? 'initial' : '1px 1px 3px rgba(0, 0, 0, 0.7)',
-                            }}
-                          >
-                            <div className="z-0" />
-                            <div
-                              className="w-screen h-screen fixed -z-10"
+                        <ClaimProvider>
+                          <div className="app-container">
+                            <main
+                              className="App-main w-full h-full flex flex-col content-center items-center relative "
                               style={{
-                                backgroundImage: imageLoaded ? `url(${bgMain})` : 'none', // Use dynamic loading
-                                backgroundSize: 'cover',
-                                backgroundPosition: 'center',
-                                width: '100%',
-                                height: '100%',
+                                color: isNewsPage ? 'initial' : '#f7f9fb',
                               }}
-                            />
-                            <Outlet />
-                            <Navigation />
-                          </main>
-                        </div>
+                            >
+                              <div className="z-0" />
+                              <div className="w-screen h-screen fixed -z-10">
+                                <BgMain 
+                                  className="absolute w-full h-full object-cover" 
+                                  style={{ 
+                                    position: 'fixed', 
+                                    top: 0, 
+                                    left: 0, 
+                                    zIndex: -10,
+                                    width: '100%',
+                                    height: '100%',
+                                    objectFit: 'cover', 
+                                  }}
+                                  preserveAspectRatio="xMidYMid slice" // Ensure the SVG scales correctly 
+                                />
+                              </div>
+                              <Outlet />
+                              <Navigation />
+                            </main>
+                          </div>
+                        </ClaimProvider>
                       </LeaderboardProvider>
                     </TaskProvider>
                   </ReferralProvider>

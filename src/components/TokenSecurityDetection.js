@@ -42,6 +42,7 @@ const TokenSecurityDetection = () => {
 
   const handleNetworkChange = (event) => {
     const newNetwork = event.target.value;
+    console.log('Network changed to:', newNetwork);  // Log network change
     setSelectedNetwork(newNetwork);
 
     // Clear result and error message when network changes
@@ -59,6 +60,7 @@ const TokenSecurityDetection = () => {
   };
 
   const handleTokenAddressChange = (event) => {
+    console.log('Token address changed to:', event.target.value);
     setTokenAddress(event.target.value);
 
     // Clear result and error message when address changes
@@ -73,6 +75,7 @@ const TokenSecurityDetection = () => {
     }
 
     const chainId = networkChainMap[selectedNetwork];
+    console.log('Sending request with chainId:', chainId, 'and tokenAddress:', tokenAddress);
 
     setLoading(true);
 
@@ -86,6 +89,7 @@ const TokenSecurityDetection = () => {
       });
 
       const data = await response.json();
+      console.log('API Response:', data);
       if (data.error) {
         console.error(data.error);
         setResult(`Error: ${data.error}`);
@@ -250,9 +254,9 @@ const TokenSecurityDetection = () => {
 
 
   return (
-    <div className="token-security-container">
+    <div className="token-security-container font-inter">
       <h1 style={{ fontSize: '1rem', fontWeight: 'bold' }}>Digital Asset Risk Assessment</h1>
-      <p style={{ fontSize: '0.8rem'}} >Look beyond coin owner claims, reveal fraudulent tokens and uncover past scams based on tokens' on-chain behaviors.</p>
+      <p style={{ fontSize: '0.8rem'}} >Beat scammers in their own game. See beyond coin owners' claims.</p>
 
       <div className="form-container">
         <select value={selectedNetwork} onChange={handleNetworkChange} className="network-select" style={{ fontSize: '0.7rem' }}>
@@ -271,7 +275,7 @@ const TokenSecurityDetection = () => {
           placeholder={placeholderMessage}
           className="token-input"
           disabled={isNetworkDisabled}
-          style={{ fontSize: '0.8rem' }}
+          style={{ fontSize: '0.8rem', color: '#f7f9fb' }}
         />
         <button onClick={handleSubmit} className="check-button" disabled={isNetworkDisabled}>Check</button>
       </div>
@@ -370,7 +374,7 @@ const TokenSecurityDetection = () => {
 
 
           {/* Security Checks */}
-          <div className="security-checks" style={{ display: 'flex', justifyContent: 'space-between' }}>
+          {/*<div className="security-checks" style={{ display: 'flex', justifyContent: 'space-between' }}>
             <div className="security-section" style={{ border: '1px solid black', padding: '10px', margin: '10px 2px 10px 10px' }}>
               <ol style={{ listStyleType: 'decimal', paddingLeft: '20px', textAlign: 'left', fontSize: '10px', fontFamily: '"Roboto Mono", monospace' }}>
                 <li>Is Contract source code verified?{checker(result, 'is_open_source')}</li>
@@ -399,12 +403,12 @@ const TokenSecurityDetection = () => {
                 <li>Can the team alter the tax for a particular wallet address?{checker(result, 'personal_slippage_modifiable')}</li>
               </ol>
             </div>
-          </div>
+          </div> */}
         </>
       )}
 
       <p className="note">
-        <span style={{ fontWeight: 'bold' }} >Note</span>: <span style= {{fontSize: '0.7rem' }}> Our advanced AI helps spot potential scam tokens, but remember, no system grants 100% safety. Stay vigilant and do your own research!</span>
+        <span style={{ fontWeight: 'bold', color: '#f7f9fb' }} >Note</span>: <span style= {{fontSize: '0.6rem'  }}> The advanced AI helps spot potential scam tokens, but remember, no system grants 100% safety. Stay vigilant and do your own research!</span>
       </p>
     </div>
   );

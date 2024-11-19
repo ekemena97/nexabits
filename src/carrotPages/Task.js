@@ -69,42 +69,40 @@ const Task = () => {
 
   return (
     <section
-      className="h-full w-[90%] mx-auto flex flex-col mt-4 mb-3 relative"
+      className="h-full w-[90%] mx-auto flex flex-col mt-4 mb-3 relative font-inter"
     >
       <div>
 
         <NftGrid totalTasks={totalTasks} /> {/* Pass totalTasks as a prop */}
 
       </div>
-      <h1 className="sm:text-2xl text-xl my-3 text-center font-semibold text-gray-100"></h1>
-      <div className="text-center">
-        <h1 style={{all: 'unset', fontSize: '0.6rem', }}>Complete tasks to earn NFT gift boxes containing random Common or Rare NFTs.</h1>
-        <h1 style={{all: 'unset', fontSize: '0.6rem', }}> Collect 4  specific fragments to assemble the final special NFT. <br /></h1>
-        <h1 style={{all: 'unset', fontSize: '0.6rem', }}>This will be exchanged in the NeXa NFT marketplace soon!</h1>
+
+      <div className="text-center justify-center items-start leading-tight text-xs mt-6 px-2">
+        <p>Complete tasks to earn NFT gift boxes containing random Common, Rare or Special NFTs. Collect 4  specific fragments to assemble the final special NFT. This will be exchanged in the NeXa NFT marketplace soon!</p>
       </div>  
 
       <div
-        className="w-full min-h-[70vh] rounded overflow-y-scroll scrollbar-hide"
+        className="w-full rounded overflow-y-scroll scrollbar-hide"
       >
         {realTasks.map((task, taskIndex) => (
           <div key={taskIndex} className="flex mx-auto flex-col gap-3 items-center pt-5">
             <div className="flex flex-row justify-between sm:w-[80%]">
               <div className="flex sm:flex-row flex-col gap-3 sm:items-center items-start">
                 <div className="flex w-full flex-col gap-2 sm:px-0 px-4">
-                  <h1 className="sm:text-xl text-lg text-center sm:tracking-wide tracking-wider -mt-6 p-2">
+                  <h1 className="sm:text-xs text-xs text-center font-bold sm:tracking-wide tracking-wider -mt-4 p-2">
                     {task.title}
                   </h1>
                   <div
-                    className="px-4 py-2 rounded-md flex flex-row items-center justify-between cursor-pointer border border-gray-200"
+                    className="px-4 py-2 rounded-md flex flex-row items-center justify-between cursor-pointer border border-purple bg-blue/15"
                   >
                     <div className="flex flex-row items-center gap-2">
                       <span className="text-3xl">
                         <TbMilitaryRank />
                       </span>
-                      <p>Balance</p>
+                      <p className="text-xl">Balance</p>
                     </div>
                     <div className="text-[#43B05F] text-xl font-semibold flex flex-row items-center gap-2">
-                      <p className="text-2xl">{formatCount(count)}</p>
+                      <p className="text-xl text-purple">{formatCount(count)}</p>
                       <GiTwoCoins style={{ color: "gold" }} />
                     </div>
                   </div>
@@ -136,21 +134,21 @@ const Task = () => {
                   onClick={() => handleTaskClick(item, taskIndex, itemIndex)}
                 >
                   <div
-                    className="px-4 py-2 rounded-md flex flex-row items-center justify-between cursor-pointer border border-gray-200"
+                    className="px-4 py-2 rounded-md flex flex-row items-center justify-between cursor-pointer border border-purple bg-black/15"
                   >
                     <div className="flex flex-row items-center gap-2">
                       <span className="text-2xl">
                         {completedTasks[taskIndex + "-" + itemIndex] ? (
                           <IoIosCheckmark className="text-[#ffffff] rounded-md bg-[#43b05f]" />
                         ) : (
-                          <FaTasks className="text-gray-300 rounded-md bg-[#808080]" />
+                          <FaTasks className="rounded-md text-blue" />
                         )}
                       </span>
-                      <p className="sm:text-base text-sm">{item.task_title}</p>
+                      <p className="sm:text-base text-sm text-gray">{item.task_title}</p>
                     </div>
                     <div className="text-gray-100 text-lg font-semibold flex flex-row items-center gap-2">
-                      <p className="sm:text-base text-sm">{formatCount(item.task_points)}</p>
-                      <GiTwoCoins />
+                      <p className="sm:text-base text-sm ml-16 text-white">{formatCount(item.task_points)}</p>
+                      <GiTwoCoins className=" text-gold" />
                     </div>
                   </div>
                 </a>

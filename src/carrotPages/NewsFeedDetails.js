@@ -31,7 +31,7 @@ const NewsFeedDetails = () => {
 
   return (
     <div
-      className={`fixed top-0 w-full h-full first-letter:backdrop-blur-sm flex items-center justify-center font-poppins  ${
+      className={`fixed top-0 w-full h-full first-letter:backdrop-blur-sm flex items-center justify-center font-inter  ${
         theme === "dark"
           ? "bg-gray-200 bg-opacity-30 "
           : "bg-gray-100 bg-opacity-30 "
