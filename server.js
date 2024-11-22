@@ -759,5 +759,38 @@ app.get('/price-updates', async (req, res) => {
 });
 
 
+// API endpoint for /token-security-v2
+// API endpoint for /token-security-v2
+app.get('/token-security-v2', async (req, res) => {
+  const { chainId, address: tokenAddress } = req.query; // Match the client's query parameters
+
+  if (!chainId || !tokenAddress) {
+    return res.status(400).json({ error: 'Missing chainId or tokenAddress' });
+  }
+
+  const apiUrl = `https://api.gopluslabs.io/api/v1/token_security/${chainId}?contract_addresses=${tokenAddress}`;
+  const options = {
+    method: 'GET',
+    headers: {
+      accept: '*/*',
+    },
+  };
+
+  try {
+    const response = await fetch(apiUrl, options);
+
+    if (!response.ok) {
+      return res.status(response.status).json({ error: 'Failed to fetch data from GoPlusLabs' });
+    }
+
+    const data = await response.json();
+    return res.json(data); // Forward the response to the client
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+
 
 export default app;
