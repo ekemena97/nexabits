@@ -16,6 +16,8 @@
 .env.test.local
 .env.production.local
 .env
+nexabit2-245fe89ff2e6.json
+nexabits-525d28620a6a.json
 
 npm-debug.log*
 yarn-debug.log*
