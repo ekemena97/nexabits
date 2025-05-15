@@ -1,8 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useThemeContext } from "../context/ThemeContext.js";
 import { useParams, Link, useLocation } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import backgroundImage from '../assets/bg-main.png'; // Replace with the correct path
+import { useQuery } from 'react-query'; // Updated import
 
 import { news } from '../data/news.js';
 import title from '../assets/title.png';
@@ -63,10 +62,8 @@ const BlogPost = () => {
   const pointAdded = useRef(false);
   const timerRef = useRef(null);
 
-  const { data: newsData, error, isLoading } = useQuery({
-    queryKey: ['news'],
-    queryFn: fetchNews
-  });
+const { data: newsData, error, isLoading } = useQuery('news', fetchNews);
+
 
   useEffect(() => {
     if (previousPathname.current !== pathname) {
@@ -132,20 +129,11 @@ const BlogPost = () => {
 
   return (
     <div
-      className="main-app-container"
-      style={{
-        backgroundImage: `url(${backgroundImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        minHeight: '100vh',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center'
-      }}
+      className="main-app-container h-screen font-inter overflow-hidden"
     >
-      <div className="main-content-container">
+      <div className="main-content-container ">
         <div
-          className="blog-post-container"
+          className="blog-post-container h-[calc(100vh-90px)] overflow-auto scrollbar-hide"
         >
           <div className="title-container">
             {/*<img src={title} alt="Title" className="title-image" /> */}

@@ -8,9 +8,20 @@
     ],
     "rewrites": [
       {
+        "source": "/.well-known/xrp-ledger.toml",
+        "function": "getTomlFile"
+      },
+      {
+        "source": "/:symbol_metadata.json",
+        "function": "getMetadata"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }
     ]
+  },
+  "functions": {
+    "source": "functions"
   }
 }

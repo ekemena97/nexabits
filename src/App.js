@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Outlet, useLocation } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from 'react-query';
 import { TonConnectUIProvider } from '@tonconnect/ui-react'; // Import TonConnect provider
 import TelegramContext from "./context/TelegramContext.js";
 import { TaskProvider } from "./context/TaskContext.js";
@@ -11,8 +11,13 @@ import { ReferralProvider } from "./context/ReferralContext.js";
 import { LeaderboardProvider } from "./context/LeaderboardContext.js"; 
 import { WalletProvider } from "./context/WalletContext.js";  // Import WalletContext
 import { ClaimProvider } from "./context/ClaimContext.js"; // Import ClaimContext
+import { DataProvider } from "./context/DataContext.js";
 import Loading from "./components/Loading.js";
 import Navigation from "./components/Navigation.js";
+import Guide from "./carrotPages/Guide.js";  // Import the Guide.js component
+import TokenSecurityDetection from './components/TokenSecurityDetection.js';
+import NewsFeed from './carrotPages/NewsFeed.js';
+
 // Assets to preload
 import crypto from "./assets/crypto.png";
 import logo3 from "./assets/logo3.png";
@@ -24,8 +29,6 @@ import boost from "./assets/chatbot.png";
 import earn from "./assets/earn.png";
 import news from "./assets/news.png";
 import trophy from "./assets/trophy.png";
-
-import { ReactComponent as BgMain } from "./assets/bg-main.svg";  // Use absolute path for the background image
 
 // List of images to preload
 const imageUrls = [
@@ -68,6 +71,9 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [imageLoaded, setImageLoaded] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  
+  const hasSeenGuide = localStorage.getItem('hasSeenGuide') === 'true';
 
   useEffect(() => {
 
@@ -175,51 +181,49 @@ function App() {
   return (
     <TonConnectUIProvider manifestUrl="https://nexabits.web.app/tonconnect-manifest.json"> {/* Wrap app with TON Connect */}  
       <QueryClientProvider client={queryClient}>
-        <WalletProvider> {/* Add WalletProvider here */}
-          <TreasureProvider>
-            <TimeLapseProvider>
-              <TapProvider>
-                <TelegramContext>
-                  <ReferralProvider>
-                    <TaskProvider>
-                      <LeaderboardProvider>
-                        <ClaimProvider>
-                          <div className="app-container">
-                            <main
-                              className="App-main w-full h-full flex flex-col content-center items-center relative "
-                              style={{
-                                color: isNewsPage ? 'initial' : '#f7f9fb',
-                              }}
-                            >
-                              <div className="z-0" />
-                              <div className="w-screen h-screen fixed -z-10">
-                                <BgMain 
-                                  className="absolute w-full h-full object-cover" 
-                                  style={{ 
-                                    position: 'fixed', 
-                                    top: 0, 
-                                    left: 0, 
-                                    zIndex: -10,
-                                    width: '100%',
-                                    height: '100%',
-                                    objectFit: 'cover', 
-                                  }}
-                                  preserveAspectRatio="xMidYMid slice" // Ensure the SVG scales correctly 
-                                />
-                              </div>
-                              <Outlet />
-                              <Navigation />
-                            </main>
-                          </div>
-                        </ClaimProvider>
-                      </LeaderboardProvider>
-                    </TaskProvider>
-                  </ReferralProvider>
-                </TelegramContext>
-              </TapProvider>
-            </TimeLapseProvider>
-          </TreasureProvider>
-        </WalletProvider> {/* Close WalletProvider */}
+        <DataProvider>
+          <WalletProvider> {/* Add WalletProvider here */}
+            <TreasureProvider>
+              <TimeLapseProvider>
+                <TapProvider>
+                  <TelegramContext>
+                    <ReferralProvider>
+                      <TaskProvider>
+                        <LeaderboardProvider>
+                          <ClaimProvider>
+                            <div className="app-container bg-black font-inter min-h-screen">
+                              <main
+                                className="App-main w-full h-full flex flex-col content-center items-center relative text-white font-inter"
+                              >
+                                <div className="z-0" />
+                                <div className="top-0 left-0 w-screen h-screen fixed -z-10 ">
+     
+                                </div>
+                                {/* Show Guide if the user hasn't seen it yet */}
+                                {/*{!hasSeenGuide ? (
+                                  <Guide /> // Render the Guide component
+                                ) : (
+                                  <>
+                                    <Outlet />
+                                    <Navigation />
+                                  </>
+                                )} */}
+                                <>
+                                  <Outlet />
+                                  <Navigation />
+                                </>                                
+                              </main>
+                            </div>
+                          </ClaimProvider>
+                        </LeaderboardProvider>
+                      </TaskProvider>
+                    </ReferralProvider>
+                  </TelegramContext>
+                </TapProvider>
+              </TimeLapseProvider>
+            </TreasureProvider>
+          </WalletProvider> {/* Close WalletProvider */}
+        </DataProvider>
       </QueryClientProvider>
     </TonConnectUIProvider>  
   );

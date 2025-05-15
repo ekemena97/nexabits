@@ -29,6 +29,34 @@ module.exports = {
         'light-blue': 'linear-gradient(to right, #2d83ec, #1ac9ff)', // Predefined light blue gradient
         'purple': 'linear-gradient(to right, #5a5fff, #6b7cfe)',      // Predefined purple gradient
       },
+
+      animation: {
+        glow: 'glow 1.5s ease-in-out infinite',
+        flyIn: 'flyIn 5s cubic-bezier(0.25, 1, 0.5, 1)',
+        coinFollow: 'coinFollow 1.5s cubic-bezier(0.25, 1, 0.5, 1) infinite',
+        'bounce-2s': 'bounce 2s ease-in-out 1', // Bounce for 2 seconds, once
+        breathing: 'breathing 3s infinite', // Custom breathing animation
+      },
+      keyframes: {
+        glow: {
+          '0%, 100%': { textShadow: '0 0 8px #fddc00, 0 0 16px #fddc00' },
+          '50%': { textShadow: '0 0 16px #fddc00, 0 0 32px #fddc00' },
+        },
+        flyIn: {
+          '0%': { transform: 'translateY(-200%)', opacity: 0 },
+          '100%': { transform: 'translateY(0%)', opacity: 1 },
+        },
+        coinFollow: {
+          '0%': { transform: 'translateY(100%) scale(0.5)', opacity: 0 },
+          '50%': { transform: 'translateY(-50%) scale(1)', opacity: 1 },
+          '100%': { transform: 'translateY(-100%) scale(0.8)', opacity: 0 },
+        },
+        breathing: {
+          '0%': { transform: 'scale(1)' },
+          '50%': { transform: 'scale(1.2)' },
+          '100%': { transform: 'scale(1)' },
+        },
+      },
     },
   },
   plugins: [require("tailwind-scrollbar-hide")],

@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import './TonTrend.css';
 
 // Import the SVG file as a React component
-import { ReactComponent as TrendingIcon } from '../assets/trending.svg'; 
 
 const TonTrend = () => {
   const [trendsData, setTrendsData] = useState([]);
@@ -79,8 +78,7 @@ const TonTrend = () => {
   return (
     <div className="ton-trend-container font-inter">
       <div className="trending-title">
-        <TrendingIcon className="trending-icon" />
-        <h2>Trending Coins Today</h2>
+        <h2 >Top trending jetton today</h2>
       </div>
       <div className="trending-boxes">
         {visibleItems.map((jetton, index) => (

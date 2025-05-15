@@ -244,7 +244,7 @@ export const realTasks = [
       task_status: "Ongoing",
       task_status_message: "Challenge is Open",
       bonus_total: 1000000,
-      title: "Task 1 - Earn $NEXT Token and a rare NFT",
+      title: "Follow us for the latest updates!",
       user_point_score: 0,
       company: "Utility of MY",
       desc: "Ends in 4 days, after which active campaign participants will share 3,000,000 MY tokens. So, what features will MY holders have?",

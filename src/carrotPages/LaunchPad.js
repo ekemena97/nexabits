@@ -127,13 +127,13 @@ const LaunchPad = () => {
   };
 
   return (
-    <div className="flex flex-col items-center p-2 text-[f7f9fb] font-sans mb-4 font-inter">
+    <div className="flex flex-col items-center p-2 text-[f7f9fb] font-sans font-inter h-screen overflow-hidden">
       {/* Header Section */}
       <div className="flex justify-between items-center w-full max-w-md py-2">
-        <div className="flex-1">
+        <div className="flex-1 px-2">
           <img src={logo} alt="Logo" className="w-10" />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 px-2">
           <FaBitcoin className="text-[#f7f9fb] text-xl" />
           <BiArrowFromRight
             className="text-[#f7f9fb] text-xl cursor-pointer"
@@ -146,7 +146,7 @@ const LaunchPad = () => {
 
           <div>
             {wallet ? (
-              <span className="bg-[#1e2337] text-[#f7f9fb] px-2 py-1 rounded-lg text-sm">
+              <span className="bg-[#3390ec] text-[#f7f9fb] px-2 py-1 rounded-lg text-sm">
                 {walletAddress}
               </span>
             ) : (
@@ -172,153 +172,169 @@ const LaunchPad = () => {
       </div>
 
       {/* Content Section */}
-      <div className="text-center mt-2 max-w-md">
-        <h1 className="text-2xl font-bold mb-2">$Next LaunchPad</h1>
-        <p className="text-[#f7f9fb] text-base leading-relaxed">
-          NexaBit Launchpad propels vetted meme tokens to the moon, giving users the chance to join early. Access the next big meme on TON now!
-        </p>
-      </div>
-
-      {/* IDO Progress Section */}
-      <div className="mt-8 w-full max-w-md p-4 bg-[rgba(30,35,55,0.3)] rounded-lg shadow-lg">
-        <div className="flex items-center justify-between mb-4 w-full max-w-xs mx-auto whitespace-nowrap">
-          <div className="text-[#f7f9fb] text-xs sm:text-sm">TOTAL RAISED</div>
-          <div className="flex items-center text-[#f7f9fb] font-bold text-lg sm:text-xl md:text-2xl">
-            <FaDollarSign className="text-[#fddc00] mr-1" />
-            <span className="text-sm sm:text-base md:text-lg lg:text-xl">
-              139,819.72 / 250,000 USDT
-            </span>
-          </div>
-        </div>
-
-        {/* Progress Bar and Text */}
-        <div className="text-center text-[#f7f9fb] text-sm mb-2">
-          Progress 55.92%
-        </div>
-        <div 
-          className="relative rounded-full h-3 mb-4" 
-          style={{ backgroundColor: '#D2B48C' }}
-        >
-          <div
-            className="absolute top-0 left-0 h-3 rounded-full bg-gradient-to-r from-[#5A5FFF] to-[#6B7CFE]"
-            style={{ width: '55.92%', }}
-          ></div>
-        </div>
-
-        {/* Allocation Info */}
-        <div className="flex justify-between text-[#f7f9fb] text-sm mb-4">
-          <div>
-            <p>User Cap: 0</p>
-            <p>HardCap: <span className="text-[#f7f9fb] text-xs">$500,000</span></p>
-            <p>SoftCap: <span className="text-[#f7f9fb] text-xs">$250,000</span></p>
-          </div>
-          <div>
-            <p>PARTICIPANTS: <span className="text-[#fddc00] font-bold"> 1287</span></p>
-          </div>
-        </div>
-
-        {/* Swap Interface */}
-        <label className="block text-[#f7f9fb] text-sm mb-1">Indicate the amount of $WarThog that you want to secure below</label>
-        <div className="mt-6 w-full max-w-lg p-4 rounded-lg" >
-          <div className="mb-4">
-            <div
-              className="flex items-center p-2 rounded-lg border border-purple"
-               // Darker background for input field container
-            >
-              <input
-                type="number"
-                value={sellAmount}
-                onChange={(e) => setSellAmount(e.target.value)}
-                className="bg-transparent text-[#f7f9fb] w-full outline-none placeholder-[#f7f9fb] bg-[rgba(30,35,55,0.1)]"
-                // Ensure input area has the same background color
-                placeholder="Enter amount"
-              />
-              <div
-                className="flex items-center gap-1 ml-2 text-[#f7f9fb] cursor-pointer relative shadow-md"
-                onClick={handleDropdownClick}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  minWidth: "2rem",
-                  flexShrink: 0,
-                  // Subtle gray background for the container
-                  padding: "0.2rem 0.6rem", // Padding to make it look more like a button
-                  borderRadius: "0.4rem", // Slight rounding of the container
-                  boxShadow: "0 4px 6px rgba(0, 0, 0, 0.4)", // Custom shadow for more precise control
-                }}
-              >
-                {/* Coin icon added back */}
-                <span className="text-[f7f9fb] text-sm ml-1">${currentPrice}</span> {/* Smaller, white price */}
-                {tokenOptions.find((token) => token.name === selectedToken)?.icon}
-                <span className="ml-1 text-[f7f9fb]">{selectedToken}</span>
-                <FaChevronDown className="ml-1 text-[f7f9fb]" size={14} />
-              </div>
-
-              {showDropdown && (
-                <div
-                  className="absolute w-20 shadow-lg rounded-lg"
-                  style={{
-                    backgroundColor: "#0098ea", // Purple background for dropdown
-                    top: dropdownPosition.top,
-                    left: dropdownPosition.left,
-                  }}
-                >
-                  {tokenOptions.map((token) => (
-                    <div
-                      key={token.name}
-                      className="flex items-center gap-2 p-2 text-[f7f9fb] hover:cursor-pointer"
-                      onClick={() => {
-                        setSelectedToken(token.name);
-                        setShowDropdown(false);
-                      }}
-                    >
-                      {token.icon} {token.name}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-          <p className="text-[#f7f9fb] text-sm mt-2">
-            You will get <span style={{ color: '#fddc00', fontWeight: 'bold', fontSize: '1.2em' }}>
-              {Number(calculateWTHAmount()).toLocaleString()}
-            </span> <span style={{ fontWeight: 'bold', fontSize: '1.2em' }}>$WTH</span> for contributing {sellAmount || 0} {selectedToken}.
-
+      <div className="h-[calc(100vh-160px)] overflow-auto max-w-md scrollbar-hide justify-center items-center">
+        <div className="text-center mt-4">
+          <h1 className="text-2xl font-bold mb-2">MemeX Launchpad</h1>
+          <p className="text-[#f7f9fb] text-sm text-left leading-relaxed p-4 -mt-4">
+            The memepad propels vetted meme tokens to the moon, giving everyone the chance to join early.
           </p>
         </div>
 
+        {/* IDO Progress Section */}
+        <div className="mt-2 w-full max-w-md p-4 bg-[rgba(30,35,55,0.3)] rounded-lg shadow-lg  mr-6">
+          <div className="flex items-center justify-between mb-4 w-full max-w-xs mx-auto whitespace-nowrap">
+            <div className="text-[#f7f9fb] text-lg sm:text-lg font-bold -ml-2">TOTAL RAISED</div>
+            <div className="flex items-center text-[#f7f9fb]  text-lg sm:text-xl md:text-2xl">
+              <FaDollarSign className="text-[#fddc00] ml-4" />
+              <span className="text-sm sm:text-sm md:text-sm lg:text-lg">
+                139,819.72 / 250,000 USDT
+              </span>
+            </div>
+          </div>
 
-        {/* Approve Button */}
-        <button
-          onClick={handleApprove}
-          className="w-full text-[f7f9fb] font-semibold py-2 rounded-lg mt-4"
-          style={{ backgroundColor: "#0098ea" }}
-        >
-          Approve
-        </button>
+          {/* Progress Bar and Text */}
+          <div className="text-center text-[#f7f9fb] text-sm mb-2">
+            Progress <span className="text-purple"> 55.92% </span>
+          </div>
+          <div 
+            className="relative rounded-full h-3 mb-4" 
+            style={{ backgroundColor: '#D2B48C' }}
+          >
+            <div
+              className="absolute top-0 left-0 h-3 rounded-full bg-gradient-to-r from-[#5A5FFF] to-[#6B7CFE]"
+              style={{ width: '55.92%', }}
+            ></div>
+          </div>
 
-        {showPayment && (
-          <Payment
-            sellAmount={sellAmount}
-            selectedToken={selectedToken}
-            calculateWTHAmount={calculateWTHAmount}
-            setShowPayment={setShowPayment}
-          />
-        )}        
+          {/* Allocation Info */}
+          <div className="flex justify-between text-[#f7f9fb] text-sm mb-4">
+            <div>
+              <p>User Cap: 0</p>
+              <p>HardCap: <span className="text-[#f7f9fb] text-xs">$500,000</span></p>
+              <p>SoftCap: <span className="text-[#f7f9fb] text-xs">$250,000</span></p>
+            </div>
+            <div>
+              <p><span className="text-bold">PARTICIPANTS:</span> <span className="text-[#fddc00]"> 1287</span></p>
+            </div>
+          </div>
 
-        {/* Timer */}
-        <div
-          className="-mt-4 mb-20 text-center py-4 px-8 rounded-lg shadow-lg"
-        >
-          <p className="text-sm mt-2">Round One ends in: </p>
-          <div className="flex justify-center gap-2">
-            <span>{timeLeft.days}d</span>
-            <span>{timeLeft.hours}h</span>
-            <span>{timeLeft.minutes}m</span>
-            <span>{timeLeft.seconds}s</span>
+          {/* Swap Interface */}
+          <label className="block text-[#f7f9fb] text-sm mb-1">Indicate how many $WarThog that you want below:</label>
+          <div className="mt-6 w-full max-w-lg p-0 rounded-lg" >
+            <div className="mb-4">
+              <div
+                className="flex items-center p-2 rounded-lg border border-purple"
+                 // Darker background for input field container
+              >
+                <input
+                  type="number"
+                  value={sellAmount}
+                  onChange={(e) => setSellAmount(e.target.value)}
+                  className="bg-transparent text-[#f7f9fb] w-full outline-none placeholder-[#f7f9fb] bg-[rgba(30,35,55,0.1)]"
+                  // Ensure input area has the same background color
+                  placeholder="Enter amount"
+                />
+                <div
+                  className="flex items-center gap-1 ml-2 text-[#f7f9fb] cursor-pointer relative shadow-md"
+                  onClick={handleDropdownClick}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    minWidth: "2rem",
+                    flexShrink: 0,
+                    // Subtle gray background for the container
+                    padding: "0.2rem 0.6rem", // Padding to make it look more like a button
+                    borderRadius: "0.4rem", // Slight rounding of the container
+                    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.4)", // Custom shadow for more precise control
+                  }}
+                >
+                  {/* Coin icon added back */}
+                  <span className="text-[f7f9fb] text-sm ml-1">${currentPrice}</span> {/* Smaller, white price */}
+                  {tokenOptions.find((token) => token.name === selectedToken)?.icon}
+                  <span className="ml-1 text-[f7f9fb]">{selectedToken}</span>
+                  <FaChevronDown className="ml-1 text-[f7f9fb]" size={14} />
+                </div>
+
+                {showDropdown && (
+                  <div
+                    className="absolute w-20 shadow-lg rounded-lg"
+                    style={{
+                      backgroundColor: "#0098ea", // Purple background for dropdown
+                      top: dropdownPosition.top,
+                      left: dropdownPosition.left,
+                    }}
+                  >
+                    {tokenOptions.map((token) => (
+                      <div
+                        key={token.name}
+                        className="flex items-center gap-2 p-2 text-[f7f9fb] hover:cursor-pointer"
+                        onClick={() => {
+                          setSelectedToken(token.name);
+                          setShowDropdown(false);
+                        }}
+                      >
+                        {token.icon} {token.name}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+            <p className="text-[#f7f9fb] text-sm mt-2 text-left">
+              You will get <span style={{ color: '#fddc00', fontWeight: 'bold', fontSize: '1.2em' }}>
+                {Number(calculateWTHAmount()).toLocaleString()}
+              </span> <span style={{ fontWeight: 'bold', fontSize: '1.2em' }}>$WTH</span> for contributing {sellAmount || 0} {selectedToken}.
+
+            </p>
+          </div>
+
+
+          {/* Approve Button */}
+          {/* Approve Button and Validation Feedback */}
+          <div className="flex flex-col justify-center items-center">
+            {/* Validation Feedback */}
+            {sellAmount && Number(sellAmount) <= 0 && (
+              <p className="text-red text-sm mt-2">Enter a number greater than 0 to proceed.</p>
+            )}
+
+            {/* Approve Button */}
+            {sellAmount && Number(sellAmount) > 0 && (
+              <button
+                onClick={handleApprove}
+                className="w-1/2 text-[f7f9fb] font-semibold py-2 rounded-lg mt-4"
+                style={{ backgroundColor: "#0098ea" }}
+              >
+                Approve
+              </button>
+            )}
+          </div>
+
+          {showPayment && (
+            <Payment
+              sellAmount={sellAmount}
+              selectedToken={selectedToken}
+              calculateWTHAmount={calculateWTHAmount}
+              setShowPayment={setShowPayment}
+            />
+          )}        
+
+          {/* Timer */}
+          <div
+            className="mt-3 rounded-lg shadow-lg flex items-center justify-center gap-2"
+          >
+            {/* Text */}
+            <p className="text-sm font-bold text">Ends in:</p>
+
+            {/* Timer */}
+            <div className="flex gap-1 text-xs text-red">
+              <span>{timeLeft.days}d</span>
+              <span>{timeLeft.hours}h</span>
+              <span>{timeLeft.minutes}m</span>
+              <span>{timeLeft.seconds}s</span>
+            </div>
           </div>
         </div>
-      </div>
+      </div>  
     </div>
   );
 };

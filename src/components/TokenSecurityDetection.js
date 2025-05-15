@@ -1,19 +1,22 @@
 import React, { useState, useEffect } from 'react';
+import { useQuery, } from "react-query";
 import './TokenSecurityDetection.css'; // Custom CSS for styling
 import Dashboard from "../components/Dashboard.js";
 import AddressDisplay from "./AddressDisplay.js";
 import { FaEthereum, FaUserAlt, FaExclamationTriangle, FaExclamationCircle, FaSkullCrossbones, FaFrown, FaCrown, FaCode, FaCheckCircle, FaTimesCircle, FaCopy, } from 'react-icons/fa'; // Import icons
 import NegativeSummary from "./NegativeSummary.js";
+import Augmented from "../assets/augmented.png";
 
 const TokenSecurityDetection = () => {
   const [riskyCount, setRiskyCount] = useState(0);
   const [attentionCount, setAttentionCount] = useState(0);
-  const [selectedNetwork, setSelectedNetwork] = useState('Solana');
+  const [selectedNetwork, setSelectedNetwork] = useState('Ethereum');
   const [tokenAddress, setTokenAddress] = useState('');
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('Checking token.');
   const [errorMessage, setErrorMessage] = useState(''); // For the yellow error message
+  const [hasRequested, setHasRequested] = useState(false);
 
   const networkChainMap = {
     SUI: '204',
@@ -48,6 +51,7 @@ const TokenSecurityDetection = () => {
     // Clear result and error message when network changes
     setResult(null);
     setErrorMessage('');
+    setHasRequested(false); // Reset the request flag
 
     // Replace the token address with the corresponding message if SUI or TON is selected
     if (newNetwork === 'SUI') {
@@ -66,113 +70,124 @@ const TokenSecurityDetection = () => {
     // Clear result and error message when address changes
     setResult(null);
     setErrorMessage('');
+    setHasRequested(false); // Reset the request flag
   };
 
-  const handleSubmit = async () => {
-    if (!tokenAddress || tokenAddress === 'SUI Network will be added in the future' || tokenAddress === 'TON Network will be added in the future') {
-      setErrorMessage(<span style={{ fontSize: '0.5rem' }}>Please enter a token address.</span>);
-      return;
-    }
+  // Fetch data using React Query
+  const chainId = networkChainMap[selectedNetwork];
+  const apiUrl = chainId === '0' 
+    ? `https://api.gopluslabs.io/api/v1/solana/token_security?contract_addresses=${tokenAddress}` 
+    : `https://api.gopluslabs.io/api/v1/token_security/${chainId}?contract_addresses=${tokenAddress}`;
 
-    const chainId = networkChainMap[selectedNetwork];
-    console.log('Sending request with chainId:', chainId, 'and tokenAddress:', tokenAddress);
-
-    setLoading(true);
-
-    try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/token-security`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ chainId, addresses: [tokenAddress] }),
-      });
-
-      const data = await response.json();
-      console.log('API Response:', data);
-      if (data.error) {
-        console.error(data.error);
-        setResult(`Error: ${data.error}`);
-      } else {
+  const { data, isLoading, isError, refetch } = useQuery(
+    ["tokenSecurity", chainId, tokenAddress],
+    async () => {
+      if (!tokenAddress) throw new Error("Token address is required.");
+      const response = await fetch(apiUrl);
+      if (!response.ok) throw new Error("Failed to fetch data.");
+      return response.json();
+    },
+    {
+      //enabled: !!tokenAddress && !["SUI", "TON"].includes(selectedNetwork), // Fetch only when a valid address is provided
+      enabled: false, // Disable automatic fetching
+      onSuccess: (data) => {
         setResult(data.result);
-
-        // List of specific fields for risky items
-        const riskyFieldsToCheck = [
-          "personal_slippage_modifiable",
-          "is_whitelisted",
-          "is_blacklisted",
-          "slippage_modifiable",
-          "trading_cooldown",
-          "cannot_buy",
-          "cannot_sell_all",
-          "is_honeypot",
-          "transfer_pausable",
-          "owner_change_balance",
-          "selfdestruct",
-        ];
-
-        // List of specific fields for attention items
-        const attentionFieldsToCheck = [
-          "gas_abuse",
-          "external_call",
-          "hidden_owner",
-          "can_take_back_ownership",
-          "is_proxy",
-          "is_mintable",
-          "is_anti_whale",
-          "anti_whale_modifiable",
-        ];
-
-        // Count fields with a value of "1" for risky items
-        let riskyCount = 0;
-        const resultKeys = Object.keys(data.result);
-        
-        if (resultKeys.length > 0) {
-          const resultData = data.result[resultKeys[0]]; // Access the first address's data
-
-          // Check for risky fields
-          for (const field of riskyFieldsToCheck) {
-            if (resultData[field] === "1") {
-              riskyCount++;
-            }
-          }
-
-          // Update state for riskyCount to display in UI
-          setRiskyCount(riskyCount);
-
-          // Count attention items
-          let attentionCount = 0;
-
-          // Check for attention fields
-          for (const field of attentionFieldsToCheck) {
-            if (resultData[field] === "1") {
-              attentionCount++;
-            }
-          }
-
-          // Check if is_open_source is "0"
-          if (resultData.is_open_source === "0") {
-            attentionCount++;
-          }
-
-          // Update state for attentionCount to display in UI
-          setAttentionCount(attentionCount);
-        }
-      }
-    } catch (error) {
-      console.error("An error occurred:", error);
-      setResult(`An error occurred: ${error.message}`);
-    } finally {
-      setLoading(false);
+        setLoading(false); // Hide loading message when data is successfully fetched
+        setHasRequested(true); // Set the flag to true once the check is done
+      },
+      onError: (error) => {
+        setErrorMessage("Data fetch unsuccessful, please check the contract address");
+        setResult(null); // Optionally clear the result on error
+        setLoading(false); // Hide loading message on error
+        setHasRequested(true); // Set the flag to true once the check is done
+      },            
     }
-  };  
+  );
 
-  const isNetworkDisabled = selectedNetwork === 'SUI' || selectedNetwork === 'TON';
-  const placeholderMessage = selectedNetwork === 'SUI'
-    ? 'SUI Not Available Now'
-    : selectedNetwork === 'TON'
-    ? 'TON Not Available Now'
-    : 'Enter Token Address';
+
+  useEffect(() => {
+    if (data && data.result) {
+      const riskyFieldsToCheck = [
+        "personal_slippage_modifiable",
+        "is_whitelisted",
+        "is_blacklisted",
+        "slippage_modifiable",
+        "trading_cooldown",
+        "cannot_buy",
+        "cannot_sell_all",
+        "is_honeypot",
+        "transfer_pausable",
+        "owner_change_balance",
+        "selfdestruct",
+      ];
+
+      const attentionFieldsToCheck = [
+        "gas_abuse",
+        "external_call",
+        "hidden_owner",
+        "can_take_back_ownership",
+        "is_proxy",
+        "is_mintable",
+        "is_anti_whale",
+        "anti_whale_modifiable",
+      ];
+
+      let riskyCount = 0;
+      let attentionCount = 0;
+      const resultKeys = Object.keys(data.result);
+
+      if (resultKeys.length > 0) {
+        const resultData = data.result[resultKeys[0]];
+
+        // Count risky items
+        riskyCount = riskyFieldsToCheck.reduce(
+          (count, field) => count + (resultData[field] === "1" ? 1 : 0),
+          0
+        );
+
+        // Count attention items
+        attentionCount = attentionFieldsToCheck.reduce(
+          (count, field) => count + (resultData[field] === "1" ? 1 : 0),
+          0
+        );
+
+        if (resultData.is_open_source === "0") attentionCount++;
+      }
+
+      setRiskyCount(riskyCount);
+      setAttentionCount(attentionCount);
+    }
+  }, [data]);
+
+  const isInvalidResult = (result) => {
+    if (!result || Object.keys(result).length === 0) return true;
+
+    const resultData = result[Object.keys(result)[0]];
+
+    // Check if creator_address is invalid (case insensitive, null, undefined, 0, N/A, or NA)
+    const creatorAddress = resultData?.creator_address?.toString().toLowerCase();
+    if (
+      creatorAddress === 'n/a' || 
+      creatorAddress === '0' || 
+      creatorAddress === 'na' || 
+      creatorAddress === 'null' || 
+      creatorAddress === 'undefined' || 
+      !creatorAddress // also checks for null, undefined, empty string
+    ) {
+      return true;
+    }
+
+    return false;
+  };
+
+
+  const isNetworkDisabled = selectedNetwork === "SUI" || selectedNetwork === "TON";
+  const placeholderMessage =
+    selectedNetwork === "SUI"
+      ? "SUI Not Available Now"
+      : selectedNetwork === "TON"
+      ? "TON Not Available Now"
+      : "Enter Token Address";
   const checker = (result, field) => {
     if (!result || !Object.keys(result)[0]) {
       return <span style={{ marginLeft: '5px' }}>N/A</span>;
@@ -254,162 +269,128 @@ const TokenSecurityDetection = () => {
 
 
   return (
-    <div className="token-security-container font-inter">
-      <h1 style={{ fontSize: '1rem', fontWeight: 'bold' }}>Digital Asset Risk Assessment</h1>
-      <p style={{ fontSize: '0.8rem'}} >Beat scammers in their own game. See beyond coin owners' claims.</p>
+    <div className="token-security-container font-inter  bg-black mt-4">
 
-      <div className="form-container">
-        <select value={selectedNetwork} onChange={handleNetworkChange} className="network-select" style={{ fontSize: '0.7rem' }}>
-          <option value="Solana">Solana</option>
-          <option value="Base">Base</option>
-          <option value="Arbitrum">Arbitrum</option>
-          <option value="BSC">BSC</option>
-          <option value="Ethereum">Ethereum</option>
-          <option value="SUI">SUI</option>
-          <option value="TON">TON</option>
-        </select>
-        <input
-          type="text"
-          value={tokenAddress}
-          onChange={handleTokenAddressChange}
-          placeholder={placeholderMessage}
-          className="token-input"
-          disabled={isNetworkDisabled}
-          style={{ fontSize: '0.8rem', color: '#f7f9fb' }}
-        />
-        <button onClick={handleSubmit} className="check-button" disabled={isNetworkDisabled}>Check</button>
+      <div className="flex items-center justify-center mb-2">
+        <h1 style={{ fontSize: '1rem', fontWeight: 'bold', marginLeft: '5px' }}>Digital Asset Risk Assessment</h1>
       </div>
 
-      {errorMessage && <p className="error-message" style={{ color: 'yellow' }}>{errorMessage}</p>}
+      <div className="font-inter">  
+        <p style={{ fontSize: '0.8rem', color: '#f7f9fb' }}>Beat scammers in their own game. See beyond coin owners' claims.</p>
 
-            {loading && <p className="loading-message">{loadingMessage}</p>}
-      {result && (
-        <>
-          <div className="result-container">
-            <h2>Scan Result:</h2>
-            {/* Raw JSON data (optional for debugging) */}
-            {/*<pre>{JSON.stringify(result, null, 2)}</pre>*/}
-          </div>
+        <div className="form-container font-inter">
+          <select value={selectedNetwork} onChange={handleNetworkChange} className="network-select" style={{ fontSize: '0.7rem' }}>
+            <option value="Solana">Solana</option>
+            <option value="Base">Base</option>
+            <option value="Arbitrum">Arbitrum</option>
+            <option value="BSC">BSC</option>
+            <option value="Ethereum">Ethereum</option>
+            <option value="SUI">SUI</option>
+            <option value="TON">TON</option>
+          </select>
+          <input
+            type="text"
+            value={tokenAddress}
+            onChange={handleTokenAddressChange}
+            placeholder={placeholderMessage}
+            className="token-input"
+            disabled={isNetworkDisabled}
+            style={{ fontSize: '0.8rem', color: '#f7f9fb' }}
+          />
+          <button
+            onClick={() => {
+              if (tokenAddress && !["SUI", "TON"].includes(selectedNetwork)) {
+                setLoading(true);
+                setLoadingMessage("Checking token...");
+                refetch();
+                setHasRequested(true); // Set the flag to true once the check is done
+              }
+            }}
+            className="check-button"
+            disabled={isNetworkDisabled || !tokenAddress || ["SUI", "TON"].includes(selectedNetwork)}
+          >
+            Check
+          </button>
+        </div>
 
-          {/* Coin Info Section */}
-          <div className="flex justify-between  p-4 rounded-lg shadow-lg space-x-4">
-            <div className="flex items-center w-1/3 space-x-1 text-center">
-              <FaSkullCrossbones style={{ color: 'red' }} className="icon w-4 h-4 text-sm" /> {/* Set consistent width and height */}
-              <div>
-                <span className="text-sm">Threat:</span>
-                <span className="font-semibold ml-1">{riskyCount}</span>
+        {errorMessage && <p className="error-message" style={{ color: 'yellow' }}>{errorMessage}</p>}
+
+        {loading && <p className="loading-message">{loadingMessage}</p>}
+
+        {!loading && hasRequested && (
+          <>
+            {result && Object.keys(result).length === 0 ? (
+              <p className="text-xs text-[#dbe2eb]" style={{ color: 'yellow', fontSize: '12px' }}>
+                Invalid data. Make sure to select the right network for the contract address.
+              </p>
+            ) : !result || isInvalidResult(result) ? (
+              <p className="text-xs text-[#dbe2eb]" style={{ color: 'yellow', fontSize: '12px' }}>
+                No token data available. Did you use the correct contract address?
+              </p>
+            ) : null}
+          </>
+        )}
+
+        {!loading && hasRequested && !isInvalidResult(result) && result && Object.keys(result).length > 0 && (
+          <>
+            <div className="result-container">
+              <h2>Scan Result:</h2>
+            </div>
+
+            <div className="flex justify-between p-4 rounded-lg shadow-lg space-x-4">
+              <div className="flex items-center w-1/3 space-x-1 text-center">
+                <FaSkullCrossbones style={{ color: 'red' }} className="icon w-4 h-4 text-sm" />
+                <div>
+                  <span className="text-sm">Threat:</span>
+                  <span className="font-semibold ml-1">{riskyCount}</span>
+                </div>
+              </div>
+              <div className="flex items-center w-1/3 space-x-1 text-center">
+                <FaExclamationTriangle style={{ color: '#FFA500' }} className="icon w-4 h-4 text-sm" />
+                <div>
+                  <span className="text-sm">Caution:</span>
+                  <span className="font-semibold ml-1">{attentionCount}</span>
+                </div>
+              </div>
+              <div className="flex items-center w-1/3 space-x-1 text-center">
+                <FaFrown style={{ color: 'purple' }} className="icon w-4 h-4 text-sm" />
+                <div>
+                  <span className="text-sm">Scams:</span>
+                  <span className="font-semibold ml-1">{displayFieldValue(result, 'honeypot_with_same_creator')}</span>
+                </div>
               </div>
             </div>
-            <div className="flex items-center w-1/3 space-x-1 text-center">
-              <FaExclamationTriangle style={{ color: '#FFA500' }} className="icon w-4 h-4 text-sm" /> {/* Set consistent width and height */}
-              <div>
-                <span className="text-sm">Caution:</span>
-                <span className="font-semibold ml-1">{attentionCount}</span>
+
+            <NegativeSummary tokenData={result && result[Object.keys(result)[0]]} />
+
+            <div className="detection-summary" style={{ marginTop: '20px', marginBottom: '20px', textAlign: 'center' }}>
+              <div className="creator-owner-info" style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', alignItems: 'center', justifyContent: 'center' }}>
+                <div className="creator-info" style={{ display: 'flex', alignItems: 'center', flex: '1 1 45%', minWidth: '200px', justifyContent: 'center' }}>
+                  <FaCode className="icon" />
+                  <span style={{ marginLeft: '1px' }}>Creator:</span>
+                  <span style={{ marginLeft: '8px', fontSize: '0.8rem' }}>
+                    <AddressDisplay address={result?.[Object.keys(result)?.[0]]?.creator_address || "N/A"} />
+                  </span>
+                </div>
+
+                <div className="creator-info" style={{ display: 'flex', alignItems: 'center', flex: '1 1 45%', minWidth: '200px', justifyContent: 'center', marginTop: '20px' }}>
+                  <FaCrown className="icon" />
+                  <span style={{ marginLeft: '1px' }}>Owner:</span>
+                  <span style={{ marginLeft: '8px', fontSize: '0.8rem' }}>
+                    <AddressDisplay address={result?.[Object.keys(result)?.[0]]?.owner_address || "N/A"} />
+                  </span>
+                </div>
               </div>
             </div>
-            <div className="flex items-center w-1/3 space-x-1 text-center">
-              <FaFrown style={{ color: 'purple' }} className="icon w-4 h-4 text-sm" /> {/* Set consistent width and height */}
-              <div>
-                <span className="text-sm">Scams:</span>
-                <span className="font-semibold ml-1">{displayFieldValue(result, 'honeypot_with_same_creator')}</span>
-              </div>
-            </div>
-          </div>
 
-          {/* Display token risk summary */}
+            {result && Object.keys(result).length > 0 && <Dashboard tokenData={result[Object.keys(result)[0]]} />}
+          </>
+        )}  
 
-          <NegativeSummary tokenData={result && result[Object.keys(result)[0]]} />
-        
-
-
-          {/* The dashboard of the token details */}
-          <div className="detection-summary" style={{ marginTop: '20px', marginBottom: '20px', textAlign: 'center' }}>
-            {/* Creator and Owner Information */}
-            <div className="creator-owner-info" style={{ 
-              display: 'flex', 
-              flexWrap: 'wrap', 
-              gap: '5px', /* Reduced the gap between the items */
-              alignItems: 'center', 
-              justifyContent: 'center'  /* Centering the content */
-            }}>
-              {/* Creator Info */}
-              <div
-                className="creator-info"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  flex: '1 1 45%',
-                  minWidth: '200px',
-                  justifyContent: 'center'
-                }}
-              >
-                <FaCode className="icon" />
-                <span style={{ marginLeft: '1px' }}>Creator:</span>
-                <span style={{ marginLeft: '8px', fontSize: '0.8rem', }}>
-                  <AddressDisplay address={result[Object.keys(result)[0]].creator_address} />
-                </span>
-              </div>
-
-              {/* Owner Info */}
-              <div
-                className="creator-info"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  flex: '1 1 45%',
-                  minWidth: '200px',
-                  justifyContent: 'center'
-                }}
-              >
-                <FaCrown className="icon" />
-                <span style={{ marginLeft: '1px' }}>Owner:</span>
-                <span style={{ marginLeft: '8px', fontSize: '0.8rem' }}>
-                  <AddressDisplay address={result[Object.keys(result)[0]].owner_address} />
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <Dashboard tokenData={result && result[Object.keys(result)[0]]} />
-
-
-          {/* Security Checks */}
-          {/*<div className="security-checks" style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <div className="security-section" style={{ border: '1px solid black', padding: '10px', margin: '10px 2px 10px 10px' }}>
-              <ol style={{ listStyleType: 'decimal', paddingLeft: '20px', textAlign: 'left', fontSize: '10px', fontFamily: '"Roboto Mono", monospace' }}>
-                <li>Is Contract source code verified?{checker(result, 'is_open_source')}</li>
-                <li>Any Proxy code in the contract?{checker(result, 'is_proxy')}</li>
-                <li>Can team mint more tokens?{checker(result, 'is_mintable')}</li>
-                <li>Can the team reclaim ownership after renouncing?{checker(result, 'can_take_back_ownership')}</li>
-                <li>Can the project owner alter coin balance?{checker(result, 'owner_change_balance')}</li>
-                <li>Is there a hidden owner in the project?{checker(result, 'hidden_owner')}</li>
-                <li>Can this token destroy itself?{checker(result, 'selfdestruct')}</li>
-                <li>Did the project invoke any external function?{checker(result, 'external_call')}</li>
-                <li>Is the project using people's gas fee to mint other coins?{checker(result, 'gas_abuse')}</li>
-                <li>Can the team pause transfer at some point?{checker(result, 'transfer_pausable')}</li>
-              </ol>
-            </div>
-            <div className="security-section" style={{ border: '1px solid black', padding: '10px', margin: '10px 10px 10px 2px' }}>
-              <ol style={{ listStyleType: 'decimal', paddingLeft: '20px', textAlign: 'left', fontSize: '10px', fontFamily: '"Roboto Mono", monospace' }} start={11}>
-                <li>Is this token a Trap or HoneyPot?{checker(result, 'is_honeypot')}</li>
-                <li>Are holders permitted to sell all their coins?{checker(result, 'cannot_sell_all')}</li>
-                <li>Can anyone else buy the token?{checker(result, 'cannot_buy')}</li>
-                <li>Is a trading cooldown feature present?{checker(result, 'trading_cooldown')}</li>
-                <li>Are there any anti-whale mechanisms found?{checker(result, 'is_anti_whale')}</li>
-                <li>Can the anti-whale functionality be altered?{checker(result, 'anti_whale_modifiable')}</li>
-                <li>Is it possible to modify the tax feature?{checker(result, 'slippage_modifiable')}</li>
-                <li>Any blacklist mechanism been identified? {checker(result, 'is_blacklisted')}</li>
-                <li>Is there a feature for whitelisting?{checker(result, 'is_whitelisted')}</li>
-                <li>Can the team alter the tax for a particular wallet address?{checker(result, 'personal_slippage_modifiable')}</li>
-              </ol>
-            </div>
-          </div> */}
-        </>
-      )}
-
-      <p className="note">
-        <span style={{ fontWeight: 'bold', color: '#f7f9fb' }} >Note</span>: <span style= {{fontSize: '0.6rem'  }}> The advanced AI helps spot potential scam tokens, but remember, no system grants 100% safety. Stay vigilant and do your own research!</span>
-      </p>
+        <p className="note">
+          <span style={{ fontWeight: 'bold', color: '#f7f9fb' }}>Note</span>: <span style={{ fontSize: '0.6rem', color: '#f7f9fb' }}> The advanced AI helps spot potential scam tokens, but remember, no system grants 100% safety. Stay vigilant and do your own research!</span>
+        </p>
+      </div>
     </div>
   );
 };

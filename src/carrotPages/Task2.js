@@ -57,15 +57,15 @@ const Task2 = ({ incrementPoints, markTaskAsCompleted, onCompletion }) => {
   return (
     <div className="flex flex-col gap-2 items-center mt-4 pb-2 font-inter">
       <h2 className="text-center text-white">
-        <span className="text-sm font-semibold">Task 2: </span>
-        <span className="text-xs">Visit the NexaBit App for 10 Consecutive Days</span>
+        <span className="text-lg font-bold">Task 2: </span>
+        <span className="font-bold">Claim for 10 Consecutive Days</span>
       </h2>
 
-      <div className="text-white text-xs mb-4 text-center">
-        Claim 10 points daily and unlock a 300-point bonus on the 10th day!
+      <div className="text-white text-xs text-center -mt-4 p-2 mr-4 ml-4">
+        Claim 10 points daily, unlock <span className="text-gold">300 $NEXA</span> the <span className="font-bold">10th</span> day!
       </div>
 
-      <div className="px-4 py-2 rounded-md flex flex-row items-center justify-between border border-purple w-full sm:w-[60%] relative">
+      <div className="px-4 py-2 rounded-md flex flex-row items-center justify-between border border-purple w-[90%] sm:w-[90%] relative ">
         <div className="flex flex-row items-center gap-2">
           <span className="text-2xl">
             {canClaim ? (
@@ -82,7 +82,7 @@ const Task2 = ({ incrementPoints, markTaskAsCompleted, onCompletion }) => {
           className={`px-4 py-1 rounded-md font-semibold ${!canClaim ? "bg-purple" : "bg-[#4A4FFF] text-white"} text-xs sm:text-sm`}
           disabled={!canClaim}
         >
-          {canClaim ? (daysVisited + 1 === TOTAL_DAYS ? "Claim +300 $NEXA" : "Claim +10 $NEXT") : "Claimed"}
+          {canClaim ? (daysVisited + 1 === TOTAL_DAYS ? "Claim +300 $NEXT" : "Claim +10 $NEXT") : "Claimed"}
         </button>
 
         {remainingTime > 0 && (
@@ -96,7 +96,7 @@ const Task2 = ({ incrementPoints, markTaskAsCompleted, onCompletion }) => {
       </div>
 
       {/* Show teaser for bonus every day */}
-      <div className="flex flex-col items-start w-full sm:w-[60%] mt-2">
+      <div className="flex flex-col items-start w-full sm:w-[90%] mt-2 ml-6">
         <div className="flex items-center gap-1 px-1 py-0 rounded-lg text-yellow-400 -mt-1">
           <FaRegGem className="text-[#6a0dad] text-xs" />
           <span className="text-xs font-semibold text-gold">+300</span>

@@ -284,10 +284,10 @@ const Tap = () => {
   };
 
   return (
-    <section className={`h-full w-[90%] flex flex-col mt-20 mb-4 relative font-inter`}>
+    <section className={`h-full w-[90%] min-h-screen flex flex-col mt-20 mb-4 relative font-inter bg-black `}>
       <div className="gradient-06 z-0 w-full h-full w-30 font-inter" />
       <div
-        className={`z-10 w-full sm:pb-12 pb-0 rounded overflow-y-scroll scrollbar-hide ${
+        className={`z-10 w-full sm:pb-12 pb-0 rounded overflow-y-scroll scrollbar-hide bg-black ${
           theme === "dark" ? "text-[#fff]" : "text-[#19191E]"
         }`}
       >

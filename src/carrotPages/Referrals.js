@@ -60,28 +60,26 @@ const Referrals = () => {
 
   return (
     <section
-      className="h-full w-full flex flex-col sm:mt-2 mt-2 mb-5 relative"
+      className="h-screen w-full flex flex-col sm:mt-2 mt-2 mb-5 relative font-inter overflow-hidden"
     >
       {/* Contest Button */}
       <div
-        className="w-full sm:pb-12 pb-0 rounded"
+        className="w-full h-[calc(100vh-130px)] overflow-auto sm:pb-12 pb-0 rounded"
       >
         <div className="flex flex-col items-center sm:p-0 p-3 gap-3">
           {/* Task Header */}
-          <div className="flex flex-col gap-1 sm:w-[80%] w-full items-center py-0 justify-items-center">
+          <div className="flex flex-col gap-1 sm:w-[90%] w-full items-center py-0 justify-items-center">
             <h2 className="text-center text-white">
-              <span className="text-sm font-semibold">Task 3: </span>
-              <span className="text-xs">Invite 2 of your active friends</span>
+              <span className="text-lg font-bold">Task 3: </span>
+              <span className="font-bold">Invite 2 of your active friends.</span>
             </h2>
 
-            <div className="text-xs text-white text-center">
-              You and your friends will receive exclusive NFT unlocks
-            </div>
+            
           </div>
 
           {/* Invite Card */}
           <div
-            className="border border-purple bg-black/15 flex flex-row sm:gap-4 gap-2 items-center px-4 sm:px-6 w-full max-w-[600px] py-2 rounded-md cursor-pointer"
+            className="border border-purple flex flex-row sm:gap-4 gap-2 items-center px-4 sm:px-6 w-full  py-2 rounded-md cursor-pointer"
           >
             <FaGift className="text-blue sm:text-5xl text-4xl" />
             <div className="flex flex-col gap-1">
@@ -119,7 +117,7 @@ const Referrals = () => {
           {/* Referral Link */}
           <div className="relative w-full flex flex-col items-center mb-16">
             {copySuccess && (
-              <div className="absolute top-2 text-red-500 flex items-center justify-center mt-4">
+              <div className="absolute top-2 text-gold flex items-center justify-center mt-4">
                 <FaThumbsUp className="mr-2" />
                 Copy Successful
               </div>
@@ -132,10 +130,10 @@ const Referrals = () => {
             </div>
             <div className="flex flex-row items-center sm:w-[95%] w-full max-w-[500px] mt-2">
               <div
-                className="border border-purple flex flex-row gap-2 items-center justify-center px-6 py-3 rounded-md cursor-pointer text-gray-100 w-full"
+                className="flex flex-row gap-2 items-center justify-center px-6 py-3 rounded-md cursor-pointer text-gray-100 w-full"
                 onClick={handleCopyLink}
               >
-                <h1 className="text-sm text-center items-center justify-center">{referralLink ? `${referralLink.slice(0, 6)}...${referralLink.slice(-6)}` : "No Ref link"}</h1>
+                <h1 className="text-sm text-center items-center justify-center">{referralLink ? `${referralLink.slice(0, 20)}...${referralLink.slice(-5)}` : "No Ref link"}</h1>
               </div>
               <FaCopy className="cursor-pointer text-xl" onClick={handleCopyLink} />
             </div>

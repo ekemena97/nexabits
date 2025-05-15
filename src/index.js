@@ -18,12 +18,21 @@ import AiAnalysis from './carrotPages/AiAnalysis.js'; // Import the AiAnalysis c
 import Messenger from './carrotPages/Messenger.js';
 import Leaderboard from './carrotPages/Leaderboard.js';
 import LaunchPad from './carrotPages/LaunchPad.js';
+import Guide from './carrotPages/Guide.js'; // Import your guide component
+import PrivacyPolicy from './carrotPages/PrivacyPolicy.js';
+import Welcome from './carrotPages/Welcome.js'; // Ensure the correct path
+import Welcome2 from './carrotPages/Welcome2.js'; // Ensure the correct path 
+import XrpTokenCreator from './carrotPages/XrpTokenCreator.js';
 
 const router = createBrowserRouter([
   {
     path: '/',
     element: <Home />,
     children: [
+      {
+        path: '/guide', // New guide route
+        element: <Guide />,
+      },
       {
         path: '/',
         element: <Tap />,
@@ -76,6 +85,25 @@ const router = createBrowserRouter([
         path: '/leaderboard',
         element: <Leaderboard />,
       },
+
+      {
+        path: '/privacy',
+        element: <PrivacyPolicy />,
+      },
+
+      {
+        path: '/creator',
+        element: <XrpTokenCreator />,
+      },      
+
+      {
+        path: '/welcome', // Route for the Welcome component
+        element: <Welcome />,
+      },
+      {
+        path: '/welcome2', // Route for the Welcome2 component
+        element: <Welcome2 />,
+      },      
       
       {
         path: '/blog/:id',

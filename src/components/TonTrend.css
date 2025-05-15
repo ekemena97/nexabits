@@ -22,8 +22,8 @@
 }
 
 .trending-icon {
-  width: 30px; /* Adjust the size of the SVG icon */
-  height: 30px;
+  width: 100px; /* Adjust the size of the SVG icon */
+  height: 100px;
   color: #ffd700; /* Gold color */
 }
 
@@ -47,8 +47,8 @@
   }
 
   .trending-icon {
-    width: 25px;
-    height: 25px;
+    width: 50px;
+    height: 50px;
   }
 }
 
@@ -58,8 +58,8 @@
   }
 
   .trending-icon {
-    width: 20px;
-    height: 20px;
+    width: 50px;
+    height: 50px;
   }
 }
 
@@ -80,12 +80,13 @@
   flex-direction: column; /* Arrange items vertically */
   justify-content: flex-start; /* Align items to the top */
   align-items: center;
-  background-color: rgba(30, 35, 55, 0.4); /* 50% transparent */
+  background-color: #1e2337; /* 50% transparent */
   border-radius: 8px;
   padding: 6px 4px 6px; /* Reduced vertical padding */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   text-align: center;
   transition: transform 0.3s ease-in-out;
+/*  border: 1px solid #f7f9fb;*/
 }
 
 .trending-item:hover {

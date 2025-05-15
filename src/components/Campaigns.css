@@ -1,7 +1,7 @@
 .campaigns-container {
     text-align: center;
     padding: 10px;
-    color: #fff; /* White text color */
+    color: #2d83ec; /* White text color */
     font-family: Arial, sans-serif;
 }
 
@@ -21,8 +21,8 @@
     flex: 1; /* Allow the campaign blocks to resize proportionally */
     display: flex;
     align-items: center;
-    background-color: #25254e; /* Dark background for the campaign */
-    padding: 6px 10px; /* Reduced padding */
+    background-color: #f7f9fb; /* Dark background for the campaign */
+    padding: 3px 5px; /* Reduced padding */
     border-radius: 50px;
     font-size: 0.9rem; /* Reduced font size */
     position: relative; /* For positioning the glow */
@@ -43,8 +43,8 @@
 }
 
 .campaigns-container .counting {
-    background-color: white; /* Background for the number */
-    color: black; /* Black text color */
+    background-color: #5a5fff; /* Background for the number */
+    color: white; /* Black text color */
     padding: 2px 5px; /* Further adjusted padding */
     border-radius: 50%; /* Ensures the border is circular */
     margin-left: 6px;

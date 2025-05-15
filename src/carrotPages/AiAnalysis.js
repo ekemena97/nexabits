@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import CryptoAnalysis from '../components/CryptoAnalysis.js';
 import '../components/ai.css'; // Import the CSS file
 import animation2 from '../assets/animation2.gif'; // Import the GIF file
-import backgroundImage from '../assets/bg-main.png'; // Import the background image
 import { useTreasureContext } from "../context/treasureContext.js";
 
 const AiAnalysis = () => {
@@ -21,15 +20,9 @@ const AiAnalysis = () => {
 
   return (
     <div
-      className="ai-container font-inter"
-      style={{
-        backgroundImage: `url(${backgroundImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        minHeight: '100vh',
-      }}
+      className="ai-container font-inter h-screen overflow-hidden"
     >
-      <div className="flex flex-col items-center justify-center h-full -mt-1 text-center px-5">
+      <div className="flex flex-col items-center justify-center h-full -mt-1 text-center px-5 h-[calc(100vh-90px)] overflow-auto scrollbar-hide">
         <img src={animation2} alt="Animation" className="-mb-1 w-20 h-20" />
         <h1 className="ai-title text-xl font-bold mb-4">AI Technical Analysis</h1>
         {showIntro ? (

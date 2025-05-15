@@ -3,6 +3,7 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import { Telegraf } from 'telegraf';
 import { Firestore } from '@google-cloud/firestore';
+import { Storage } from '@google-cloud/storage';
 import dotenv from 'dotenv';
 import fetch from 'node-fetch';
 import keepAlive from './keepAlive.js'; // Import the keep-alive function
@@ -10,6 +11,17 @@ import { getStorageItem, setStorageItem } from './storageHelpers.js';
 import { GoPlus, ErrorCode } from '@goplus/sdk-node';
 import { HermesClient } from '@pythnetwork/hermes-client';
 import crypto from 'crypto'; // Importing the crypto module
+import axios from 'axios'; // Use import syntax for axios
+import multer from 'multer';
+import toml from "toml";
+import tomlify from "tomlify-j0.4";
+import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
+import xrpl from "xrpl";
+
+const secretClient = new SecretManagerServiceClient();
+const PROJECT_ID = "858950055775";
+const ALGORITHM = "aes-256-cbc";
+const TRANSFER_AMOUNT = 1200000;
 
 
 dotenv.config();
@@ -254,20 +266,6 @@ app.post('/webhook', (req, res) => {
   }
 });
 
-app.post('/user', async (req, res) => {
-  try {
-    const user = JSON.parse(JSON.stringify(req.body)); // Ensure the payload is parsed and stringified
-    user.id = user.id ? user.id.toString() : ''; // Ensure user.id is a string
-    console.log('POST /user request received:', user);
-    await saveOrUpdateUser(user);
-    res.status(201).send(user);
-    console.log('User added via REST endpoint:', user);
-  } catch (error) {
-    console.error('Error processing /user request:', error);
-    res.status(500).send('Internal Server Error');
-  }
-});
-
 app.post('/referral', async (req, res) => {
   try {
     const referral = JSON.parse(JSON.stringify(req.body)); // Ensure the payload is parsed and stringified
@@ -286,6 +284,59 @@ app.post('/referral', async (req, res) => {
     }
   } catch (error) {
     console.error('Error processing /referral request:', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+
+app.get("/referral", async (req, res) => {
+  try {
+    const { referrerId } = req.query;
+
+    // Validate input
+    if (!referrerId) {
+      return res.status(400).json({ error: "referrerId is required" });
+    }
+
+    // Query the Firestore collection to find the document with matching userId
+    const usersSnapshot = await db.collection("collectionName")
+      .where("userId", "==", referrerId)
+      .limit(1)
+      .get();
+
+    // Check if any matching document is found
+    if (usersSnapshot.empty) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Extract the first user's data
+    const userDoc = usersSnapshot.docs[0];
+    const userData = userDoc.data();
+
+    // Return username or firstName
+    const response = {
+      referrerId: referrerId,
+      username: userData.username || null,
+      firstName: userData.firstName || null,
+    };
+
+    res.status(200).json(response);
+  } catch (error) {
+    console.error("Error fetching user by referrerId:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+app.post('/user', async (req, res) => {
+  try {
+    const user = JSON.parse(JSON.stringify(req.body)); // Ensure the payload is parsed and stringified
+    user.id = user.id ? user.id.toString() : ''; // Ensure user.id is a string
+    console.log('POST /user request received:', user);
+    await saveOrUpdateUser(user);
+    res.status(201).send(user);
+    console.log('User added via REST endpoint:', user);
+  } catch (error) {
+    console.error('Error processing /user request:', error);
     res.status(500).send('Internal Server Error');
   }
 });
@@ -504,29 +555,81 @@ app.use((req, res, next) => {
   next();
 });
 
-// New route to send messages to all users
-app.post('/api/send-message', async (req, res) => {
-  const { message, inlineKeyboard } = req.body;
 
-  if (!message || !message.trim()) {
-    return res.status(400).json({ message: 'Message cannot be empty' });
+
+// New route to send messages to all users
+const upload = multer(); // Middleware for parsing FormData
+app.post('/api/send-message', upload.single('attachment'), async (req, res) => {
+  const { messageTemplate, inlineKeyboard, latitude, longitude, question, options, type, emoji } = req.body;
+  const attachment = req.file; // Attachment if provided
+
+  if (!messageTemplate && !attachment && !latitude && !longitude && !question && !emoji) {
+    return res.status(400).json({ message: 'Message or attachment must be provided' });
   }
 
   try {
     const usersSnapshot = await firestore.collection(collectionName).get();
     const users = usersSnapshot.docs.map(doc => doc.data());
-    const batchSize = 30; // Adjust based on Telegram's rate limits
-    const delay = 1000; // Delay between batches in milliseconds
+    const batchSize = 30;
+    const delay = 1000;
 
     for (let i = 0; i < users.length; i += batchSize) {
       const batch = users.slice(i, i + batchSize);
 
       await Promise.all(
-        batch.map(user => {
-          return bot.telegram.sendMessage(user.id, message, {
-            reply_markup: inlineKeyboard || undefined, // Pass inline keyboard if provided
-            parse_mode: 'Markdown' // Use markdown if necessary
-          }).catch(err => console.error(`Failed to send message to ${user.id}:`, err));
+        batch.map(async (user) => {
+          try {
+            const personalizedMessage = messageTemplate
+              ? messageTemplate.replace('{{firstName}}', user.firstName || 'User')
+              : null;
+
+            if (attachment) {
+              const mimeType = attachment.mimetype;
+
+              if (mimeType.startsWith('image/')) {
+                await bot.telegram.sendPhoto(user.id, { source: attachment.buffer }, {
+                  caption: personalizedMessage || '',
+                  reply_markup: inlineKeyboard ? JSON.parse(inlineKeyboard) : undefined,
+                });
+              } else if (mimeType.startsWith('video/')) {
+                await bot.telegram.sendVideo(user.id, { source: attachment.buffer }, {
+                  caption: personalizedMessage || '',
+                  reply_markup: inlineKeyboard ? JSON.parse(inlineKeyboard) : undefined,
+                });
+              } else if (mimeType === 'image/gif') {
+                await bot.telegram.sendAnimation(user.id, { source: attachment.buffer }, {
+                  caption: personalizedMessage || '',
+                  reply_markup: inlineKeyboard ? JSON.parse(inlineKeyboard) : undefined,
+                });
+              } else if (mimeType === 'application/x-sticker') {
+                await bot.telegram.sendSticker(user.id, { source: attachment.buffer });
+              } else {
+                await bot.telegram.sendDocument(user.id, { source: attachment.buffer }, {
+                  caption: personalizedMessage || '',
+                  reply_markup: inlineKeyboard ? JSON.parse(inlineKeyboard) : undefined,
+                });
+              }
+            } else if (latitude && longitude) {
+              await bot.telegram.sendLocation(user.id, parseFloat(latitude), parseFloat(longitude), {
+                reply_markup: inlineKeyboard ? JSON.parse(inlineKeyboard) : undefined,
+              });
+            } else if (question && options) {
+              const pollOptions = JSON.parse(options); // Ensure `options` is passed as a JSON string
+              await bot.telegram.sendPoll(user.id, question, pollOptions, {
+                is_anonymous: type === 'quiz' ? false : true,
+                type,
+              });
+            } else if (emoji) {
+              await bot.telegram.sendDice(user.id, { emoji });
+            } else if (messageTemplate) {
+              await bot.telegram.sendMessage(user.id, personalizedMessage, {
+                reply_markup: inlineKeyboard ? JSON.parse(inlineKeyboard) : undefined,
+                parse_mode: 'HTML',
+              });
+            }
+          } catch (err) {
+            console.error(`Failed to send message to ${user.id}:`, err);
+          }
         })
       );
 
@@ -543,47 +646,6 @@ app.post('/api/send-message', async (req, res) => {
 });
 
 
-
-
-app.post('/api/trigger-start', async (req, res) => {
-  try {
-    const usersSnapshot = await firestore.collection(collectionName).get();
-    const users = usersSnapshot.docs.map(doc => doc.data());
-    const batchSize = 30; // Adjust based on Telegram's rate limits
-    const delay = 1000; // Delay between batches in milliseconds
-
-    for (let i = 0; i < users.length; i += batchSize) {
-      const batch = users.slice(i, i + batchSize);
-
-      await Promise.all(
-        batch.map(user => {
-          const ctx = {
-            from: {
-              id: user.id,
-              username: user.username,
-              is_bot: user.isBot,
-              is_premium: user.isPremium,
-              first_name: user.firstName
-            },
-            startPayload: null,
-            replyWithHTML: (message, options) => bot.telegram.sendMessage(user.id, message, options)
-          };
-
-          return handleStartCommand(ctx).catch(err => console.error(`Failed to send start command to ${user.id}:`, err));
-        })
-      );
-
-      if (i + batchSize < users.length) {
-        await new Promise(resolve => setTimeout(resolve, delay));
-      }
-    }
-
-    res.status(200).json({ message: 'Start command triggered for all users' });
-  } catch (error) {
-    console.error('Error triggering start command:', error);
-    res.status(500).json({ message: 'Error triggering start command' });
-  }
-});
 
 //Telegram data verification endpoint
 
@@ -615,7 +677,7 @@ app.post('/token-security', async (req, res) => {
 
     if (chainId === '0') {
       // Solana-specific API call
-      const solanaUrl = `https://api.gopluslabs.io/api/v1/solana/token_security?contract_addresses=${addresses[0]}`;
+      const solanaUrl = `https://api.gopluslabs.io/api/v1/solana/token_security?contract_addresses=${addresses}`;
       const options = {
         method: 'GET',
         headers: {
@@ -631,12 +693,13 @@ app.post('/token-security', async (req, res) => {
       const options = {
         method: 'GET',
         headers: {
-          accept: '*/*',
+          'accept': '*/*',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
         },
       };
 
       // Construct the URL for the general API call
-      const generalUrl = `https://api.gopluslabs.io/api/v1/token_security/${chainId}?contract_addresses=${addresses.join(',')}`;
+      const generalUrl = `https://api.gopluslabs.io/api/v1/token_security/${chainId}?contract_addresses=${addresses}`;
       
       // Fetch from the GoPlus API for other chains
       const generalResponse = await fetch(generalUrl, options);
@@ -759,6 +822,26 @@ app.get('/price-updates', async (req, res) => {
 });
 
 
+// Endpoint: /token-security-v0
+app.get('/token-security-v0', async (req, res) => {
+    const { chainId, addresses } = req.query;
+
+    if (!chainId || !addresses) {
+        return res.status(400).json({ error: "Missing chainId or addresses parameter." });
+    }
+
+    try {
+        const url = `https://api.gopluslabs.io/api/v1/token_security/${chainId}?contract_addresses=${addresses}`;
+        const response = await axios.get(url);
+
+        res.json(response.data);
+    } catch (error) {
+        console.error("Error fetching data:", error.message);
+        res.status(500).json({ error: "Failed to fetch token security data." });
+    }
+});
+
+
 // API endpoint for /token-security-v2
 // API endpoint for /token-security-v2
 app.get('/token-security-v2', async (req, res) => {
@@ -790,6 +873,919 @@ app.get('/token-security-v2', async (req, res) => {
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
+app.get('/token-security-v3', async (req, res) => {
+  const { chainId, tokenAddress } = req.query;
+
+  // Log the received query parameters for debugging
+  console.log('Received chainId:', chainId);
+  console.log('Received addresses:', tokenAddress);
+
+  if (!chainId || !tokenAddress) {
+    console.log('Missing required parameters: chainId or addresses');
+    return res.status(400).json({ error: 'chainId and addresses are required' });
+  }
+
+  // Construct GoPlus API URL
+  const url = `https://api.gopluslabs.io/api/v1/token_security/${chainId}?contract_addresses=${tokenAddress}`;
+  console.log('Constructed GoPlus API URL:', url);
+
+  try {
+    // Log the request being made to the GoPlus API
+    console.log('Making request to GoPlus API...');
+    const response = await axios.get(url, {
+      headers: {
+        'Accept': '*/*',
+      }
+    });
+
+    // Log the response status and data for debugging
+    console.log('GoPlus API Response Status:', response.status);
+    console.log('GoPlus API Response Data:', response.data);
+
+    // Check for valid response from GoPlus API
+    if (response.data.code === 0) {
+      console.log('Successfully received valid data from GoPlus API');
+      return res.json({ result: response.data.result });
+    } else {
+      console.log('GoPlus API returned an error:', response.data.message);
+      return res.status(400).json({ error: response.data.message || 'Unknown error' });
+    }
+  } catch (error) {
+    // Log the error for debugging
+    console.error('Request to GoPlus API failed:', error);
+
+    // Provide a more specific error message for the client
+    return res.status(500).json({ error: `Server error: ${error.message}` });
+  }
+});
+
+
+//send meesages to users that didnt claim between 13 hours to 20 hours
+
+const ONE_HOUR_MS = 3600000; // Milliseconds in one hour
+const TWELVE_HOURS_MS = 43200000;  // 12 hours in milliseconds
+const THIRTEEN_HOURS_MS = ONE_HOUR_MS * 13;
+const TWENTY_HOURS_MS = ONE_HOUR_MS * 20;
+
+app.post('/api/send-unclaimed-reminder1', async (req, res) => {
+  const currentTime = Date.now(); // Get the current time in milliseconds
+
+  // Define the inline keyboard
+  const inlineKeyboard = JSON.stringify({
+    inline_keyboard: [
+      [{ text: '🚀 Open App', url: 'https://t.me/NexaBit_Tap_bot/start' }],
+      [{ text: '🌐 Join Group', url: 'https://t.me/nexabitHQ' }]
+    ]
+  });
+
+  // Define 10 message templates with personalization and FOMO
+  const messageTemplates = [
+    "🎉 <b>Rewards Alert!</b> <b>{{count}}</b> $Next tokens are waiting just for you. <i>Claim them now</i> before they're gone! 🚀 <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "🔥 You've earned <b>{{count}}</b> $Next tokens! <i>Don’t let them slip away</i>—<u>log in now</u> to claim your rewards. <a href='https://t.me/nexabit_tap_bot/start'>Claim here</a>",
+    "⏰ Tick-tock, <b>{{firstName}}</b>! Your <b>{{count}}</b> $Next tokens are on hold. <i>Act now</i> to secure them before they expire! <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "💎 Big news, <b>{{firstName}}</b>! Your balance just grew by <b>{{count}}</b> $Next. <i>Claim now</i> to keep the momentum going! <a href='https://t.me/nexabit_tap_bot/start'>Log in</a>",
+    "🌟 <b>{{firstName}}</b>, you’re on a roll! <b>{{count}}</b> $Next tokens are waiting in your account. <i>Log in</i> and grab them now! <a href='https://t.me/nexabit_tap_bot/start'>Claim here</a>",
+    "🚨 Limited Time! Your <b>{{count}}</b> $Next tokens are ready to claim. <i>Don’t let them go unclaimed!</i> <u>Log in now</u> to claim them. <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "✨ Surprise! You’ve got <b>{{count}}</b> $Next tokens waiting to be claimed. <i>Login now</i> and enjoy your rewards! <a href='https://t.me/nexabit_tap_bot/start'>Claim here</a>",
+    "🚀 Boost your balance now! <b>{{count}}</b> $Next tokens are available for you. <i>Claim fast</i> and stay ahead! <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "🎁 Reward Unlocked! <b>{{firstName}}</b>, <b>{{count}}</b> $Next tokens are ready. <i>Log in now</i> to claim them before time runs out! <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "⚡ Urgent, <b>{{firstName}}</b>! Don’t miss your <b>{{count}}</b> $Next tokens. <i>Claim them now</i> or risk losing out! <a href='https://t.me/nexabit_tap_bot/start'>Log in</a>",
+    "🎉 <b>Congrats</b>, <b>{{firstName}}</b>! <i>{{count}}</i> $Next tokens are waiting for you. Don’t let them expire! <a href='https://t.me/nexabit_tap_bot/start'>Claim them now</a>",
+    "🚨 Attention, <b>{{firstName}}</b>! You have <b>{{count}}</b> $Next tokens available. <u>Don’t wait!</u> <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "💎 Your balance has <b>{{count}}</b> $Next tokens, <i>{{firstName}}</i>. Log in to grab them before time runs out! <a href='https://t.me/nexabit_tap_bot/start'>Claim here</a>",
+    "🔥 <b>{{firstName}}</b>, you’ve earned <b>{{count}}</b> $Next tokens! <i>Claim now</i> to continue your journey! <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "⏰ Don’t miss out, <b>{{firstName}}</b>! <b>{{count}}</b> $Next tokens are waiting. Log in to claim them! <a href='https://t.me/nexabit_tap_bot/start'>Claim here</a>",
+    "🎁 <i>{{firstName}}</i>, your <b>{{count}}</b> $Next tokens are up for grabs! <i>Claim now</i> before they vanish! <a href='https://t.me/nexabit_tap_bot/start'>Claim here</a>",
+    "🌟 Big rewards are here, <b>{{firstName}}</b>! <b>{{count}}</b> $Next tokens are waiting for you. <i>Don’t wait</i>, <u>log in</u> now! <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "🚀 Your <b>{{firstName}}</b> account is glowing with <b>{{count}}</b> $Next tokens! <i>Claim now</i> to boost your balance! <a href='https://t.me/nexabit_tap_bot/start'>Claim here</a>",
+    "🔥 Hurry up, <i>{{firstName}}</i>! Your <b>{{count}}</b> $Next tokens are about to expire. <i>Log in now</i> to claim them! <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "⚡ Quick, <b>{{firstName}}</b>! Your <b>{{count}}</b> $Next tokens are ready to claim! <i>Don’t miss out</i>! <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "🎉 Great job, <b>{{firstName}}</b>! You’ve earned <b>{{count}}</b> $Next tokens. Log in to claim your rewards now! <a href='https://t.me/nexabit_tap_bot/start'>Claim here</a>",
+    "🎁 Claim your <b>{{count}}</b> $Next tokens, <i>{{firstName}}</i>. <b>Log in now</b> to keep earning rewards! <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "🚨 <b>{{firstName}}</b>, your rewards are waiting! <b>{{count}}</b> $Next tokens are here. <i>Claim now</i> before it’s too late! <a href='https://t.me/nexabit_tap_bot/start'>Claim here</a>",
+    "🌟 Time’s running out! You have <b>{{count}}</b> $Next tokens waiting, <i>{{firstName}}</i>. <u>Log in now</u> to claim them! <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "🔥 Don’t let these <b>{{count}}</b> $Next tokens slip away, <i>{{firstName}}</i>. Log in now to claim them! <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "🚀 Boost your balance today, <b>{{firstName}}</b>! <b>{{count}}</b> $Next tokens are ready. <i>Claim now</i> to power up your game! <a href='https://t.me/nexabit_tap_bot/start'>Claim here</a>",
+    "✨ Log in now, <b>{{firstName}}</b>! <b>{{count}}</b> $Next tokens are waiting for you. Don’t miss out! <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "⚡ Claim your <b>{{count}}</b> $Next tokens, <i>{{firstName}}</i>. <u>Hurry up!</u> They’re waiting for you! <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "🎉 Congratulations, <b>{{firstName}}</b>! You’ve got <b>{{count}}</b> $Next tokens waiting! <i>Log in</i> to claim them! <a href='https://t.me/nexabit_tap_bot/start'>Claim here</a>",
+    "🚨 Attention, <b>{{firstName}}</b>! You’ve earned <b>{{count}}</b> $Next tokens. Log in now to claim them before time runs out! <a href='https://t.me/nexabit_tap_bot/start'>Claim here</a>",
+    "🌈 It’s time to claim your <b>{{count}}</b> $Next tokens, <i>{{firstName}}</i>. <u>Log in now</u> to grab them! <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "🔥 Big rewards waiting! <b>{{firstName}}</b>, you’ve got <b>{{count}}</b> $Next tokens. <i>Log in now</i> and claim them! <a href='https://t.me/nexabit_tap_bot/start'>Claim here</a>",
+    "🎁 Claim your <b>{{count}}</b> $Next tokens, <b>{{firstName}}</b>. <i>Don't let them expire</i>! Log in now! <a href='https://t.me/nexabit_tap_bot/start'>Claim here</a>",
+    "⏰ Time’s ticking, <b>{{firstName}}</b>! You’ve got <b>{{count}}</b> $Next tokens. <i>Claim them now</i> before it’s too late! <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "🎉 <b>{{count}}</b> $Next tokens waiting for you, <b>{{firstName}}</b>! <i>Claim now</i> and keep your balance growing! <a href='https://t.me/nexabit_tap_bot/start'>Claim here</a>",
+    "⚡ Quick, <b>{{firstName}}</b>! Your <b>{{count}}</b> $Next tokens are available for a limited time! <i>Claim now</i> before they disappear! <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "🚀 Don’t miss this, <b>{{firstName}}</b>! Your <b>{{count}}</b> $Next tokens are ready for you. <i>Claim now</i> and keep going! <a href='https://t.me/nexabit_tap_bot/start'>Claim here</a>",
+    "💎 It’s time to claim your <b>{{count}}</b> $Next tokens, <i>{{firstName}}</i>. <i>Log in now</i> before they’re gone! <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "🚨 <b>{{firstName}}</b>, <b>{{count}}</b> $Next tokens are waiting! <i>Log in now</i> to claim them! <a href='https://t.me/nexabit_tap_bot/start'>Claim here</a>",
+    "🎁 Time to grab your <b>{{count}}</b> $Next tokens, <b>{{firstName}}</b>! <i>Log in</i> and don’t miss your reward! <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "⚡ Get moving, <b>{{firstName}}</b>! Your <b>{{count}}</b> $Next tokens are ready to be claimed. <i>Don’t wait!</i> <a href='https://t.me/nexabit_tap_bot/start'>Claim here</a>",
+    "🚨 Act fast! <b>{{firstName}}</b>, your <b>{{count}}</b> $Next tokens are waiting to be claimed. <i>Claim them now</i> before they expire! <a href='https://t.me/nexabit_tap_bot/start'>Claim here</a>",
+    "🎉 <b>{{firstName}}</b>, you’ve earned <b>{{count}}</b> $Next tokens. <i>Claim them</i> before they vanish! <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>"
+  ];
+
+
+  try {
+    // Fetch all users from Firestore
+    const usersSnapshot = await firestore.collection(collectionName).get();
+    const users = usersSnapshot.docs.map(doc => doc.data());
+
+    // Filter users whose last claim time is between 13 and 20 hours ago
+    const usersToNotify = users.filter(user => {
+      const lastClaimTime = user.lastClaimTime;
+      if (!lastClaimTime) {
+        // If there's no lastClaimTime, we can choose to skip the user
+        // or treat it as "never claimed" and consider them for the reminder.
+        return false; // Skip users without lastClaimTime
+      }      
+      const timeSinceLastClaim = currentTime - lastClaimTime;
+      // The user can be notified only if the claim button is available again (12 hours passed) + 5 minutes to 5 hours range
+      return (
+        lastClaimTime &&
+        timeSinceLastClaim >= THIRTEEN_HOURS_MS &&
+        timeSinceLastClaim < TWENTY_HOURS_MS 
+      );
+    });
+
+    const batchSize = 30;
+    const delay = 1000;
+
+    // Send messages in batches
+    for (let i = 0; i < usersToNotify.length; i += batchSize) {
+      const batch = usersToNotify.slice(i, i + batchSize);
+
+      await Promise.all(
+        batch.map(async (user) => {
+          try {
+            // Randomly select a message template and personalize it
+            const randomMessage =
+              messageTemplates[Math.floor(Math.random() * messageTemplates.length)];
+            const personalizedMessage = randomMessage
+              .replace('{{firstName}}', user.firstName || 'User')
+              .replace('{{count}}', user.count || 0); // Default to 0 if count is unavailable
+
+            // Send the message
+            await bot.telegram.sendMessage(user.id, personalizedMessage, {
+              reply_markup: JSON.parse(inlineKeyboard),
+              parse_mode: 'HTML',
+            });
+          } catch (err) {
+            console.error(`Failed to send reminder to ${user.id}:`, err);
+          }
+        })
+      );
+
+      if (i + batchSize < usersToNotify.length) {
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+
+    res.status(200).json({ message: 'Reminder messages sent successfully' });
+  } catch (error) {
+    console.error('Error sending reminders:', error);
+    res.status(500).json({ message: 'Error sending reminders' });
+  }
+});
+
+
+ //send messages to users that are incative for 20 to 48 hours
+const FORTY_EIGHT_HOURS_MS = ONE_HOUR_MS * 48;
+
+app.post('/api/send-unclaimed-reminder2', async (req, res) => {
+  const currentTime = Date.now(); // Get the current time in milliseconds
+
+  // Define 10 message templates
+  const messageTemplates = [
+    "You received <b>10 $Next</b> reward tokens! <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "💰 Your balance: <b>{{count}}</b> $Next<br><br><i>Earn more daily $Next.</i> <a href='https://t.me/nexabit_tap_bot/start'>Log in now</a>",
+    "<b>10 $Next</b> credited to your balance💰<br><br><i>Long time no see!</i><br><u>Log in to the game</u> to claim these coins, or they’ll expire in 12 hours. <a href='https://t.me/nexabit_tap_bot/start'>Click here</a>",
+    "🎗Congrats! You mined <b>10 $Next</b> token.<br><br>🔥<i>Don't forget to claim tokens</i> to make room for new tokens. Keep claiming and check <u>daily missions</u> 🦄. <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "Hey <b>{{firstName}}</b>, your balance: <b>{{count}}</b> $Next 💸. <i>Claim now</i> to keep earning! <a href='https://t.me/nexabit_tap_bot/start'>Log in</a>",
+    "🎉 Good news, <b>{{firstName}}</b>! You’ve earned <b>10 $Next</b> tokens. Check your balance: <b>{{count}}</b> $Next. <a href='https://t.me/nexabit_tap_bot/start'>Log in now</a>",
+    "Time to claim, <b>{{firstName}}</b>! Don’t lose out on <b>10 $Next</b> tokens waiting for you! <a href='https://t.me/nexabit_tap_bot/start'>Claim them here</a>",
+    "<b>{{firstName}}</b>, your $Next balance: <b>{{count}}</b>. <u>Log in now</u> to secure your coins before they expire! <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "🎁 <b>{{firstName}}</b>, rewards are waiting! You’ve mined <b>10 $Next</b> tokens. Check your balance: <b>{{count}}</b>. <a href='https://t.me/nexabit_tap_bot/start'>Log in</a>",
+    "Hi <b>{{firstName}}</b>! Your $Next balance is <b>{{count}}</b>. <i>Keep up the streak</i> by claiming your rewards today! <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "<b>{{firstName}}</b>, your <b>$Next</b> balance is <b>{{count}}</b>. <i>Don’t miss out!</i> <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "<i>Your balance:</i> <b>{{count}}</b> $Next. <u>Log in now</u> to secure them! <a href='https://t.me/nexabit_tap_bot/start'>Claim here</a>",
+    "🎉 Congratulations, <b>{{firstName}}</b>! You've earned <b>10 $Next</b> tokens. Don't wait, <u>claim them now</u>! <a href='https://t.me/nexabit_tap_bot/start'>Click here</a>",
+    "🚨 You've got <b>{{count}}</b> $Next tokens waiting for you! <i>Claim them now</i> before they expire. <a href='https://t.me/nexabit_tap_bot/start'>Log in</a>",
+    "🔥 You mined <b>10 $Next</b> tokens, <b>{{firstName}}</b>! Come claim your reward. <u>Don’t miss out!</u> <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "🎁 Big rewards, <b>{{firstName}}</b>! Your <b>{{count}}</b> $Next tokens are waiting. <i>Log in to claim them</i>. <a href='https://t.me/nexabit_tap_bot/start'>Click here</a>",
+    "💎 Your balance is growing, <b>{{firstName}}</b>! You’ve got <b>{{count}}</b> $Next tokens waiting. <i>Claim now</i> and keep the streak going! <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "<b>{{firstName}}</b>, you’ve got <b>{{count}}</b> $Next tokens ready! <u>Log in to grab them before they expire.</u> <a href='https://t.me/nexabit_tap_bot/start'>Click here</a>",
+    "🌟 Your account is glowing! <b>{{firstName}}</b>, you’ve earned <b>10 $Next</b> tokens. <i>Claim them now!</i> <a href='https://t.me/nexabit_tap_bot/start'>Log in</a>",
+    "<u>{{firstName}}</u>, your balance: <b>{{count}}</b> $Next. Don't let them expire. <i>Claim now</i> to keep earning more! <a href='https://t.me/nexabit_tap_bot/start'>Click here</a>",
+    "🎉 Great news, <b>{{firstName}}</b>! You’ve mined <b>10 $Next</b> tokens. <i>Log in</i> to claim your rewards. <a href='https://t.me/nexabit_tap_bot/start'>Click here</a>",
+    "🔥 Your $Next tokens are waiting, <b>{{firstName}}</b>! You’ve got <b>{{count}}</b> waiting for you. <i>Don’t miss out!</i> <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "<u>{{firstName}}</u>, you’ve got <b>{{count}}</b> $Next tokens! <i>Log in now</i> and claim your rewards before they disappear. <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "🎁 Hey <b>{{firstName}}</b>, rewards are here! You’ve earned <b>10 $Next</b> tokens. <u>Log in now</u> to claim them. <a href='https://t.me/nexabit_tap_bot/start'>Claim here</a>",
+    "<b>{{firstName}}</b>, don’t miss out! You’ve got <b>{{count}}</b> $Next tokens waiting. <u>Claim now</u> and keep earning! <a href='https://t.me/nexabit_tap_bot/start'>Click here</a>",
+    "💰 Your balance: <b>{{count}}</b> $Next. <i>Keep claiming to earn more!</i> <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "🔥 Time is ticking, <b>{{firstName}}</b>! You’ve got <b>{{count}}</b> $Next tokens waiting. <i>Log in now</i> to claim them! <a href='https://t.me/nexabit_tap_bot/start'>Claim here</a>",
+    "🎉 <b>{{firstName}}</b>, your rewards are here! You’ve mined <b>10 $Next</b> tokens. <i>Don’t wait</i>, claim them now! <a href='https://t.me/nexabit_tap_bot/start'>Click here</a>",
+    "💎 Congrats, <b>{{firstName}}</b>! You've earned <b>10 $Next</b> tokens. Log in to claim them now! <i>Hurry!</i> <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "🛡️ <b>{{firstName}}</b>, protect your rewards! You’ve got <b>{{count}}</b> $Next tokens waiting for you. <u>Claim them now</u> before they expire! <a href='https://t.me/nexabit_tap_bot/start'>Log in</a>",
+    "<i>Hurry,</i> <b>{{firstName}}</b>, you’ve got <b>{{count}}</b> $Next tokens waiting! Log in now and <u>claim them</u>. <a href='https://t.me/nexabit_tap_bot/start'>Claim here</a>",
+    "🎉 Congrats! You’ve mined <b>10 $Next</b> tokens, <b>{{firstName}}</b>. <u>Claim now</u> before they expire! <a href='https://t.me/nexabit_tap_bot/start'>Log in</a>",
+    "🔥 Look what’s waiting for you, <b>{{firstName}}</b>! <b>{{count}}</b> $Next tokens! <i>Claim them now!</i> <a href='https://t.me/nexabit_tap_bot/start'>Click here</a>",
+    "💰 You’ve earned <b>10 $Next</b> tokens, <b>{{firstName}}</b>. <u>Log in now</u> and claim them! <a href='https://t.me/nexabit_tap_bot/start'>Click here</a>",
+    "🎁 Good news, <b>{{firstName}}</b>! You’ve mined <b>10 $Next</b> tokens. <i>Claim your rewards today!</i> <a href='https://t.me/nexabit_tap_bot/start'>Log in here</a>",
+    "💸 Your balance: <b>{{count}}</b> $Next. <i>Log in to claim your rewards now!</i> <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "🎉 Your rewards are in! You’ve got <b>{{count}}</b> $Next tokens, <b>{{firstName}}</b>. <i>Claim them now</i> to keep your balance growing. <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "💎 <b>{{firstName}}</b>, your balance is looking good! <b>{{count}}</b> $Next tokens are waiting for you. <u>Claim now</u>! <a href='https://t.me/nexabit_tap_bot/start'>Log in</a>",
+    "🎉 <b>{{firstName}}</b>, you've earned <b>10 $Next</b> tokens. <i>Log in now</i> to claim them and start mining more! <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "💰 <b>{{firstName}}</b>, your balance is <b>{{count}}</b> $Next! <i>Claim your rewards now</i> before they expire. <a href='https://t.me/nexabit_tap_bot/start'>Claim here</a>",
+    "🎁 Hey <b>{{firstName}}</b>, your balance is growing! <b>{{count}}</b> $Next tokens are ready for you. <u>Claim them now</u>! <a href='https://t.me/nexabit_tap_bot/start'>Log in</a>",
+    "🔥 Congrats, <b>{{firstName}}</b>! Your total balance is <b>{{count}}</b> $Next tokens. <i>Claim them now!</i> <a href='https://t.me/nexabit_tap_bot/start'>Log in</a>",
+    "<u>It’s time to claim</u>, <b>{{firstName}}</b>. Your <b>{{count}}</b> $Next tokens are waiting. <i>Log in now</i> and claim your rewards! <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+    "🎉 Woohoo! You’ve earned <b>10 $Next</b> tokens, <b>{{firstName}}</b>. <i>Log in to claim now</i> before they expire! <a href='https://t.me/nexabit_tap_bot/start'>Claim here</a>",
+    "🎁 You’ve got <b>{{count}}</b> $Next tokens waiting, <b>{{firstName}}</b>. <i>Log in now</i> to claim your rewards! <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>"
+  ];
+
+
+
+  // Define the inline keyboard
+  const inlineKeyboard = JSON.stringify({
+    inline_keyboard: [
+      [{ text: '🚀 Open App', url: 'https://t.me/NexaBit_Tap_bot/start' }],
+      [{ text: '🌐 Join Group', url: 'https://t.me/nexabitHQ' }]
+    ]
+  });
+
+  try {
+    // Fetch all users from Firestore
+    const usersSnapshot = await firestore.collection(collectionName).get();
+    const users = usersSnapshot.docs.map(doc => doc.data());
+
+    // Filter users whose last claim time is greater than 20 hours but less than 48 hours
+    const usersToNotify = users.filter(user => {
+      const lastClaimTime = user.lastClaimTime;
+      if (!lastClaimTime) {
+        // If there's no lastClaimTime, we can choose to skip the user
+        // or treat it as "never claimed" and consider them for the reminder.
+        return false; // Skip users without lastClaimTime
+      }      
+      const timeSinceLastClaim = currentTime - lastClaimTime;
+      return (
+        lastClaimTime &&
+        timeSinceLastClaim >= TWENTY_HOURS_MS &&
+        timeSinceLastClaim < FORTY_EIGHT_HOURS_MS
+      );
+    });
+
+    const batchSize = 30;
+    const delay = 1000;
+
+    // Send messages in batches
+    for (let i = 0; i < usersToNotify.length; i += batchSize) {
+      const batch = usersToNotify.slice(i, i + batchSize);
+
+      await Promise.all(
+        batch.map(async (user) => {
+          try {
+            // Randomly select a message template
+            const randomMessage =
+              messageTemplates[Math.floor(Math.random() * messageTemplates.length)];
+
+            // Personalize the message
+            const personalizedMessage = randomMessage
+              .replace('{{firstName}}', user.firstName || 'User')
+              .replace('{{count}}', user.count || 0); // Use 0 if count is not available
+
+            // Send the message
+            await bot.telegram.sendMessage(user.id, personalizedMessage, {
+              reply_markup: JSON.parse(inlineKeyboard),
+              parse_mode: 'HTML',
+            });
+          } catch (err) {
+            console.error(`Failed to send reminder to ${user.id}:`, err);
+          }
+        })
+      );
+
+      if (i + batchSize < usersToNotify.length) {
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+
+    res.status(200).json({ message: 'Long unclaimed reminder messages sent successfully' });
+  } catch (error) {
+    console.error('Error sending long unclaimed reminders:', error);
+    res.status(500).json({ message: 'Error sending long unclaimed reminders' });
+  }
+});
+
+//message users who didnt claim between 48 hours to 1 week
+
+const ONE_WEEK_MS = 3600000 * 24 * 7;
+
+app.post('/api/send-unclaimed-reminder3', async (req, res) => {
+  const currentTime = Date.now(); // Get the current time in milliseconds
+
+  // Inline keyboard for messages
+  const inlineKeyboard = JSON.stringify({
+    inline_keyboard: [
+      [{ text: '🚀 Open App', url: 'https://t.me/NexaBit_Tap_bot/start' }],
+      [{ text: '🌐 Join Group', url: 'https://t.me/nexabitHQ' }]
+    ]
+  });
+
+  // Define 20 message templates
+  const messageTemplates = [
+      "🚨 You've been away, <b>{{firstName}}</b>! <u>{{count}}</u> $Next tokens are waiting. <i>Log in now</i> and claim them before they’re gone! <a href='https://t.me/nexabit_tap_bot/start'>Click here</a>",
+      "🌟 We miss you, <i>{{firstName}}</i>! Your balance has <b>{{count}}</b> $Next tokens waiting to be claimed. <u>Come back</u> and see what’s new! <a href='https://t.me/nexabit_tap_bot/start'>Log in now</a>",
+      "🎁 <b>{{firstName}}</b>, did you forget? <u>{{count}}</u> $Next tokens are still unclaimed. <i>Log in now</i> to grab them! <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+      "🔥 Time is ticking, <u>{{firstName}}</u>! <b>{{count}}</b> $Next tokens are waiting for you. <i>Claim them</i> before they disappear! <a href='https://t.me/nexabit_tap_bot/start'>Log in here</a>",
+      "✨ <b>{{firstName}}</b>, your rewards are growing! <u>{{count}}</u> $Next tokens are waiting to be claimed. <i>Log in</i> and don’t miss out! <a href='https://t.me/nexabit_tap_bot/start'>Click here</a>",
+      "📣 Hey <i>{{firstName}}</i>, <b>{{count}}</b> $Next tokens are here for you! Come back and make the most of your rewards. <a href='https://t.me/nexabit_tap_bot/start'>Log in now</a>",
+      "⏰ It’s been too long, <b>{{firstName}}</b>! Your <u>{{count}}</u> $Next tokens are still here. <i>Log in</i> and claim them today! <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+      "💎 <i>{{firstName}}</i>, don’t let your rewards go to waste! <b>{{count}}</b> $Next tokens are waiting for you. <u>Grab them now</u>! <a href='https://t.me/nexabit_tap_bot/start'>Log in here</a>",
+      "🚀 Long time no see, <b>{{firstName}}</b>! <i>{{count}}</i> $Next tokens are ready. <u>Come back</u> and claim them before it’s too late! <a href='https://t.me/nexabit_tap_bot/start'>Log in now</a>",
+      "🌈 Ready to play again, <u>{{firstName}}</u>? Your balance has <b>{{count}}</b> $Next tokens waiting just for you. <i>Don’t wait</i>! <a href='https://t.me/nexabit_tap_bot/start'>Click here</a>",
+      "🎉 Welcome back, <b>{{firstName}}</b>! <i>{{count}}</i> $Next tokens are here to greet you. <u>Log in</u> and claim them now! <a href='https://t.me/nexabit_tap_bot/start'>Rejoin now</a>",
+      "⚡ Don’t let <b>{{count}}</b> $Next tokens slip away, <i>{{firstName}}</i>! <u>Log in</u> and get back to the action! <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+      "🛡️ Protect your rewards, <b>{{firstName}}</b>! <i>{{count}}</i> $Next tokens need your attention. <u>Log in and claim now!</u> <a href='https://t.me/nexabit_tap_bot/start'>Click here</a>",
+      "🌟 Your account is glowing, <u>{{firstName}}</u>! <b>{{count}}</b> $Next tokens are waiting for you. <i>Come back to the app</i>! <a href='https://t.me/nexabit_tap_bot/start'>Rejoin now</a>",
+      "🚨 Attention, <b>{{firstName}}</b>! <i>{{count}}</i> $Next tokens are at risk of expiring. <u>Log in and claim them now</u>! <a href='https://t.me/nexabit_tap_bot/start'>Click here</a>",
+      "🎁 Big rewards await, <u>{{firstName}}</u>! <b>{{count}}</b> $Next tokens are ready for you. <i>Don’t miss out</i>—log in today! <a href='https://t.me/nexabit_tap_bot/start'>Rejoin now</a>",
+      "🕒 Time flies, <b>{{firstName}}</b>! <u>{{count}}</u> $Next tokens are waiting for you. Come back now and claim them! <a href='https://t.me/nexabit_tap_bot/start'>Log in here</a>",
+      "💰 Look what’s waiting for you, <i>{{firstName}}</i>! <b>{{count}}</b> $Next tokens. Claim them now before they vanish! <a href='https://t.me/nexabit_tap_bot/start'>Log in now</a>",
+      "🔥 Back to the game, <b>{{firstName}}</b>! <i>{{count}}</i> $Next tokens are here to power up your journey. <u>Log in now</u> and claim them! <a href='https://t.me/nexabit_tap_bot/start'>Click here</a>",
+      "🎗️ Don’t let <i>{{count}}</i> $Next tokens go unclaimed, <b>{{firstName}}</b>! <u>Log in now</u> and secure your rewards! <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+      "🚨 It’s not too late, <u>{{firstName}}</u>! <b>{{count}}</b> $Next tokens are here waiting for you. <i>Come back and claim them now!</i> <a href='https://t.me/nexabit_tap_bot/start'>Log in now</a>",
+      "🌟 We’ve missed you, <b>{{firstName}}</b>! <u>{{count}}</u> $Next tokens are waiting. Come back and grab them before they expire! <a href='https://t.me/nexabit_tap_bot/start'>Log in</a>",
+      "🎁 Your <u>{{count}}</u> $Next tokens are still unclaimed, <i>{{firstName}}</i>! <b>Don’t miss out</b>—log in and claim them now! <a href='https://t.me/nexabit_tap_bot/start'>Rejoin</a>",
+      "🔥 Time is running out, <b>{{firstName}}</b>! <i>{{count}}</i> $Next tokens are here. <u>Claim them before they vanish!</u> <a href='https://t.me/nexabit_tap_bot/start'>Click here</a>",
+      "✨ Your rewards are growing, <u>{{firstName}}</u>! <b>{{count}}</b> $Next tokens are waiting for you. <i>Don’t let them slip away</i>—log in now! <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+      "📣 Exciting things are happening, <i>{{firstName}}</i>! <b>{{count}}</b> $Next tokens are still unclaimed. <u>Log in</u> to grab them now! <a href='https://t.me/nexabit_tap_bot/start'>Click here</a>",
+      "⏰ Hurry, <u>{{firstName}}</u>! <b>{{count}}</b> $Next tokens are waiting. <i>Claim them now</i> before time runs out! <a href='https://t.me/nexabit_tap_bot/start'>Log in</a>",
+      "💎 Don’t let your rewards go unclaimed, <b>{{firstName}}</b>! <i>{{count}}</i> $Next tokens are waiting for you. <u>Claim them now</u>! <a href='https://t.me/nexabit_tap_bot/start'>Click here</a>",
+      "🚀 It’s time to <b>{{firstName}}</b>, <i>{{count}}</i> $Next tokens are here! <u>Log in</u> and claim your reward today! <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+      "🎉 Time to return, <b>{{firstName}}</b>! <i>{{count}}</i> $Next tokens are waiting. <u>Log in</u> now and claim them! <a href='https://t.me/nexabit_tap_bot/start'>Click here</a>",
+      "⚡ You’ve got rewards waiting, <u>{{firstName}}</u>! <b>{{count}}</b> $Next tokens. <i>Don’t miss them!</i> Log in now! <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+      "🛡️ <b>{{firstName}}</b>, your $Next tokens are still waiting! <i>{{count}}</i> tokens are available. <u>Don’t let them expire</u>—log in now! <a href='https://t.me/nexabit_tap_bot/start'>Claim here</a>",
+      "🌟 Ready for more, <i>{{firstName}}</i>? Your <b>{{count}}</b> $Next tokens are just a click away. <u>Claim now</u> before they’re gone! <a href='https://t.me/nexabit_tap_bot/start'>Log in here</a>",
+      "🚨 Your tokens are waiting, <b>{{firstName}}</b>! <i>{{count}}</i> $Next tokens are still unclaimed. <u>Don’t let them go</u>—log in now! <a href='https://t.me/nexabit_tap_bot/start'>Click here</a>",
+      "🎁 Don’t leave your rewards behind, <i>{{firstName}}</i>! <b>{{count}}</b> $Next tokens are yours to claim. <u>Log in now</u> and grab them! <a href='https://t.me/nexabit_tap_bot/start'>Claim here</a>",
+      "🔥 <b>{{firstName}}</b>, your rewards won’t wait forever! <i>{{count}}</i> $Next tokens are still unclaimed. <u>Log in now</u> to grab them! <a href='https://t.me/nexabit_tap_bot/start'>Click here</a>",
+      "✨ Come back, <i>{{firstName}}</i>! You’ve got <b>{{count}}</b> $Next tokens to claim! <u>Log in</u> now and take them before time runs out! <a href='https://t.me/nexabit_tap_bot/start'>Claim now</a>",
+      "📣 Your tokens are still here, <b>{{firstName}}</b>! <i>{{count}}</i> $Next tokens are waiting for you. <u>Log in now</u> to claim them! <a href='https://t.me/nexabit_tap_bot/start'>Rejoin</a>",
+      "⏰ The countdown is on, <u>{{firstName}}</u>! <b>{{count}}</b> $Next tokens are waiting for you. <i>Don’t miss out!</i> <a href='https://t.me/nexabit_tap_bot/start'>Log in here</a>",
+      "💰 Don’t miss your reward, <b>{{firstName}}</b>! <i>{{count}}</i> $Next tokens are still unclaimed. <u>Come back</u> and claim them! <a href='https://t.me/nexabit_tap_bot/start'>Log in now</a>",
+      "🔥 <u>{{firstName}}</u>, it’s time to come back! You’ve got <b>{{count}}</b> $Next tokens waiting for you. <i>Claim them</i> today! <a href='https://t.me/nexabit_tap_bot/start'>Click here</a>"
+  ];
+
+
+  try {
+    // Fetch all users from Firestore
+    const usersSnapshot = await firestore.collection(collectionName).get();
+    const users = usersSnapshot.docs.map(doc => doc.data());
+
+    // Filter users whose last claim time is more than 48 hours but less than a week ago
+    const usersToNotify = users.filter(user => {
+      const lastClaimTime = user.lastClaimTime;
+      if (!lastClaimTime) {
+        // If there's no lastClaimTime, we can choose to skip the user
+        // or treat it as "never claimed" and consider them for the reminder.
+        return false; // Skip users without lastClaimTime
+      }      
+      const timeSinceLastClaim = currentTime - lastClaimTime;
+      return (
+        // The user can be notified only if the claim button is available again (12 hours passed) + 5 minutes to 5 hours range
+        lastClaimTime &&
+        timeSinceLastClaim > FORTY_EIGHT_HOURS_MS &&
+        timeSinceLastClaim < ONE_WEEK_MS
+      );
+    });
+
+    const batchSize = 30;
+    const delay = 1000;
+
+    // Send messages in batches
+    for (let i = 0; i < usersToNotify.length; i += batchSize) {
+      const batch = usersToNotify.slice(i, i + batchSize);
+
+      await Promise.all(
+        batch.map(async (user) => {
+          try {
+            // Randomly select a message template and personalize it
+            const randomMessage =
+              messageTemplates[Math.floor(Math.random() * messageTemplates.length)];
+            const personalizedMessage = randomMessage
+              .replace('{{firstName}}', user.firstName || 'User')
+              .replace('{{count}}', user.count || 0); // Default to 0 if count is unavailable
+
+            // Send the message
+            await bot.telegram.sendMessage(user.id, personalizedMessage, {
+              reply_markup: JSON.parse(inlineKeyboard),
+              parse_mode: 'HTML',
+            });
+          } catch (err) {
+            console.error(`Failed to send long-unclaimed reminder to ${user.id}:`, err);
+          }
+        })
+      );
+
+      if (i + batchSize < usersToNotify.length) {
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+
+    res.status(200).json({ message: 'Long-unclaimed reminder messages sent successfully' });
+  } catch (error) {
+    console.error('Error sending long-unclaimed reminders:', error);
+    res.status(500).json({ message: 'Error sending long-unclaimed reminders' });
+  }
+});
+
+//message users that didnt claim between 1 week to 30 days
+
+const THIRTY_DAYS_MS = 3600000 * 24 * 30;
+
+app.post('/api/send-unclaimed-reminder4', async (req, res) => {
+  const currentTime = Date.now(); // Get the current time in milliseconds
+
+  // Inline keyboard for messages
+  const inlineKeyboard = JSON.stringify({
+    inline_keyboard: [
+      [{ text: '🚀 Open App', url: 'https://t.me/NexaBit_Tap_bot/start' }],
+      [{ text: '🌐 Join Group', url: 'https://t.me/nexabitHQ' }]
+    ]
+  });
+
+  // Define 50 message templates with feature highlights and engaging content
+  const messageTemplates = [
+      "🚨 <b>{{firstName}}</b>, it's been over a <u>week</u>! <b>{{count}}</b> <a href='https://t.me/nexabit_tap_bot/start'><i>$Next tokens</i></a> are waiting for you. Don't miss out on the <i>new features</i>. Log in now!",
+      "🌟 <b>{{firstName}}</b>, you've been away <i>too long</i>! We’ve introduced <a href='https://t.me/nexabit_tap_bot/start'><u>exciting upgrades</u></a>. Your <b>{{count}} $Next tokens</b> are ready. Check it out!",
+      "🎉 <i>{{firstName}}</i>, we <b>miss you</b>! <a href='https://t.me/nexabit_tap_bot/start'><b><u>{{count}} $Next tokens</u></b></a> are waiting, and so are <i>new features</i>. Rejoin the fun today!",
+      "🔥 Long time no see, <b>{{firstName}}</b>! <i>{{count}} $Next tokens</i> and <u>awesome updates</u> are here. Come back and <a href='https://t.me/nexabit_tap_bot/start'><b>claim your rewards</b></a>!",
+      "✨ <b>{{firstName}}</b>, did you <i>hear</i>? We’ve added thrilling <a href='https://t.me/nexabit_tap_bot/start'>new features</a>. Your <u>{{count}} $Next tokens</u> are <i>calling</i>—log in <b>now</b>!",
+      "💎 <u>{{firstName}}</u>, we’ve saved <a href='https://t.me/nexabit_tap_bot/start'><b>{{count}} $Next tokens</b></a> just for you! Explore the <i>latest updates</i> and claim your reward <b>today</b>.",
+      "⏳ Time flies, <b>{{firstName}}</b>! It’s been over a <u>week</u>. <a href='https://t.me/nexabit_tap_bot/start'><b>{{count}} $Next tokens</b></a> are <i>waiting</i>. Don’t wait—log in now!",
+      "📣 Breaking news, <b>{{firstName}}</b>! We’ve launched <i>amazing updates</i>. Your <a href='https://t.me/nexabit_tap_bot/start'><u>{{count}} $Next tokens</u></a> are ready—log in and <b>explore them</b>.",
+      "🚀 Hey <i>{{firstName}}</i>, it’s <u>reward time</u>! <b>{{count}} $Next tokens</b> and <a href='https://t.me/nexabit_tap_bot/start'><i>exciting features</i></a> await. Don’t miss out!",
+      "💰 <u>{{firstName}}</u>, we’ve made it even better for you! <b>{{count}} $Next tokens</b> and <a href='https://t.me/nexabit_tap_bot/start'><i>new updates</i></a> await. Log in and claim them <b>now</b>.",
+      "🎁 Surprises await, <b>{{firstName}}</b>! <a href='https://t.me/nexabit_tap_bot/start'><i>{{count}} $Next tokens</i></a> and some <u>exciting changes</u> are ready for you. Rejoin now!",
+      "⚡ <b>{{firstName}}</b>, you've got <i>unclaimed rewards</i>! <a href='https://t.me/nexabit_tap_bot/start'><u>{{count}} $Next tokens</u></a> are waiting, along with <b>new challenges</b>. Come back today!",
+      "🕒 Tick-tock, <b>{{firstName}}</b>! It’s been <u>too long</u>. <a href='https://t.me/nexabit_tap_bot/start'><i>{{count}} $Next tokens</i></a> and <b>amazing updates</b> await—log in now.",
+      "🌟 <b>{{firstName}}</b>, we’ve missed you! <a href='https://t.me/nexabit_tap_bot/start'><u>{{count}} $Next tokens</u></a> and <i>exciting features</i> are here for you. Join us again!",
+      "🚨 Don’t miss out, <u>{{firstName}}</u>! We’ve saved <b>{{count}} $Next tokens</b> just for you. Explore the <a href='https://t.me/nexabit_tap_bot/start'><i>new updates</i></a> today!",
+      "🎉 Time to return, <b>{{firstName}}</b>! <a href='https://t.me/nexabit_tap_bot/start'><i>{{count}} $Next tokens</i></a> and <b>thrilling features</b> are ready for you. Log in now!",
+      "🔥 We’re back with <i>new missions</i>, <b>{{firstName}}</b>! <a href='https://t.me/nexabit_tap_bot/start'><u>{{count}} $Next tokens</u></a> and <i>exciting updates</i> await you.",
+      "✨ Your <b>journey</b> continues, <i>{{firstName}}</i>! Claim <a href='https://t.me/nexabit_tap_bot/start'><u>{{count}} $Next tokens</u></a> and discover our <b>latest upgrades</b> today.",
+      "📣 Big news, <b>{{firstName}}</b>! We’ve added <u>exciting new features</u>. <a href='https://t.me/nexabit_tap_bot/start'><i>{{count}} $Next tokens</i></a> are waiting—don’t miss out!",
+      "🚀 <i>{{firstName}}</i>, <b>adventure awaits</b>! Your <a href='https://t.me/nexabit_tap_bot/start'><u>{{count}} $Next tokens</u></a> and <b>new updates</b> are ready. Rejoin us today!",
+      "💎 Long time no see, <b>{{firstName}}</b>! <a href='https://t.me/nexabit_tap_bot/start'><u>{{count}} $Next tokens</u></a> are waiting. We’ve added some <i>incredible updates</i>—log in now!",
+      "⏰ Time to return, <u>{{firstName}}</u>! Your <a href='https://t.me/nexabit_tap_bot/start'><b>{{count}} $Next tokens</b></a> and <i>exciting features</i> are here. Log in today!",
+      "🎁 Did you know, <b>{{firstName}}</b>? We’ve upgraded your experience. <a href='https://t.me/nexabit_tap_bot/start'><u>{{count}} $Next tokens</u></a> are waiting. Claim them now!",
+      "⚡ Don’t let your rewards <b>expire</b>, <u>{{firstName}}</u>! <a href='https://t.me/nexabit_tap_bot/start'><i>{{count}} $Next tokens</i></a> and <b>thrilling new features</b> await you.",
+      "🕒 <b>{{firstName}}</b>, it’s been <i>too long</i>! Rejoin now to claim <a href='https://t.me/nexabit_tap_bot/start'><u>{{count}} $Next tokens</u></a> and explore <b>what’s new</b>.",
+      "🌟 Ready for action, <b>{{firstName}}</b>? <a href='https://t.me/nexabit_tap_bot/start'><i>{{count}} $Next tokens</i></a> and <u>exciting upgrades</u> await. Join us now!",
+      "🚀 Big things are happening, <i>{{firstName}}</i>! <b>{{count}} $Next tokens</b> are ready—log in today and explore the <a href='https://t.me/nexabit_tap_bot/start'><u>upgrades</u></a>.",
+      "💰 Claim your <b>fortune</b>, <i>{{firstName}}</i>! <a href='https://t.me/nexabit_tap_bot/start'><u>{{count}} $Next tokens</u></a> and <b>exciting updates</b> are waiting. Log in now!",
+      "🎉 It’s time, <b>{{firstName}}</b>! Rejoin now to claim <a href='https://t.me/nexabit_tap_bot/start'><i>{{count}} $Next tokens</i></a> and discover <b>what’s new</b>.",
+      "🔥 Don’t miss out, <b>{{firstName}}</b>! <a href='https://t.me/nexabit_tap_bot/start'><i>{{count}} $Next tokens</i></a> and some <b>exciting updates</b> await. Log in today!",
+      "✨ <b>{{firstName}}</b>, we’ve got <i>something special</i> for you! <a href='https://t.me/nexabit_tap_bot/start'><u>{{count}} $Next tokens</u></a> are ready. Explore the <b>new features</b> now!",
+      "⚡ Quick reminder, <u>{{firstName}}</u>: <a href='https://t.me/nexabit_tap_bot/start'><i>{{count}} $Next tokens</i></a> are waiting. Check out the <b>latest upgrades</b> now!",
+      "🎁 Your <b>reward</b> is here, <i>{{firstName}}</i>! <a href='https://t.me/nexabit_tap_bot/start'><u>{{count}} $Next tokens</u></a> await. Log in and discover the <b>new features</b>.",
+      "📣 <b>{{firstName}}</b>, it’s time to claim your <i>$Next tokens</i>! <a href='https://t.me/nexabit_tap_bot/start'><u>{{count}} $Next tokens</u></a> are waiting—don’t wait!",
+      "💎 Come back, <u>{{firstName}}</u>! We've saved your <b>{{count}} $Next tokens</b> and <a href='https://t.me/nexabit_tap_bot/start'>exciting updates</a> are ready. Log in today!",
+      "⏳ Time to <i>reclaim your rewards</i>, <b>{{firstName}}</b>! <a href='https://t.me/nexabit_tap_bot/start'><u>{{count}} $Next tokens</u></a> and <b>new features</b> await!",
+      "🎉 Come see what's new, <b>{{firstName}}</b>! <i>{{count}} $Next tokens</i> and <a href='https://t.me/nexabit_tap_bot/start'><u>exciting upgrades</u></a> are waiting for you.",
+      "🔥 Don’t miss your chance, <b>{{firstName}}</b>! <a href='https://t.me/nexabit_tap_bot/start'><i>{{count}} $Next tokens</i></a> are <b>waiting</b> for you. Log in now!",
+      "✨ It’s time, <b>{{firstName}}</b>! <a href='https://t.me/nexabit_tap_bot/start'>{{count}} $Next tokens</a> await. Come back and explore the <i>new features</i>!"
+  ];
+
+
+
+
+  try {
+    // Fetch all users from Firestore
+    const usersSnapshot = await firestore.collection(collectionName).get();
+    const users = usersSnapshot.docs.map(doc => doc.data());
+
+    // Filter users whose last claim time is more than a week but less than 30 days ago
+    const usersToNotify = users.filter(user => {
+      const lastClaimTime = user.lastClaimTime;
+      if (!lastClaimTime) {
+        // If there's no lastClaimTime, we can choose to skip the user
+        // or treat it as "never claimed" and consider them for the reminder.
+        return true; // add users without lastClaimTime
+      }      
+      const timeSinceLastClaim = currentTime - lastClaimTime;
+      return (
+        lastClaimTime &&
+        timeSinceLastClaim > ONE_WEEK_MS &&
+        timeSinceLastClaim <= THIRTY_DAYS_MS
+      );
+    });
+
+    const batchSize = 30;
+    const delay = 1000;
+
+    // Send messages in batches
+    for (let i = 0; i < usersToNotify.length; i += batchSize) {
+      const batch = usersToNotify.slice(i, i + batchSize);
+
+      await Promise.all(
+        batch.map(async (user) => {
+          try {
+            // Randomly select a message template and personalize it
+            const randomMessage =
+              messageTemplates[Math.floor(Math.random() * messageTemplates.length)];
+            const personalizedMessage = randomMessage
+              .replace('{{firstName}}', user.firstName || 'User')
+              .replace('{{count}}', user.count || 0); // Default to 0 if count is unavailable
+
+            // Send the message
+            await bot.telegram.sendMessage(user.id, personalizedMessage, {
+              reply_markup: JSON.parse(inlineKeyboard),
+              parse_mode: 'HTML',
+            });
+          } catch (err) {
+            console.error(`Failed to send long-unclaimed reminder to ${user.id}:`, err);
+          }
+        })
+      );
+
+      if (i + batchSize < usersToNotify.length) {
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+
+    res.status(200).json({ message: 'Long-unclaimed reminder messages sent successfully' });
+  } catch (error) {
+    console.error('Error sending long-unclaimed reminders:', error);
+    res.status(500).json({ message: 'Error sending long-unclaimed reminders' });
+  }
+});
+
+
+
+//Immediate to 5 hours reminder to claim
+
+const FIVE_MINUTES_MS = 300000;  // 5 minutes in milliseconds
+const FIVE_HOURS_MS = 18000000;  // 5 hours in milliseconds
+
+app.post('/api/send-unclaimed-reminder5', async (req, res) => {
+  const currentTime = Date.now(); // Get the current time in milliseconds
+
+  // Inline keyboard for messages
+  const inlineKeyboard = JSON.stringify({
+    inline_keyboard: [
+      [{ text: '🚀 Open App', url: 'https://t.me/NexaBit_Tap_bot/start' }],
+      [{ text: '🌐 Join Group', url: 'https://t.me/nexabitHQ' }]
+    ]
+  });
+
+  // Define 50 message templates
+  const messageTemplates = [
+    "🎉 <b>{{firstName}}</b>, you have <b>{{count}} $Next tokens</b> available to claim now! Don't miss out on your daily claim—<a href='https://t.me/NexaBit_Tap_bot/start'>Claim Now</a>",
+    "🚨 Hey <b>{{firstName}}</b>, your <i>{{count}} $Next tokens</i> are ready to be claimed today! It's available now, <a href='https://t.me/NexaBit_Tap_bot/start'>claim now</a>!",
+    "⏳ Claim is available now, <i>{{firstName}}</i>! You have <b>{{count}} $Next tokens</b> to claim today. Don’t wait, <a href='https://t.me/NexaBit_Tap_bot/start'>Claim Here</a>!",
+    "🔥 Your <b>{{count}} $Next tokens</b> are available to claim today! Time is ticking, <i>{{firstName}}</i>—<a href='https://t.me/NexaBit_Tap_bot/start'>Claim them now</a>!",
+    "🌐 <i>{{firstName}}</i>, your daily claim is available today! You've got <b>{{count}} $Next tokens</b> to grab. Hurry up! <a href='https://t.me/NexaBit_Tap_bot/start'>Claim Now</a>",
+    "🚀 Don’t miss out, <b>{{firstName}}</b>! You have <i>{{count}} $Next tokens</i> available to claim now. <a href='https://t.me/NexaBit_Tap_bot/start'>Claim them now</a>!",
+    "💎 <b>{{firstName}}</b>, your <i>{{count}} $Next tokens</i> are waiting to be claimed today! Don’t let them slip away. <a href='https://t.me/NexaBit_Tap_bot/start'>Claim Now</a>",
+    "🎁 Claim available now, <i>{{firstName}}</i>! You’ve got <b>{{count}} $Next tokens</b> to grab today. <a href='https://t.me/NexaBit_Tap_bot/start'>Claim them here</a>!",
+    "⚡ Hey <b>{{firstName}}</b>, your <i>{{count}} $Next tokens</i> are available to claim now. Act fast, <a href='https://t.me/NexaBit_Tap_bot/start'>Claim Now</a>!",
+    "🌟 <i>{{firstName}}</i>, your <b>{{count}} $Next tokens</b> are waiting to be claimed! Available now, <a href='https://t.me/NexaBit_Tap_bot/start'>Claim Here</a>!",
+    "⏰ It’s time to claim, <b>{{firstName}}</b>! You’ve got <i>{{count}} $Next tokens</i> to claim today. Hurry before time runs out! <a href='https://t.me/NexaBit_Tap_bot/start'>Claim Now</a>",
+    "🔥 Your <b>{{count}} $Next tokens</b> are available for claim today! Come back and <a href='https://t.me/NexaBit_Tap_bot/start'>claim them now</a>!",
+    "💰 Don't forget, <i>{{firstName}}</i>! You have <b>{{count}} $Next tokens</b> waiting to be claimed today. <a href='https://t.me/NexaBit_Tap_bot/start'>Claim Now</a>",
+    "🎉 Claim available now, <b>{{firstName}}</b>! Your <i>{{count}} $Next tokens</i> are waiting. Don’t miss out! <a href='https://t.me/NexaBit_Tap_bot/start'>Claim Here</a>",
+    "💎 <b>{{firstName}}</b>, your <i>{{count}} $Next tokens</i> are available today! Come and <a href='https://t.me/NexaBit_Tap_bot/start'>claim them</a> now!",
+    "🌟 Your <b>{{count}} $Next tokens</b> are waiting for you, <i>{{firstName}}</i>! Available now, <a href='https://t.me/NexaBit_Tap_bot/start'>Claim Now</a>!",
+    "🎁 <b>{{firstName}}</b>, your daily claim is available today! You’ve got <i>{{count}} $Next tokens</i> ready to claim. <a href='https://t.me/NexaBit_Tap_bot/start'>Claim Now</a>",
+    "⏳ <i>{{firstName}}</i>, don’t miss your <b>{{count}} $Next tokens</b> that are available for claim today! Time is running out, <a href='https://t.me/NexaBit_Tap_bot/start'>Claim them now</a>!",
+    "⚡ Quick reminder, <b>{{firstName}}</b>! Your <i>{{count}} $Next tokens</i> are available for claim today. Don’t wait, <a href='https://t.me/NexaBit_Tap_bot/start'>Claim Now</a>!",
+    "🚀 Your <b>{{count}} $Next tokens</b> are available now to claim, <i>{{firstName}}</i>! <a href='https://t.me/NexaBit_Tap_bot/start'>Claim them now</a>!",
+    "🎉 Don’t forget, <i>{{firstName}}</i>! You’ve got <b>{{count}} $Next tokens</b> waiting to be claimed today. Hurry up and <a href='https://t.me/NexaBit_Tap_bot/start'>Claim Now</a>!",
+    "⏳ You have <b>{{count}} $Next tokens</b> available for claim now, <i>{{firstName}}</i>. Don't wait too long—<a href='https://t.me/NexaBit_Tap_bot/start'>Claim Here</a>!",
+    "🔥 Limited time offer! Your <b>{{count}} $Next tokens</b> are available for claim today, <i>{{firstName}}</i>. Hurry, <a href='https://t.me/NexaBit_Tap_bot/start'>Claim Now</a>!",
+    "🚨 Time is running out! <i>{{firstName}}</i>, <b>{{count}} $Next tokens</b> are available to claim today. Claim them before it's too late! <a href='https://t.me/NexaBit_Tap_bot/start'>Claim Now</a>",
+    "💎 <i>{{firstName}}</i>, your <b>{{count}} $Next tokens</b> are ready to be claimed. Don’t let them go to waste—<a href='https://t.me/NexaBit_Tap_bot/start'>Claim Here</a>!",
+    "⚡ Quick, <b>{{firstName}}</b>! You’ve got <i>{{count}} $Next tokens</i> available now. Don’t wait—<a href='https://t.me/NexaBit_Tap_bot/start'>Claim them now</a>!",
+    "⏰ Reminder: Your <b>{{count}} $Next tokens</b> are available to claim, <i>{{firstName}}</i>! Act now! <a href='https://t.me/NexaBit_Tap_bot/start'>Claim Now</a>",
+    "🎉 Don't miss out on your <b>{{count}} $Next tokens</b>, <i>{{firstName}}</i>! Claim them today <a href='https://t.me/NexaBit_Tap_bot/start'>here</a>!",
+    "🚀 Your <b>{{count}} $Next tokens</b> are waiting, <i>{{firstName}}</i>! Claim them today before time runs out! <a href='https://t.me/NexaBit_Tap_bot/start'>Claim Now</a>",
+    "🌟 You’ve got <b>{{count}} $Next tokens</b> to claim today, <i>{{firstName}}</i>! Don’t wait—<a href='https://t.me/NexaBit_Tap_bot/start'>Claim Now</a>",
+    "🎁 Act fast! Your <b>{{count}} $Next tokens</b> are available now, <i>{{firstName}}</i>—<a href='https://t.me/NexaBit_Tap_bot/start'>Claim them here</a>!",
+    "💰 It’s time to claim, <b>{{firstName}}</b>! Your <i>{{count}} $Next tokens</i> are available. <a href='https://t.me/NexaBit_Tap_bot/start'>Claim Now</a>",
+    "🔥 Time to claim your <b>{{count}} $Next tokens</b>, <i>{{firstName}}</i>! Hurry! <a href='https://t.me/NexaBit_Tap_bot/start'>Claim Now</a>",
+    "🚨 Claim your <b>{{count}} $Next tokens</b>, <i>{{firstName}}</i>! Time is running out! <a href='https://t.me/NexaBit_Tap_bot/start'>Claim Now</a>",
+    "🌐 Your <b>{{count}} $Next tokens</b> are available today, <i>{{firstName}}</i>! Don't miss them. <a href='https://t.me/NexaBit_Tap_bot/start'>Claim Now</a>",
+    "💎 Hey <b>{{firstName}}</b>, your <i>{{count}} $Next tokens</i> are waiting to be claimed! <a href='https://t.me/NexaBit_Tap_bot/start'>Claim Now</a>",
+    "🎉 <i>{{firstName}}</i>, your <b>{{count}} $Next tokens</b> are available to claim! <a href='https://t.me/NexaBit_Tap_bot/start'>Claim Now</a>",
+    "🔥 <b>{{firstName}}</b>, your <i>{{count}} $Next tokens</i> are available for claim today! <a href='https://t.me/NexaBit_Tap_bot/start'>Claim Now</a>",
+    "⚡ Don’t miss your <b>{{count}} $Next tokens</b>, <i>{{firstName}}</i>! <a href='https://t.me/NexaBit_Tap_bot/start'>Claim them now</a>!",
+    "🎁 Your <b>{{count}} $Next tokens</b> are available for you, <i>{{firstName}}</i>! Claim them now. <a href='https://t.me/NexaBit_Tap_bot/start'>Claim Now</a>",
+    "⏳ <b>{{firstName}}</b>, your <i>{{count}} $Next tokens</i> are waiting for you! Claim them before they expire. <a href='https://t.me/NexaBit_Tap_bot/start'>Claim Now</a>",
+    "💰 Don’t wait, <i>{{firstName}}</i>! Claim your <b>{{count}} $Next tokens</b> now—<a href='https://t.me/NexaBit_Tap_bot/start'>Claim Now</a>",
+    "🎉 It’s your time to claim, <i>{{firstName}}</i>! <b>{{count}} $Next tokens</b> available now. <a href='https://t.me/NexaBit_Tap_bot/start'>Claim Now</a>"
+  ];
+
+  try {
+    // Fetch all users from Firestore
+    const usersSnapshot = await firestore.collection(collectionName).get();
+    const users = usersSnapshot.docs.map(doc => doc.data());
+
+    // Filter users whose last claim time is between 5 minutes and 5 hours ago
+    const usersToNotify = users.filter(user => {
+      const lastClaimTime = user.lastClaimTime;
+      if (!lastClaimTime) {
+        return false; // No claim time means user can be notified
+      }
+      const timeSinceLastClaim = currentTime - lastClaimTime;
+      // The user can be notified only if the claim button is available again (12 hours passed) + 5 minutes to 5 hours range
+      return timeSinceLastClaim >= TWELVE_HOURS_MS + FIVE_MINUTES_MS &&
+        timeSinceLastClaim <= TWELVE_HOURS_MS + FIVE_HOURS_MS;
+    });
+
+    const batchSize = 30;
+    const delay = 1000;
+
+    // Send messages in batches
+    for (let i = 0; i < usersToNotify.length; i += batchSize) {
+      const batch = usersToNotify.slice(i, i + batchSize);
+
+      await Promise.all(
+        batch.map(async (user) => {
+          try {
+            // Randomly select a message template and personalize it
+            const randomMessage = messageTemplates[Math.floor(Math.random() * messageTemplates.length)];
+            const personalizedMessage = randomMessage
+              .replace('{{firstName}}', user.firstName || 'User')
+              .replace('{{count}}', user.count || 0); // Default to 0 if count is unavailable
+
+            // Send the message
+            await bot.telegram.sendMessage(user.id, personalizedMessage, {
+              reply_markup: JSON.parse(inlineKeyboard),
+              parse_mode: 'HTML',
+            });
+          } catch (err) {
+            console.error(`Failed to send claim reminder to ${user.id}:`, err);
+          }
+        })
+      );
+
+      if (i + batchSize < usersToNotify.length) {
+        await new Promise(resolve => setTimeout(resolve, delay)); // Wait before sending the next batch
+      }
+    }
+
+    res.status(200).send('Claim reminders sent successfully!');
+  } catch (error) {
+    console.error('Error sending claim reminders:', error);
+    res.status(500).send('Error sending claim reminders.');
+  }
+});
+
+const storage = new Storage();
+const bucketName = 'xrp-token-images';
+const bucket = storage.bucket(bucketName);
+
+app.post('/api/get-upload-url', async (req, res) => {
+    try {
+        const { fileName, contentType } = req.body;
+
+        // Generate a unique filename if a file with the same name exists
+        const file = bucket.file(fileName);
+        const [exists] = await file.exists();
+        let uniqueFileName = fileName;
+
+        if (exists) {
+            const timestamp = Date.now();
+            uniqueFileName = `${timestamp}_${fileName}`;
+        }
+
+        const fileToUpload = bucket.file(uniqueFileName);
+
+        // Generate a signed URL for uploading
+        const [url] = await fileToUpload.getSignedUrl({
+            action: 'write',
+            expires: Date.now() + 15 * 60 * 1000, // 15 minutes
+            contentType,
+        });
+
+        const publicUrl = `https://storage.googleapis.com/${bucketName}/${uniqueFileName}`;
+
+        console.log("Generated Signed URL:", url);
+        console.log("Expected Public URL:", publicUrl);
+
+        res.json({ uploadUrl: url, publicUrl });
+
+    } catch (error) {
+        console.error("Error generating upload URL:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post("/api/store-metadata", async (req, res) => {
+    try {
+        const { tokenName, tokenSymbol, tokenDescription, totalSupply, tokenImage, website, twitter, telegram, issuerData, walletAddress, ISSUER_WALLET } = req.body;
+
+        if (!tokenName || !tokenSymbol) {
+            return res.status(400).json({ error: "Missing required fields" });
+        }
+
+        const metadata = {
+            currency: tokenSymbol,
+            issuer: issuerData.classicAddress,
+            meta: {
+                token: {
+                    name: tokenName,
+                    description: tokenDescription,
+                    icon: tokenImage,
+                    self_assessment: true,
+                    asset_class: "cryptocurrency",
+                    trust_level: 3,
+                    WEBLINKS: [
+                        ...(website ? [{ url: website, type: "info", title: "Official Website" }] : []),
+                        ...(twitter ? [{ url: twitter, type: "socialmedia" }] : []),
+                        ...(telegram ? [{ url: telegram, type: "community" }] : [])
+                    ]
+                },
+                issuer: {
+                    name: "NexaBit Lab",
+                    description: "The AI agent that unites all networks",
+                    domain: "nexabit.xyz",
+                    icon: "https://storage.googleapis.com/xrp-token-images/logo.png",
+                    kyc: true,
+                    trust_level: 3,
+                    issuerData,
+                    security: ISSUER_WALLET,
+                    distributor: walletAddress,
+                    WEBLINKS: [
+                        { url: "https://nexabit.xyz", type: "info", title: "NexaBit Lab" },
+                        { url: "https://x.com/nexabitHQ", type: "socialmedia" },
+                        { url: "https://t.me/nexabitHQ", type: "community" }
+                    ]
+                }
+            },
+            metrics: {
+                trustlines: 0,
+                holders: 0,
+                supply: totalSupply.toString(),
+                marketcap: "0",
+                price: "0",
+                volume_24h: "0",
+                volume_7d: "0",
+                exchanges_24h: "0",
+                exchanges_7d: "0",
+                takers_24h: "0",
+                takers_7d: "0"
+            }
+        };
+
+        // Ensure unique filename
+        let fileName = `${tokenSymbol.toLowerCase()}_metadata.json`;
+        let file = bucket.file(fileName);
+        const [exists] = await file.exists();
+        if (exists) {
+            let timestamp = Date.now();
+            fileName = `${tokenSymbol.toLowerCase()}_${timestamp}_metadata.json`;
+            file = bucket.file(fileName);
+        }
+        await file.save(JSON.stringify(metadata, null, 2), { contentType: "application/json" });
+        const publicUrl = `https://nexabit.xyz/${fileName}`;
+
+        // Retrieve existing .toml data
+        const tomlFile = bucket.file(".well-known/xrp-ledger.toml");
+        let tomlData = { ISSUERS: [], TOKENS: [] };
+
+        try {
+            const [tomlExists] = await tomlFile.exists();
+            if (tomlExists) {
+                const [contents] = await tomlFile.download();
+                tomlData = toml.parse(contents.toString());
+
+                console.log("Existing TOML data:", JSON.stringify(tomlData, null, 2));
+
+                if (!Array.isArray(tomlData.TOKENS)) {
+                    console.warn("TOKENS section is missing or invalid. Initializing as an empty array.");
+                    tomlData.TOKENS = [];
+                }
+            }
+        } catch (err) {
+            console.warn("No existing .toml file found, creating a new one.");
+        }
+
+        // Ensure issuer exists
+        let issuerEntry = tomlData.ISSUERS.find(acc => acc.address === issuerData.classicAddress);
+
+        if (!issuerEntry) {
+            issuerEntry = {
+                address: issuerData.classicAddress,
+                name: "NexaBit Lab",
+                description: "The AI agent that unites all networks",
+                icon: "https://storage.googleapis.com/xrp-token-images/logo.png",
+                WEBLINKS: [
+                    { url: "https://nexabit.xyz", type: "info", title: "NexaBit Lab" },
+                    { url: "https://x.com/nexabitHQ", type: "socialmedia" },
+                    { url: "https://t.me/nexabitHQ", type: "community" }
+                ]
+            };
+            tomlData.ISSUERS.push(issuerEntry);
+        }
+
+        // Add token entry
+        tomlData.TOKENS.push({
+            currency: metadata.currency,
+            issuer: issuerData.classicAddress,
+            name: metadata.meta.token.name,
+            desc: metadata.meta.token.description,
+            icon: metadata.meta.token.icon,
+            asset_class: "cryptocurrency",
+            WEBLINKS: metadata.meta.token.WEBLINKS
+        });
+
+        console.log("Updated TOKENS section:", JSON.stringify(tomlData.TOKENS, null, 2));
+
+        // Convert JSON to TOML and save
+        const newTomlContent = tomlify.toToml(tomlData, { space: 2 });
+        console.log("Final TOML content:\n", newTomlContent);
+        await tomlFile.save(newTomlContent, { contentType: "text/plain" });
+
+        res.json({ 
+            message: "Metadata stored successfully", 
+            metadataUrl: publicUrl, 
+            tomlData,
+            debugLogs: {
+                generatedMetadata: metadata,
+                updatedTokens: tomlData.TOKENS,
+                finalTomlContent: newTomlContent
+            }
+        });
+    } catch (error) {
+        console.error("Error storing metadata:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+
+async function getSecret(secretName) {
+    const [version] = await secretClient.accessSecretVersion({
+        name: `projects/${PROJECT_ID}/secrets/${secretName}/versions/latest`,
+    });
+    return version.payload.data.toString("utf8");
+}
+
+function decryptSeed(encryptedSeed, encryptionKey) {
+    const iv = Buffer.from(encryptedSeed.slice(0, 32), "hex");
+    const encryptedText = Buffer.from(encryptedSeed.slice(32), "hex");
+    const decipher = crypto.createDecipheriv(ALGORITHM, Buffer.from(encryptionKey, "hex"), iv);
+    let decrypted = decipher.update(encryptedText);
+    decrypted = Buffer.concat([decrypted, decipher.final()]);
+    return decrypted.toString();
+}
+
+app.post("/sign-transaction", async (req, res) => {
+    try {
+        const { destination } = req.body;
+
+        if (!destination) {
+            return res.status(400).json({ success: false, error: "Destination address is required." });
+        }
+
+        // Retrieve and decrypt the fee wallet seed
+        const encryptedSeed = await getSecret("FEE_ACCOUNT_ENCRYPTED_SEED");
+        const encryptionKey = await getSecret("ENCRYPTION__KEY");
+        let feeWalletSeed = decryptSeed(encryptedSeed, encryptionKey);
+
+        const feeWallet = xrpl.Wallet.fromSeed(feeWalletSeed);
+        feeWalletSeed = null; // Clear from memory
+
+        const TRANSFER_AMOUNT = "1200000"; // 1.2 XRP in drops
+
+        const transferTx = {
+            TransactionType: "Payment",
+            Account: feeWallet.classicAddress,
+            Destination: destination,
+            Amount: TRANSFER_AMOUNT,
+            Flags: 2147483648,
+        };
+
+        const client = new xrpl.Client("wss://s.altnet.rippletest.net:51233");
+        await client.connect();
+        const signedTx = await client.submitAndWait(transferTx, { wallet: feeWallet });
+        client.disconnect();
+
+        res.json({
+            success: true,
+            tx: signedTx,
+            feeWalletAddress: feeWallet.classicAddress,
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+
+
 
 
 

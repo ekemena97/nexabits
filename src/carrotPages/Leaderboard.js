@@ -4,7 +4,6 @@ import './Leaderboard.css';
 import gold from '../assets/gold.png';
 import silver from '../assets/silver.png';
 import bronze from '../assets/bronze.png';
-import bgMain from '../assets/bg-main.png'; // Import the background image
 
 const Leaderboard = () => {
   const { leaderboardReferralUsers, leaderboardContentCreatorUsers } = useContext(LeaderboardContext);
@@ -95,14 +94,7 @@ const Leaderboard = () => {
   }, []);
 
   return (
-    <div className="leaderboard"
-      style={{
-        backgroundImage: `url(${bgMain})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        minHeight: '100vh',
-      }}
+    <div className="leaderboard font-inter"
     >
       <div className="scroll-progress" style={{ width: `${scrollProgress}%` }} />
       <div className="contest-announcement">
